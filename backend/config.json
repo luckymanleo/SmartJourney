@@ -1,0 +1,49 @@
+{
+  "mcp": {
+    "remote": {
+      "fliggy_travel": "https://mcp.api-inference.modelscope.net/a707bb3ce4f04a/mcp"
+    }
+  },
+  "cors": {
+    "debug_origins": [
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
+      "http://localhost:3000",
+      "http://localhost:8000",
+      "http://localhost"
+    ]
+  },
+  "popular_destinations": [
+    {"name": "三亚", "image": "🏖️", "description": "热带海滨度假天堂", "best_season": "11月-次年4月", "tags": ["海滩", "潜水", "海鲜"]},
+    {"name": "成都", "image": "🐼", "description": "美食之都，熊猫故乡", "best_season": "3月-6月, 9月-11月", "tags": ["美食", "大熊猫", "古蜀文化"]},
+    {"name": "西安", "image": "🏯", "description": "十三朝古都，丝路起点", "best_season": "3月-5月, 9月-11月", "tags": ["兵马俑", "古城墙", "面食"]},
+    {"name": "杭州", "image": "🌊", "description": "人间天堂，西湖美景", "best_season": "3月-5月, 9月-11月", "tags": ["西湖", "龙井茶", "江南水乡"]},
+    {"name": "大理", "image": "🏔️", "description": "风花雪月，苍山洱海", "best_season": "3月-5月, 9月-11月", "tags": ["洱海", "古城", "白族文化"]},
+    {"name": "厦门", "image": "🌺", "description": "海上花园，文艺小城", "best_season": "3月-5月, 10月-12月", "tags": ["鼓浪屿", "环岛路", "沙茶面"]},
+    {"name": "张家界", "image": "⛰️", "description": "奇峰三千，阿凡达取景地", "best_season": "4月-10月", "tags": ["国家森林公园", "玻璃栈道", "天门山"]},
+    {"name": "桂林", "image": "🏞️", "description": "桂林山水甲天下", "best_season": "4月-10月", "tags": ["漓江", "阳朔", "喀斯特"]},
+    {"name": "丽江", "image": "🏘️", "description": "世界文化遗产古城", "best_season": "4月-10月", "tags": ["古城", "玉龙雪山", "纳西文化"]},
+    {"name": "重庆", "image": "🌆", "description": "8D魔幻山城，火锅之都", "best_season": "3月-5月, 9月-11月", "tags": ["火锅", "洪崖洞", "轻轨穿楼"]}
+  ],
+  "route_strategies": [
+    {
+      "tag": "经济实惠",
+      "emphasis": "你是一个预算优先的旅行规划师。核心原则：\n1. 优先选择最低价航班/火车（经济舱/二等座）\n2. 住宿选择经济型酒店或青旅（每晚不超过150元/人）\n3. 景点优先免费或低价门票的\n4. 餐饮选择当地小吃、路边摊（人均不超过30元/餐）\n5. 市内交通优先公交/地铁，避免打车\n6. 总预算控制在用户预算的80%以内，留出余量"
+    },
+    {
+      "tag": "舒适优先",
+      "emphasis": "你是一个品质优先的旅行规划师。核心原则：\n1. 优先选择直飞航班或高铁一等座，减少旅途疲劳\n2. 住宿选择4星及以上酒店（每晚300-600元），优先靠近景区或市中心\n3. 景点选择评分高、体验好的（即使票价较高），含VIP/免排队服务\n4. 餐饮选择当地口碑餐厅（人均80-150元/餐）\n5. 市内交通优先专车/网约车，减少步行和等待\n6. 行程节奏宽松，每天安排2-3个核心项目，预留充足休息时间"
+    },
+    {
+      "tag": "最快到达",
+      "emphasis": "你是一个效率优先的旅行规划师。核心原则：\n1. 选择总耗时最短的交通组合（首选直飞，其次高铁）\n2. 景点安排紧凑高效，优先距离近、游览时间短的核心景点\n3. 减少换乘和等待时间，交通衔接紧密（预留30分钟缓冲）\n4. 住宿选择交通枢纽附近（机场/高铁站3公里内），快捷酒店即可\n5. 餐饮选择快餐或便当，不专门绕路用餐\n6. 如果当天往返可行，不安排住宿，最大化游玩时间"
+    }
+  ],
+  "features": {
+    "trip_expiry_interval_seconds": 1800,
+    "mcp_tool_timeout_seconds": 90,
+    "max_route_count": 3,
+    "max_tool_calls_per_plan": 6,
+    "max_plan_iterations": 2
+  }
+}

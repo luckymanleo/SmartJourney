@@ -1,0 +1,41 @@
+# SmartJourney Backend Dependencies
+# Python 3.11+
+
+# Web Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+sse-starlette==2.2.1
+
+# Database
+sqlalchemy[asyncio]==2.0.36
+asyncpg==0.30.0
+alembic==1.14.1
+psycopg2-binary==2.9.10
+
+# Cache
+redis==5.2.1
+
+# Validation
+pydantic==2.10.3
+pydantic-settings==2.7.1
+
+# Auth
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# HTTP Client
+httpx==0.28.1
+
+# MCP Client
+mcp==1.8.1
+
+# MCP Travel Tools (Phase 1 core)
+mcp-fliggy-travel==0.1.1
+mcp-meituan-travel==1.0.1
+mcp-hotel-smart==2.0.3
+mcp-domestic-flight==1.0.1
+mcp-travel-smart-plan==2.1.0
+
+# Utilities
+python-multipart==0.0.19
+python-dotenv==1.0.1

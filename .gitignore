@@ -1,0 +1,42 @@
+# SmartJourney .gitignore
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment
+.env
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+Zone.Identifier
+
+# Logs
+*.log
+
+# Python
+*.egg-info/
+.pytest_cache/
+
+# TypeScript
+*.tsbuildinfo
+
+# Understand-anything (regenerated on demand)
+.understand-anything/
+
+# Local config
+config.local.json
