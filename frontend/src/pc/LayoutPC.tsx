@@ -105,12 +105,12 @@ export default function LayoutPC() {
     <div className="h-screen flex overflow-hidden">
       {/* Sidebar */}
       <aside className="flex-shrink-0 flex flex-col bg-white border-r border-gray-200" style={{width: 'clamp(200px, 20%, 320px)'}}>
-        <div className="px-5 py-4 border-b border-gray-100">
-          <div className="flex items-center gap-2.5">
-            <span className="text-xl">🌍</span>
+        <div className="px-5 py-5 border-b-2 border-primary-100 bg-gradient-to-r from-primary-50/50 to-white">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🌍</span>
             <div>
-              <h1 className="text-sm font-bold text-gray-800 leading-tight">智旅</h1>
-              <p className="text-[10px] text-gray-400 leading-tight">SmartJourney</p>
+              <h1 className="text-base font-bold text-primary-700 leading-tight">智旅</h1>
+              <p className="text-xs text-primary-400 font-medium leading-tight tracking-wide">SmartJourney</p>
             </div>
           </div>
         </div>

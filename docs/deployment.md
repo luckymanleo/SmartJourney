@@ -1,4 +1,4 @@
-# SmartJourney（智程）部署文档
+# SmartJourney（智旅）部署文档
 
 > 版本：v1.0 | 日期：2026-05-31
 

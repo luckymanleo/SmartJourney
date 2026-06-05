@@ -146,7 +146,8 @@ export function parseTripQuery(input: string): ParsedTrip {
         break
       }
     }
-    cleanText = cleanText.replace(/^\d+\s*人/, '')
+    cleanText = cleanText.replace(/^\\d+\\s*人/, '')
+    cleanText = cleanText.trim()
     cleanText = cleanText.replace(/(游|美食|文化|古城|之旅)$/, '')
     const cityMatch = cleanText.match(/^[\u4e00-\u9fa5]{2,3}/)
     if (cityMatch) {

@@ -21,7 +21,7 @@ export default function SearchBar() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="想去哪里？试试说「三亚5天亲子游」"
+          placeholder="想去哪里？试试说「北京到三亚5天亲子游 预算6000」"
           className="flex-1 bg-transparent outline-none text-gray-700 placeholder-gray-400 text-sm"
         />
       </div>

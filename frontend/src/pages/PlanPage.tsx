@@ -11,7 +11,7 @@ export default function PlanPage() {
   const [searchParams] = useSearchParams()
   const initialQuery = searchParams.get('q') || ''
 
-  const [query, setQuery] = useState(initialQuery)
+  const [query, setQuery] = useState('')
   const [origin, setOrigin] = useState('')
   const [destination, setDestination] = useState('')
   const [startDate, setStartDate] = useState('')
@@ -30,7 +30,6 @@ export default function PlanPage() {
       // 新查询进入时，清除上一次的规划结果，回到表单页面
       usePlanStore.setState({ tripData: null, tripRoutes: [], steps: [] })
       const parsed = parseTripQuery(initialQuery)
-      setQuery(initialQuery)
       setOrigin(parsed.origin)
       if (parsed.destination) setDestination(parsed.destination)
       if (parsed.travelers) setTravelers(parsed.travelers)
@@ -264,7 +263,7 @@ export default function PlanPage() {
               setEndDate(parsed.endDate || '')
               if (!e.target.value.trim()) setUserEditedTravelers(false)
             }}
-            placeholder="例如：带家人三亚5天亲子游，预算1万，想去海边和热带雨林"
+            placeholder="例如：北京出发三亚5天亲子游，预算1万，想去海边和热带雨林"
             rows={3}
             className={`w-full border rounded-xl px-4 py-3 text-sm outline-none focus:border-primary-400 resize-none ${fieldErrors.query ? 'border-red-300 bg-red-50' : 'border-gray-200'}`}
           />

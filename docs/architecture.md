@@ -10,6 +10,7 @@
 | 后端 | FastAPI (Python 3.11) + SQLAlchemy 2.0 async + PostgreSQL |
 | 数据库 | PostgreSQL 16 + asyncpg |
 | 缓存 | Redis 7 |
+| 短信 | 阿里云 Dypnsapi（号码认证），支持 mock 模式 |
 | AI | DeepSeek v4 (via OpenAI-compatible API) |
 | 外部数据 | ModelScope MCP (FliggyTravel 飞猪旅行, Meituan 美团) |
 | 天气 | 高德 AMAP API |

@@ -18,7 +18,7 @@ export default function PlanPagePC() {
   const [searchParams] = useSearchParams()
   const initialQuery = searchParams.get('q') || ''
 
-  const [query, setQuery] = useState(initialQuery)
+  const [query, setQuery] = useState('')
   const [origin, setOrigin] = useState('')
   const [destination, setDestination] = useState('')
   const [startDate, setStartDate] = useState('')
@@ -35,7 +35,7 @@ export default function PlanPagePC() {
     if (initialQuery) {
       usePlanStore.setState({ tripData: null, tripRoutes: [], steps: [] })
       const p = parseTripQuery(initialQuery)
-      setQuery(initialQuery); setOrigin(p.origin)
+      setOrigin(p.origin)
       if (p.destination) setDestination(p.destination)
       if (p.travelers) setTravelers(p.travelers)
       if (p.budget) setBudget(String(p.budget))
@@ -90,7 +90,7 @@ export default function PlanPagePC() {
         <label className="text-sm font-medium text-gray-600 mb-2 block">出行需求</label>
         <textarea value={query}
           onChange={e => { setQuery(e.target.value); const p = parseTripQuery(e.target.value); setOrigin(p.origin || ''); setDestination(p.destination || ''); setTravelers(p.travelers || ''); setBudget(p.budget ? String(p.budget) : ''); setStartDate(p.startDate || ''); setEndDate(p.endDate || ''); if (!e.target.value.trim()) setUserEditedTravelers(false) }}
-          placeholder="例如：带家人三亚5天亲子游，预算1万" rows={3} className={inputCls('query') + ' resize-none'} />
+          placeholder="例如：北京出发三亚5天亲子游，预算1万" rows={3} className={inputCls('query') + ' resize-none'} />
         {fieldErrors.query && <p className="text-red-500 text-xs mt-1">{fieldErrors.query}</p>}
       </div>
       <div className="grid grid-cols-2 gap-3">

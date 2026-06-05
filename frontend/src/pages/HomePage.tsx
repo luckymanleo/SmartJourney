@@ -121,7 +121,7 @@ export default function HomePage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="想去哪里？试试说「三亚5天亲子游」"
+            placeholder="想去哪里？试试说「北京到三亚5天亲子游 预算6000」"
             className="flex-1 bg-transparent outline-none text-gray-700 placeholder-gray-400 text-sm"
           />
         </div>
@@ -163,7 +163,7 @@ export default function HomePage() {
             popularDestinations.map((dest) => (
               <button
                 key={dest.name}
-                onClick={() => navigate(`/plan?q=${dest.name}3天游`)}
+                onClick={() => navigate(`/plan?q=${dest.name}`)}
                 className="flex-shrink-0 bg-white border border-gray-100 rounded-full px-4 py-2 text-sm text-gray-700 hover:border-primary-300 hover:text-primary-600 transition-colors"
                 title={dest.description}
               >
@@ -175,7 +175,7 @@ export default function HomePage() {
             ['三亚', '成都', '西安', '杭州', '大理', '厦门'].map((city) => (
               <button
                 key={city}
-                onClick={() => navigate(`/plan?q=${city}3天游`)}
+                onClick={() => navigate(`/plan?q=${city}`)}
                 className="flex-shrink-0 bg-white border border-gray-100 rounded-full px-4 py-2 text-sm text-gray-700 hover:border-primary-300 hover:text-primary-600 transition-colors"
               >
                 {city}

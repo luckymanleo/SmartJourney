@@ -108,6 +108,33 @@ export default function TripDetailPagePC() {
 
         {/* Right: Info panels */}
         <div className="flex-1 min-w-0 overflow-y-auto space-y-5">
+          {/* Weather */}
+          {(weatherParts.length > 0 || currentTrip.weather_info) && (
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h3 className="text-base font-semibold text-gray-700 mb-3">🌤️ 天气</h3>
+              {weatherParts.length > 0 ? (
+                <div className="space-y-3">
+                  {weatherParts.map((wp, i) => {
+                    const isOrigin = wp.city === originCity
+                    const isDest = wp.city === currentTrip.destination
+                    return (
+                      <div key={i} className={i > 0 ? 'pt-3 border-t border-gray-100' : ''}>
+                        <div className="text-[12px] font-semibold text-gray-700 mb-1">
+                          {wp.city}
+                          {isOrigin && <span className="text-gray-400 font-normal ml-1">出发地</span>}
+                          {isDest && <span className="text-gray-400 font-normal ml-1">目的地</span>}
+                        </div>
+                        <div className="text-[12px] text-gray-500 leading-relaxed whitespace-pre-line">{wp.data}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="text-sm text-gray-600 whitespace-pre-line leading-relaxed">{currentTrip.weather_info}</div>
+              )}
+            </div>
+          )}
+
           {/* Trip Info */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h3 className="text-base font-semibold text-gray-700 mb-4">行程信息</h3>
@@ -142,33 +169,6 @@ export default function TripDetailPagePC() {
               )}
             </div>
           </div>
-
-          {/* Weather */}
-          {(weatherParts.length > 0 || currentTrip.weather_info) && (
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="text-base font-semibold text-gray-700 mb-3">🌤️ 天气</h3>
-              {weatherParts.length > 0 ? (
-                <div className="space-y-3">
-                  {weatherParts.map((wp, i) => {
-                    const isOrigin = wp.city === originCity
-                    const isDest = wp.city === currentTrip.destination
-                    return (
-                      <div key={i} className={i > 0 ? 'pt-3 border-t border-gray-100' : ''}>
-                        <div className="text-[12px] font-semibold text-gray-700 mb-1">
-                          {wp.city}
-                          {isOrigin && <span className="text-gray-400 font-normal ml-1">出发地</span>}
-                          {isDest && <span className="text-gray-400 font-normal ml-1">目的地</span>}
-                        </div>
-                        <div className="text-[12px] text-gray-500 leading-relaxed whitespace-pre-line">{wp.data}</div>
-                      </div>
-                    )
-                  })}
-                </div>
-              ) : (
-                <div className="text-sm text-gray-600 whitespace-pre-line leading-relaxed">{currentTrip.weather_info}</div>
-              )}
-            </div>
-          )}
 
           {/* Budget */}
           {budget && <BudgetPanel budget={budget} />}

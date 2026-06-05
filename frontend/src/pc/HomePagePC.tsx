@@ -95,7 +95,7 @@ export default function HomePagePC() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAIPlan()}
-              placeholder="想去哪里？试试说「三亚5天亲子游」"
+              placeholder="想去哪里？试试说「北京到三亚5天亲子游 预算6000」"
               className="flex-1 bg-transparent py-3 outline-none text-gray-700 placeholder-gray-400 text-sm"
             />
           </div>
@@ -135,7 +135,7 @@ export default function HomePagePC() {
         {popularDestinations.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
             {popularDestinations.map((dest) => (
-              <button key={dest.name} onClick={() => navigate(`/plan?q=${dest.name}3天游`)}
+              <button key={dest.name} onClick={() => navigate(`/plan?q=${dest.name}`)}
                 className="bg-white border border-gray-200 rounded-xl p-4 text-left hover:border-primary-300 hover:shadow-md transition-all group overflow-hidden">
                 <div className="flex items-start justify-between mb-2">
                   <span className="text-2xl">{dest.image}</span>
@@ -153,7 +153,7 @@ export default function HomePagePC() {
         ) : (
           <div className="flex flex-wrap gap-2">
             {fallbackCities.map((city) => (
-              <button key={city} onClick={() => navigate(`/plan?q=${city}3天游`)}
+              <button key={city} onClick={() => navigate(`/plan?q=${city}`)}
                 className="bg-white border border-gray-200 rounded-full px-5 py-2.5 text-sm text-gray-700 hover:border-primary-300 hover:text-primary-600 hover:shadow-sm transition-all">
                 {city}
               </button>
