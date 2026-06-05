@@ -1,5 +1,7 @@
 """认证 API"""
 
+import json
+from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -88,6 +90,35 @@ async def get_me(user: UserResponse = Depends(get_current_user)):
     }
 
 
+# ==================== 敏感词过滤 ====================
+
+_SENSITIVE_FILE = Path(__file__).resolve().parent.parent.parent / "sensitive_words.json"
+
+def _load_sensitive_words() -> list[str]:
+    """从配置文件加载敏感词列表"""
+    try:
+        with open(_SENSITIVE_FILE, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+_SENSITIVE_WORDS: list[str] = []
+
+
+def _validate_nickname(name: str) -> str | None:
+    """校验昵称，合法返回 None，不合法返回错误消息"""
+    global _SENSITIVE_WORDS
+    if not _SENSITIVE_WORDS:
+        _SENSITIVE_WORDS = _load_sensitive_words()
+    if len(name) < 2 or len(name) > 20:
+        return "昵称需在 2-20 个字符之间"
+    lower = name.lower()
+    for w in _SENSITIVE_WORDS:
+        if w.lower() in lower:
+            return "昵称包含敏感词"
+    return None
+
+
 @router.put("/profile")
 async def update_profile(
     req: ProfileUpdateRequest,
@@ -95,6 +126,9 @@ async def update_profile(
     db: AsyncSession = Depends(get_db),
 ):
     if req.nickname is not None:
+        err = _validate_nickname(req.nickname)
+        if err:
+            raise HTTPException(status_code=400, detail=err)
         user.nickname = req.nickname
     if req.avatar_url is not None:
         user.avatar_url = req.avatar_url

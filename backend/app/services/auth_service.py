@@ -37,20 +37,19 @@ async def send_verify_code(phone: str, platform: str = "mobile") -> tuple[bool, 
         (success, message, debug_info)
         debug_info: mock=验证码, aliyun=OutId, 失败=None
     """
-    # 频率限制：每平台 60 秒内只能发一次
+    # Mock 模式：固定验证码 9999，不限频，方便开发调试
+    if settings.sms_provider == "mock":
+        code = "9999"
+        code_key = f"sms_code:{platform}:{phone}"
+        await redis_client.setex(code_key, 300, code)
+        logger.info(f"[MOCK SMS] 手机号 {phone} 验证码: {code}")
+        return True, "验证码已发送", code
+
+    # 频率限制：每平台 60 秒内只能发一次（仅正式 SMS 提供商）
     rate_key = f"sms_rate:{platform}:{phone}"
     if await redis_client.exists(rate_key):
         ttl = await redis_client.ttl(rate_key)
         return False, f"请 {ttl} 秒后再试", None
-
-    # Mock 模式：生成验证码 + 存储
-    if settings.sms_provider == "mock":
-        code = _generate_code()
-        code_key = f"sms_code:{platform}:{phone}"
-        await redis_client.setex(code_key, 300, code)
-        await redis_client.setex(rate_key, 60, "1")
-        logger.info(f"[MOCK SMS] 手机号 {phone} 验证码: {code}")
-        return True, "验证码已发送", code if settings.debug else None
 
     # Aliyun Dypnsapi：系统自动生成验证码，用 OutId 关联
     if settings.sms_provider == "aliyun":
@@ -140,7 +139,7 @@ async def get_or_create_user(db: AsyncSession, phone: str) -> tuple[User, bool]:
         user.updated_at = datetime.utcnow()
         return user, False
 
-    user = User(phone=phone)
+    user = User(phone=phone, nickname=f"旅行者_{phone[-4:]}")
     db.add(user)
     await db.flush()
     return user, True

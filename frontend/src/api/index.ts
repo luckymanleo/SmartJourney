@@ -7,6 +7,7 @@ const P = typeof window !== 'undefined' && window.location.pathname.startsWith('
 export const sendCode = (phone: string) => api.post('/auth/send-code', { phone, platform: P })
 export const login = (phone: string, code: string) => api.post('/auth/login', { phone, code, platform: P })
 export const getMe = () => api.get('/auth/me')
+export const updateProfile = (data: { nickname?: string; avatar_url?: string }) => api.put('/auth/profile', data)
 
 // Search
 export const searchFlights = (params: Record<string, any>) => api.get('/search/flights', { params })

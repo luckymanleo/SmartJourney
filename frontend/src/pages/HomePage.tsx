@@ -53,9 +53,10 @@ export default function HomePage() {
     if (!/^1\d{10}$/.test(phone)) { setError('请输入正确的11位手机号'); return }
     setLoading(true); setError('')
     try {
-      await sendCode(phone)
+      const res = await sendCode(phone)
       setStep('code')
-      startCountdown()
+      // mock 模式返回验证码 → 不限频，不启动倒计时
+      if (!res.data?.data?.code) startCountdown()
     } catch (e: any) {
       setError(e.response?.data?.detail || '发送失败，请稍后再试')
     } finally { setLoading(false) }
@@ -213,7 +214,7 @@ export default function HomePage() {
               <div className="text-sm text-gray-600 mb-2">验证码已发送至 <span className="font-medium text-gray-800">{phone}</span></div>
               <label className="text-xs text-gray-500 mb-1 block">验证码</label>
               <input type="text" value={code} onChange={(e) => { setCode(e.target.value); setError('') }}
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin()} placeholder="请输入6位验证码"
+                onKeyDown={(e) => e.key === 'Enter' && handleLogin()} placeholder="请输入验证码"
                 maxLength={6} autoFocus
                 className="w-full border border-gray-200 rounded-lg px-4 py-3 mb-1 text-sm outline-none focus:border-primary-400 tracking-[0.3em] text-center text-lg font-bold" />
               <button onClick={handleLogin} disabled={loading || code.length < 4}

@@ -56,9 +56,12 @@ export const useAuthStore = create<AuthStore>((set) => ({
       const { getMe } = await import('../api')
       const res = await getMe()
       set({ token, user: res.data.data })
-    } catch {
-      removeToken()
-      set({ token: null, user: null })
+    } catch (e: any) {
+      // 401 → token 过期，清除；其他错误 → 保留 token 等重试
+      if (e?.response?.status === 401) {
+        removeToken()
+        set({ token: null, user: null })
+      }
     }
   },
 
