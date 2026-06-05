@@ -7,50 +7,73 @@ interface User {
   avatar_url: string | null
 }
 
+// 平台检测 + 独立存储 key
+const IS_PC = typeof window !== 'undefined' && window.location.pathname.startsWith('/pc.html')
+const TOKEN_KEY = IS_PC ? 'sj_pc_token' : 'sj_token'
+
+function getToken(): string | null {
+  try { return localStorage.getItem(TOKEN_KEY) } catch { return null }
+}
+function setToken(v: string) {
+  try { localStorage.setItem(TOKEN_KEY, v) } catch {}
+}
+function removeToken() {
+  try { localStorage.removeItem(TOKEN_KEY) } catch {}
+}
+
 interface AuthStore {
   user: User | null
   token: string | null
   _logoutTriggered?: boolean
+  showLogin: boolean
+  pendingPath: string | null
   login: (phone: string, code: string) => Promise<void>
   restore: () => Promise<void>
   logout: () => void
   loadFromStorage: () => void
+  openLogin: (path?: string | null) => void
+  closeLogin: () => void
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
-  token: localStorage.getItem('sj_token'),
+  token: getToken(),
+  showLogin: false,
+  pendingPath: null,
 
   login: async (phone, code) => {
     const { login } = await import('../api')
     const res = await login(phone, code)
     const { access_token, user } = res.data.data
-    localStorage.setItem('sj_token', access_token)
+    setToken(access_token)
     set({ token: access_token, user })
   },
 
   restore: async () => {
-    const token = localStorage.getItem('sj_token')
+    const token = getToken()
     if (!token) return
     try {
       const { getMe } = await import('../api')
       const res = await getMe()
       set({ token, user: res.data.data })
     } catch {
-      // token 过期，清除
-      localStorage.removeItem('sj_token')
+      removeToken()
       set({ token: null, user: null })
     }
   },
 
   logout: () => {
-    localStorage.removeItem('sj_token')
-    set({ token: null, user: null })
-    window.location.href = '/'
+    removeToken()
+    set({ token: null, user: null, showLogin: false, pendingPath: null })
+    const base = IS_PC ? '/pc.html' : '/'
+    window.location.href = base
   },
 
   loadFromStorage: () => {
-    const token = localStorage.getItem('sj_token')
+    const token = getToken()
     if (token) set({ token })
   },
+
+  openLogin: (path) => set({ showLogin: true, pendingPath: path ?? null }),
+  closeLogin: () => set({ showLogin: false, pendingPath: null }),
 }))

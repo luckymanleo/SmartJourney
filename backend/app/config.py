@@ -54,6 +54,7 @@ class Settings(BaseSettings):
     sms_access_key_secret: str = ""
     sms_sign_name: str = "智旅"
     sms_template_code: str = ""
+    sms_region: str = "cn-shenzhen"  # 阿里云短信服务区域
 
     # ---- CORS ----
     cors_origins: str = "http://localhost:5173,http://localhost:3000,http://localhost"

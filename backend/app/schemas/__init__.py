@@ -9,11 +9,13 @@ from pydantic import BaseModel, Field
 
 class SendCodeRequest(BaseModel):
     phone: str = Field(..., pattern=r"^1[3-9]\d{9}$", description="手机号")
+    platform: str = Field(default="mobile", description="平台标识: pc / mobile")
 
 
 class LoginRequest(BaseModel):
     phone: str = Field(..., pattern=r"^1[3-9]\d{9}$")
     code: str = Field(..., min_length=4, max_length=6)
+    platform: str = Field(default="mobile", description="平台标识: pc / mobile")
 
 
 class UserResponse(BaseModel):

@@ -1,7 +1,8 @@
-import { Outlet, NavLink, useLocation } from 'react-router-dom'
-import { Home, MapPin, ClipboardList, Settings, ChevronDown, ChevronRight, Plus, LogOut } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Home, MapPin, ClipboardList, Settings, ChevronDown, ChevronRight, Plus, LogOut, Loader2 } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuthStore } from '../stores/authStore'
+import { sendCode } from '../api'
 
 const searchChildren = [
   { to: '/search/flights',   icon: '✈️', label: '机票' },
@@ -25,17 +26,66 @@ function saveState(key: string, v: boolean) {
 }
 
 export default function LayoutPC() {
-  const { user, token, logout } = useAuthStore()
+  const { user, token, logout, showLogin, openLogin, closeLogin, pendingPath } = useAuthStore()
   const location = useLocation()
+  const navigate = useNavigate()
 
   const isSearchRoute = location.pathname.startsWith('/search')
   const isTripRoute   = location.pathname === '/plan' || location.pathname === '/trips' || location.pathname.startsWith('/trips/')
 
   const [searchOpen, setSearchOpen] = useState(() => loadState('search', isSearchRoute))
-  const [tripOpen, setTripOpen]     = useState(() => loadState('trip', isTripRoute))
+  const [tripOpen, setTripOpen]     = useState(() => loadState('trip', true))
 
   useEffect(() => { if (isSearchRoute) setSearchOpen(true) }, [isSearchRoute])
   useEffect(() => { if (isTripRoute)   setTripOpen(true)   }, [isTripRoute])
+
+  // ---- 登录弹窗 ----
+  const [phone, setPhone] = useState('')
+  const [code, setCode] = useState('')
+  const [step, setStep] = useState<'phone' | 'code'>('phone')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [countdown, setCountdown] = useState(0)
+
+  useEffect(() => {
+    if (countdown <= 0) return
+    const timer = setInterval(() => setCountdown(c => (c <= 1 ? 0 : c - 1)), 1000)
+    return () => clearInterval(timer)
+  }, [countdown > 0])
+  const startCountdown = useCallback(() => setCountdown(60), [])
+  const clearCountdown = useCallback(() => setCountdown(0), [])
+
+  const closeLoginDialog = () => { closeLogin(); setError(''); setStep('phone'); clearCountdown() }
+
+  const handleSendCode = async () => {
+    if (!/^1\d{10}$/.test(phone)) { setError('请输入正确的11位手机号'); return }
+    setLoading(true); setError('')
+    try {
+      await sendCode(phone)
+      setStep('code')
+      startCountdown()
+    } catch (e: any) { setError(e.response?.data?.detail || '发送失败') } finally { setLoading(false) }
+  }
+
+  const handleLogin = async () => {
+    if (!code || code.length < 4) { setError('请输入验证码'); return }
+    setLoading(true); setError('')
+    try {
+      const { login: doLogin } = useAuthStore.getState()
+      await doLogin(phone, code)
+      closeLogin(); setStep('phone'); setPhone(''); setCode(''); clearCountdown()
+      // 登录成功后跳转到待进入的页面
+      const path = useAuthStore.getState().pendingPath
+      if (path) navigate(path)
+    } catch (e: any) { setError(e.response?.data?.detail || '登录失败') } finally { setLoading(false) }
+  }
+
+  // 侧边栏链接点击：未登录则弹出登录框，记录目标路径
+  const requireAuth = (to: string) => (e: React.MouseEvent) => {
+    if (token) return
+    e.preventDefault()
+    openLogin(to)
+  }
 
   const navCls = (active: boolean) =>
     `flex items-center gap-3.5 mx-4 px-3 py-2.5 rounded-lg text-[15px] transition-colors ${
@@ -52,9 +102,8 @@ export default function LayoutPC() {
 
   return (
     <div className="h-screen flex overflow-hidden">
-      {/* Sidebar — always visible, no breakpoints */}
+      {/* Sidebar */}
       <aside className="flex-shrink-0 flex flex-col bg-white border-r border-gray-200" style={{width: 'clamp(200px, 20%, 320px)'}}>
-        {/* Logo */}
         <div className="px-5 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2.5">
             <span className="text-xl">🌍</span>
@@ -65,7 +114,6 @@ export default function LayoutPC() {
           </div>
         </div>
 
-        {/* Nav */}
         <nav className="py-3 overflow-auto">
           <NavLink to="/" end className={({ isActive }) => navCls(isActive)}>
             <Home size={17} /><span>首页</span>
@@ -80,7 +128,7 @@ export default function LayoutPC() {
             {tripOpen && (
               <div className="ml-2 mt-0.5 border-l-2 border-gray-100 space-y-0.5">
                 {tripChildren.map(({ to, icon: Icon, label }) => (
-                  <NavLink key={to} to={to} className={({ isActive }) => subCls(isActive)}>
+                  <NavLink key={to} to={to} onClick={requireAuth(to)} className={({ isActive }) => subCls(isActive)}>
                     <Icon size={15} className="w-[17px]" /><span>{label}</span>
                   </NavLink>
                 ))}
@@ -97,7 +145,7 @@ export default function LayoutPC() {
             {searchOpen && (
               <div className="ml-2 mt-0.5 border-l-2 border-gray-100 space-y-0.5">
                 {searchChildren.map(({ to, icon, label }) => (
-                  <NavLink key={to} to={to} className={({ isActive }) => subCls(isActive)}>
+                  <NavLink key={to} to={to} onClick={requireAuth(to)} className={({ isActive }) => subCls(isActive)}>
                     <span className="w-[17px] text-center text-sm">{icon}</span><span>{label}</span>
                   </NavLink>
                 ))}
@@ -105,12 +153,11 @@ export default function LayoutPC() {
             )}
           </div>
 
-          <NavLink to="/settings" className={({ isActive }) => navCls(isActive)}>
+          <NavLink to="/settings" onClick={requireAuth('/settings')} className={({ isActive }) => navCls(isActive)}>
             <Settings size={17} /><span>设置</span>
           </NavLink>
         </nav>
 
-        {/* User */}
         <div className="px-4 py-3 border-t border-gray-100 mt-auto mb-[5vh]">
           {token && user ? (
             <div className="flex items-center gap-3">
@@ -126,15 +173,63 @@ export default function LayoutPC() {
               </button>
             </div>
           ) : (
-            <div className="text-[11px] text-gray-400 text-center">请登录</div>
+            <button onClick={() => openLogin()} className="text-sm text-primary-600 hover:underline">登录 / 注册</button>
           )}
         </div>
       </aside>
 
-      {/* Content — fills remaining space, scrolls independently */}
       <main className="flex-1 min-w-0 overflow-y-auto bg-gray-50 p-6">
         <Outlet />
       </main>
+
+      {/* Login Modal */}
+      {showLogin && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center" onClick={closeLoginDialog}>
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold">手机号登录 / 注册</h2>
+              <button onClick={closeLoginDialog} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+            </div>
+            <p className="text-xs text-gray-500 mb-4">未注册手机号将自动创建账号</p>
+            {error && <div className="bg-red-50 text-red-600 rounded-lg px-3 py-2 text-sm mb-3">{error}</div>}
+
+            <div className={step === 'phone' ? '' : 'hidden'}>
+              <label className="text-xs text-gray-500 mb-1 block">手机号</label>
+              <input type="tel" value={phone} onChange={(e) => { setPhone(e.target.value); setError('') }}
+                onKeyDown={(e) => e.key === 'Enter' && handleSendCode()} placeholder="请输入11位手机号"
+                maxLength={11} autoFocus className="w-full border border-gray-200 rounded-lg px-4 py-3 mb-4 text-sm outline-none focus:border-primary-400" />
+              <button onClick={handleSendCode} disabled={loading || phone.length < 11 || countdown > 0}
+                className="w-full bg-primary-600 text-white rounded-lg py-3 font-medium flex items-center justify-center gap-2 disabled:opacity-50 hover:bg-primary-700 transition-colors">
+                {loading ? <Loader2 size={18} className="animate-spin" /> : null}
+                {countdown > 0 ? `${countdown}s 后重新获取` : '获取验证码'}
+              </button>
+            </div>
+
+            <div className={step === 'code' ? '' : 'hidden'}>
+              <div className="text-sm text-gray-600 mb-2">验证码已发送至 <span className="font-medium text-gray-800">{phone}</span></div>
+              <label className="text-xs text-gray-500 mb-1 block">验证码</label>
+              <input type="text" value={code} onChange={(e) => { setCode(e.target.value); setError('') }}
+                onKeyDown={(e) => e.key === 'Enter' && handleLogin()} placeholder="请输入6位验证码"
+                maxLength={6} autoFocus
+                className="w-full border border-gray-200 rounded-lg px-4 py-3 mb-1 text-sm outline-none focus:border-primary-400 tracking-[0.3em] text-center text-lg font-bold" />
+              <button onClick={handleLogin} disabled={loading || code.length < 4}
+                className="w-full bg-primary-600 text-white rounded-lg py-3 font-medium flex items-center justify-center gap-2 disabled:opacity-50 hover:bg-primary-700 transition-colors mb-2">
+                {loading ? <Loader2 size={18} className="animate-spin" /> : null}登录
+              </button>
+              {countdown > 0 ? (
+                <p className="text-xs text-gray-400 text-center mb-1">{countdown}s 后可重新获取验证码</p>
+              ) : (
+                <button onClick={() => { setStep('phone'); setCode(''); clearCountdown() }}
+                  className="w-full text-primary-600 text-sm py-2 hover:text-primary-700 font-medium">
+                  重新获取验证码
+                </button>
+              )}
+              <button onClick={() => { setStep('phone'); setError(''); setCode(''); clearCountdown() }}
+                className="w-full text-gray-500 text-sm py-2 hover:text-gray-700">← 更换手机号</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

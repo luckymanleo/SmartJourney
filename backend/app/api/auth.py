@@ -37,18 +37,20 @@ async def get_current_user(
 
 @router.post("/send-code")
 async def send_code(req: SendCodeRequest):
-    success, msg, code = await send_verify_code(req.phone)
+    success, msg, code = await send_verify_code(req.phone, req.platform)
     if not success:
-        raise HTTPException(status_code=429, detail=msg)
+        # 限流 → 429，其他失败 → 500
+        status = 429 if "秒后再试" in msg else 500
+        raise HTTPException(status_code=status, detail=msg)
     resp = {"code": 0, "message": msg, "data": {"expire_seconds": 300}}
     if code:
-        resp["data"]["code"] = code  # Debug mode: return code for frontend
+        resp["data"]["code"] = code
     return resp
 
 
 @router.post("/login")
 async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
-    if not await verify_code(req.phone, req.code):
+    if not await verify_code(req.phone, req.code, req.platform):
         raise HTTPException(status_code=400, detail="验证码错误或已过期")
 
     user, is_new = await get_or_create_user(db, req.phone)

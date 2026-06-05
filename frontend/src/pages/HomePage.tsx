@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plane, Train, Hotel, Ticket, Utensils, Car, Sparkles, Loader2, Search } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
@@ -22,7 +22,19 @@ export default function HomePage() {
   const [step, setStep] = useState<'phone' | 'code'>('phone')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [devCode, setDevCode] = useState('')
+  const [countdown, setCountdown] = useState(0) // 60秒倒计时
+
+  // 倒计时
+  useEffect(() => {
+    if (countdown <= 0) return
+    const timer = setInterval(() => {
+      setCountdown(c => (c <= 1 ? 0 : c - 1))
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [countdown > 0])
+
+  const startCountdown = useCallback(() => setCountdown(60), [])
+  const clearCountdown = useCallback(() => setCountdown(0), [])
 
   // 搜索词状态 — 与 AI 规划按钮共享
   const [searchQuery, setSearchQuery] = useState('')
@@ -41,12 +53,9 @@ export default function HomePage() {
     if (!/^1\d{10}$/.test(phone)) { setError('请输入正确的11位手机号'); return }
     setLoading(true); setError('')
     try {
-      const res = await sendCode(phone)
-      if (res.data?.data?.code) {
-        setDevCode(res.data.data.code)
-        setCode(res.data.data.code)
-      }
+      await sendCode(phone)
       setStep('code')
+      startCountdown()
     } catch (e: any) {
       setError(e.response?.data?.detail || '发送失败，请稍后再试')
     } finally { setLoading(false) }
@@ -58,23 +67,23 @@ export default function HomePage() {
     try {
       await doLogin(phone, code)
       setShowLogin(false); setStep('phone')
-      setPhone(''); setCode(''); setDevCode('')
+      setPhone(''); setCode('')
     } catch (e: any) {
       setError(e.response?.data?.detail || '登录失败，请检查验证码')
     } finally { setLoading(false) }
   }
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      navigate(`/plan?q=${encodeURIComponent(searchQuery.trim())}`)
-    }
-  }
-
-  const handleAIPlan = () => {
-    const q = searchQuery.trim() || ''
+  const goPlan = (q: string) => {
+    if (!token) { setShowLogin(true); return }
     navigate(q ? `/plan?q=${encodeURIComponent(q)}` : '/plan')
   }
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    goPlan(searchQuery.trim())
+  }
+
+  const handleAIPlan = () => goPlan(searchQuery.trim())
 
   return (
     <div className="p-4">
@@ -177,11 +186,11 @@ export default function HomePage() {
 
       {/* Login Modal */}
       {showLogin && (
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-end justify-center" onClick={() => { setShowLogin(false); setError(''); setStep('phone') }}>
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-end justify-center" onClick={() => { setShowLogin(false); setError(''); setStep('phone'); clearCountdown() }}>
           <div className="bg-white rounded-t-2xl p-6 w-full max-w-md animate-slide-up pb-8" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold">手机号登录 / 注册</h2>
-              <button onClick={() => { setShowLogin(false); setError(''); setStep('phone') }} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+              <button onClick={() => { setShowLogin(false); setError(''); setStep('phone'); clearCountdown() }} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
             </div>
             <p className="text-xs text-gray-500 mb-4">未注册手机号将自动创建账号</p>
 
@@ -193,10 +202,10 @@ export default function HomePage() {
                 onKeyDown={(e) => e.key === 'Enter' && handleSendCode()} placeholder="请输入11位手机号"
                 maxLength={11} autoFocus
                 className="w-full border border-gray-200 rounded-lg px-4 py-3 mb-4 text-sm outline-none focus:border-primary-400" />
-              <button onClick={handleSendCode} disabled={loading || phone.length < 11}
+              <button onClick={handleSendCode} disabled={loading || phone.length < 11 || countdown > 0}
                 className="w-full bg-primary-600 text-white rounded-lg py-3 font-medium flex items-center justify-center gap-2 disabled:opacity-50 hover:bg-primary-700 transition-colors">
                 {loading ? <Loader2 size={18} className="animate-spin" /> : null}
-                获取验证码
+                {countdown > 0 ? `${countdown}s 后重新获取` : '获取验证码'}
               </button>
             </div>
 
@@ -207,17 +216,20 @@ export default function HomePage() {
                 onKeyDown={(e) => e.key === 'Enter' && handleLogin()} placeholder="请输入6位验证码"
                 maxLength={6} autoFocus
                 className="w-full border border-gray-200 rounded-lg px-4 py-3 mb-1 text-sm outline-none focus:border-primary-400 tracking-[0.3em] text-center text-lg font-bold" />
-              {devCode && (
-                <div className="bg-green-50 text-green-700 rounded-lg px-3 py-1.5 text-xs mb-3 text-center">
-                  🔧 开发模式验证码: <span className="font-bold text-base tracking-wider">{devCode}</span>
-                </div>
-              )}
               <button onClick={handleLogin} disabled={loading || code.length < 4}
                 className="w-full bg-primary-600 text-white rounded-lg py-3 font-medium flex items-center justify-center gap-2 disabled:opacity-50 hover:bg-primary-700 transition-colors mb-2">
                 {loading ? <Loader2 size={18} className="animate-spin" /> : null}
                 登录
               </button>
-              <button onClick={() => { setStep('phone'); setError(''); setDevCode('') }}
+              {countdown > 0 ? (
+                <p className="text-xs text-gray-400 text-center mb-1">{countdown}s 后可重新获取验证码</p>
+              ) : (
+                <button onClick={() => { setStep('phone'); setCode(''); clearCountdown() }}
+                  className="w-full text-primary-600 text-sm py-2 hover:text-primary-700 font-medium">
+                  重新获取验证码
+                </button>
+              )}
+              <button onClick={() => { setStep('phone'); setError(''); setCode(''); clearCountdown() }}
                 className="w-full text-gray-500 text-sm py-2 hover:text-gray-700">
                 ← 更换手机号
               </button>

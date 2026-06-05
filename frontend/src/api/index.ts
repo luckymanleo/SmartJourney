@@ -1,8 +1,11 @@
 import api from './client'
 
+// 平台检测
+const P = typeof window !== 'undefined' && window.location.pathname.startsWith('/pc.html') ? 'pc' : 'mobile'
+
 // Auth
-export const sendCode = (phone: string) => api.post('/auth/send-code', { phone })
-export const login = (phone: string, code: string) => api.post('/auth/login', { phone, code })
+export const sendCode = (phone: string) => api.post('/auth/send-code', { phone, platform: P })
+export const login = (phone: string, code: string) => api.post('/auth/login', { phone, code, platform: P })
 export const getMe = () => api.get('/auth/me')
 
 // Search
@@ -48,7 +51,8 @@ export function streamPlan(body: any, onEvent: (event: string, data: any) => voi
     if (response.status === 401) {
       onError('登录已过期，请重新登录')
       localStorage.removeItem('sj_token')
-      window.location.href = '/'
+      const base = window.location.pathname.startsWith('/pc.html') ? '/pc.html' : '/'
+      window.location.href = base
       return
     }
     if (!response.ok) {

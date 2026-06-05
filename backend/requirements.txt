@@ -23,6 +23,9 @@ pydantic-settings==2.7.1
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 
+# SMS (阿里云号码认证)
+aliyun-python-sdk-dypnsapi>=1.1.13
+
 # HTTP Client
 httpx==0.28.1
 

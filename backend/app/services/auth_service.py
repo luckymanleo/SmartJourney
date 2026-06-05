@@ -22,47 +22,85 @@ settings = get_settings()
 # ==================== 验证码 ====================
 
 def _generate_code() -> str:
-    """生成 6 位验证码"""
+    """生成 6 位验证码（mock 模式用）"""
     return f"{random.randint(100000, 999999)}"
 
 
-async def send_verify_code(phone: str) -> tuple[bool, str]:
+async def send_verify_code(phone: str, platform: str = "mobile") -> tuple[bool, str, str | None]:
     """发送验证码
 
+    - mock: 生成验证码，存 Redis，debug 时返回 code
+    - aliyun: 调用 Dypnsapi（##code## 占位符），存 OutId 到 Redis
+    - 限流 key 按平台隔离，PC/手机各自独立 60 秒限制
+
     Returns:
-        (success, message)
+        (success, message, debug_info)
+        debug_info: mock=验证码, aliyun=OutId, 失败=None
     """
-    # 频率限制：60秒内只能发一次
-    rate_key = f"sms_rate:{phone}"
+    # 频率限制：每平台 60 秒内只能发一次
+    rate_key = f"sms_rate:{platform}:{phone}"
     if await redis_client.exists(rate_key):
         ttl = await redis_client.ttl(rate_key)
         return False, f"请 {ttl} 秒后再试", None
 
-    code = _generate_code()
-    code_key = f"sms_code:{phone}"
-
-    # Mock 模式：输出到日志
+    # Mock 模式：生成验证码 + 存储
     if settings.sms_provider == "mock":
+        code = _generate_code()
+        code_key = f"sms_code:{platform}:{phone}"
+        await redis_client.setex(code_key, 300, code)
+        await redis_client.setex(rate_key, 60, "1")
         logger.info(f"[MOCK SMS] 手机号 {phone} 验证码: {code}")
-    else:
-        # TODO: 接入真实短信服务（阿里云/腾讯云）
-        logger.info(f"[SMS] 发送验证码到 {phone}: {code}")
+        return True, "验证码已发送", code if settings.debug else None
 
-    # 存储验证码（5分钟过期）
-    await redis_client.setex(code_key, 300, code)
-    # 频率限制（60秒）
-    await redis_client.setex(rate_key, 60, "1")
+    # Aliyun Dypnsapi：系统自动生成验证码，用 OutId 关联
+    if settings.sms_provider == "aliyun":
+        from app.services.sms_service import send_verify_code as _ali_send
 
-    return True, "验证码已发送", code if settings.debug else None
+        success, msg, out_id = await _ali_send(phone)
+        if not success:
+            return False, msg, None
+
+        # 存储 OutId 用于后续 CheckSmsVerifyCode（5分钟过期）
+        outid_key = f"sms_outid:{platform}:{phone}"
+        await redis_client.setex(outid_key, 300, out_id)
+        await redis_client.setex(rate_key, 60, "1")
+        # 真实验证码由阿里云生成，不返回给前端
+        return True, msg, None
+
+    logger.warning(f"[SMS] 未知提供商: {settings.sms_provider}，跳过发送")
+    return False, "短信服务未配置", None
 
 
-async def verify_code(phone: str, code: str) -> bool:
-    """验证验证码"""
-    code_key = f"sms_code:{phone}"
-    stored = await redis_client.get(code_key)
-    if stored and stored == code:
-        await redis_client.delete(code_key)
-        return True
+async def verify_code(phone: str, code: str, platform: str = "mobile") -> bool:
+    """验证验证码
+
+    - mock: 从 Redis 读取验证码比对
+    - aliyun: 从 Redis 获取 OutId，调用 CheckSmsVerifyCode API
+    """
+    # Mock 模式
+    if settings.sms_provider == "mock":
+        code_key = f"sms_code:{platform}:{phone}"
+        stored = await redis_client.get(code_key)
+        if stored and stored == code:
+            await redis_client.delete(code_key)
+            return True
+        return False
+
+    # Aliyun Dypnsapi
+    if settings.sms_provider == "aliyun":
+        from app.services.sms_service import check_verify_code as _ali_check
+
+        outid_key = f"sms_outid:{platform}:{phone}"
+        out_id = await redis_client.get(outid_key)
+        if not out_id:
+            logger.warning(f"[SMS] 未找到 OutId for {phone}")
+            return False
+
+        valid, msg = await _ali_check(phone, code, out_id)
+        if valid:
+            await redis_client.delete(outid_key)
+        return valid
+
     return False
 
 
