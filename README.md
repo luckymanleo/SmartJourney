@@ -63,13 +63,13 @@ cd frontend && npm install && npm run dev
 ## 短信配置
 
 ```bash
-# .env 中配置
-SMS_PROVIDER=mock      # mock（开发）/ aliyun（生产）
-SMS_ACCESS_KEY_ID=...  # 阿里云 AccessKey
-SMS_ACCESS_KEY_SECRET=...
-SMS_SIGN_NAME=速通互联验证码
-SMS_TEMPLATE_CODE=100001
-SMS_REGION=cn-shenzhen
+# .env 中配置（参考 backend/.env.example）
+SMS_PROVIDER=mock          # mock（开发）/ aliyun（生产）
+SMS_ACCESS_KEY_ID=         # 阿里云 AccessKey ID
+SMS_ACCESS_KEY_SECRET=     # 阿里云 AccessKey Secret
+SMS_SIGN_NAME=             # 短信签名
+SMS_TEMPLATE_CODE=         # 短信模板 Code
+SMS_REGION=cn-shenzhen     # 阿里云区域
 ```
 
 - **mock 模式**：验证码固定 `9999`，不限频率，输出到日志
@@ -81,7 +81,7 @@ SMS_REGION=cn-shenzhen
 编辑 `backend/sensitive_words.json`（JSON 数组），重启或下次请求自动生效：
 
 ```json
-["习近平", "法轮功", "台独", "藏独", "港独", ...]
+["敏感词1", "敏感词2", ...]
 ```
 
 ## 文档
