@@ -160,6 +160,9 @@ Phase 1 ✅          Phase 2 ✅          Phase 3 ✅          Phase 4 ✅      
 
 ## Phase 7 — 社交深度（计划中）
 
+> 📦 后端骨架已存在（wallet/collaboration/sharing/preference_learning/alert 服务），
+> 但前端零 UI，暂不实现。待核心功能稳定后再推进。
+
 ### 多人出行协同 (P0)
 - 行程组队创建 + 邀请（分享链接/扫码加入）
 - 成员角色（发起人/编辑者/查看者）
@@ -181,6 +184,8 @@ Phase 1 ✅          Phase 2 ✅          Phase 3 ✅          Phase 4 ✅      
 ---
 
 ## Phase 8 — 智能化与闭环（计划中）
+
+> 📦 preference_learning / alert_service 后端骨架已存在，暂不实现前端。
 
 ### AI 深度偏好学习 (P0)
 - 基于历史行程的偏好建模
