@@ -7,16 +7,20 @@ SmartJourney（智旅）配置管理
 """
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# .env 绝对路径 — 多 worker 模式下 CWD 可能变
+_ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
 
 
 class Settings(BaseSettings):
     """启动必须配置 — 全部来自环境变量 (.env)"""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(_ENV_PATH),
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -30,6 +34,25 @@ class Settings(BaseSettings):
     # ---- 数据库 ----
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/smartjourney"
     redis_url: str = "redis://localhost:6379/0"
+    redis_username: str = ""
+    redis_password: str = ""
+
+    @property
+    def redis_connection_url(self) -> str:
+        """构建带认证的 Redis 连接 URL"""
+        if self.redis_username or self.redis_password:
+            from urllib.parse import urlparse, urlunparse
+            parts = urlparse(self.redis_url)
+            userinfo = ""
+            if self.redis_username:
+                userinfo = self.redis_username
+            if self.redis_password:
+                userinfo += f":{self.redis_password}"
+            netloc = f"{userinfo}@{parts.hostname}"
+            if parts.port:
+                netloc += f":{parts.port}"
+            return urlunparse((parts.scheme, netloc, parts.path, parts.params, parts.query, parts.fragment))
+        return self.redis_url
 
     # ---- 安全 ----
     secret_key: str = "dev-secret-change-in-production"
@@ -49,20 +72,15 @@ class Settings(BaseSettings):
     llm_model: str = "deepseek-chat"
 
     # ---- 短信 ----
-    sms_provider: str = "mock"  # mock / aliyun / tencent
+    sms_provider: str = "mock"
     sms_access_key_id: str = ""
     sms_access_key_secret: str = ""
-    sms_sign_name: str = "智旅"
+    sms_sign_name: str = ""
     sms_template_code: str = ""
-    sms_region: str = "cn-shenzhen"  # 阿里云短信服务区域
+    sms_region: str = "cn-shenzhen"
 
     # ---- CORS ----
     cors_origins: str = "http://localhost:5173,http://localhost:3000,http://localhost"
-
-    # ---- MCP ----
-    mcp_timeout_seconds: int = 15
-    mcp_max_retries: int = 3
-    mcp_cache_ttl_seconds: int = 300
 
     @property
     def cors_origin_list(self) -> list[str]:

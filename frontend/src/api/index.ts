@@ -30,17 +30,24 @@ export const getBudget = (tripId: string) => api.get(`/trips/${tripId}/budget`)
 // Info
 export const getWeather = (city: string) => api.get('/info/weather', { params: { city } })
 export const getDestinationInfo = (city: string) => api.get(`/info/destination/${city}`)
-export const getPopularDestinations = (limit?: number) => api.get('/info/popular', { params: { limit: limit || 6 } })
+export const getPopularDestinations = (limit?: number) => api.get('/info/popular', { params: { limit: limit || 6 } } )
 export const getPreferences = () => api.get('/user/preferences')
 export const savePreferences = (data: any) => api.put('/user/preferences', data)
 
-// Plan (SSE)
-export function streamPlan(body: any, onEvent: (event: string, data: any) => void, onError: (err: string) => void) {
+// Plan (SSE) — 返回 abort 函数用于取消
+export function streamPlan(
+  body: any,
+  onEvent: (event: string, data: any) => void,
+  onError: (err: string) => void,
+): () => void {
   const token = localStorage.getItem('sj_token')
   if (!token) {
     onError('请先登录')
-    return
+    return () => {}
   }
+
+  const controller = new AbortController()
+
   fetch('/api/v1/plan/generate', {
     method: 'POST',
     headers: {
@@ -48,6 +55,7 @@ export function streamPlan(body: any, onEvent: (event: string, data: any) => voi
       'Authorization': `Bearer ${token}`,
     },
     body: JSON.stringify(body),
+    signal: controller.signal,
   }).then(async (response) => {
     if (response.status === 401) {
       onError('登录已过期，请重新登录')
@@ -66,24 +74,39 @@ export function streamPlan(body: any, onEvent: (event: string, data: any) => voi
     const decoder = new TextDecoder()
     let buffer = ''
     while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      buffer += decoder.decode(value, { stream: true })
-      const lines = buffer.split('\n')
-      buffer = lines.pop() || ''
-      let currentEvent = ''
-      for (const line of lines) {
-        if (line.startsWith('event: ')) {
-          currentEvent = line.slice(7).trim()
-        } else if (line.startsWith('data: ')) {
-          try {
-            const data = JSON.parse(line.slice(6))
-            onEvent(currentEvent, data)
-          } catch (e) {
-            console.warn('SSE parse error:', currentEvent, line.slice(6, 100))
+      // 中断检测
+      if (controller.signal.aborted) {
+        reader.cancel()
+        return
+      }
+      try {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+        let currentEvent = ''
+        for (const line of lines) {
+          if (line.startsWith('event: ')) {
+            currentEvent = line.slice(7).trim()
+          } else if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6))
+              onEvent(currentEvent, data)
+            } catch (e) {
+              console.warn('SSE parse error:', currentEvent, line.slice(6, 100))
+            }
           }
         }
+      } catch (e: any) {
+        if (e.name === 'AbortError' || controller.signal.aborted) return
+        throw e
       }
     }
-  }).catch(onError)
+  }).catch((e) => {
+    if (e.name === 'AbortError') return // 正常取消，不报错
+    onError(typeof e === 'string' ? e : e?.message || '规划失败')
+  })
+
+  return () => controller.abort()
 }

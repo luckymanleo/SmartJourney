@@ -28,75 +28,90 @@ interface PlanStore {
   selectRoute: (index: number) => void
 }
 
-export const usePlanStore = create<PlanStore>((set) => ({
-  isPlanning: false,
-  steps: [],
-  toolPhase: 'idle',
-  toolCount: { total: 0, done: 0 },
-  tripData: null,
-  tripRoutes: [],
-  routeCount: 1,
-  error: null,
-  weatherData: null,
+export const usePlanStore = create<PlanStore>((set, get) => {
+  let _abort: (() => void) | null = null
 
-  startPlan: async (body) => {
-    set({ isPlanning: true, steps: [], tripData: null, tripRoutes: [], error: null, weatherData: null, toolPhase: 'idle', toolCount: { total: 0, done: 0 } })
-    const { streamPlan } = await import('../api')
+  return {
+    isPlanning: false,
+    steps: [],
+    toolPhase: 'idle',
+    toolCount: { total: 0, done: 0 },
+    tripData: null,
+    tripRoutes: [],
+    routeCount: 1,
+    error: null,
+    weatherData: null,
 
-    streamPlan(
-      body,
-      (event, data) => {
-        if (event === 'step') {
-          set((s) => ({ steps: [...s.steps, { type: 'step', text: data.text }] }))
-        } else if (event === 'tool_call') {
-          set((s) => ({
-            toolPhase: 'calling',
-            toolCount: { total: s.toolCount.total + 1, done: s.toolCount.done },
-            steps: [...s.steps, { type: 'tool_call' as const, text: '🔍 正在搜索...', data }],
-          }))
-        } else if (event === 'tool_result') {
-          set((s) => {
-            const done = s.toolCount.done + 1
-            const total = s.toolCount.total
-            return {
-              toolCount: { total, done },
-              toolPhase: done >= total ? 'done' : 'calling',
-              steps: [...s.steps, { type: 'tool_result', text: `✅ ${data.summary}`, data }],
-            }
-          })
-        } else if (event === 'weather') {
-          set({ weatherData: data })
-        } else if (event === 'trip_data') {
-          set((s) => ({
-            tripRoutes: [...s.tripRoutes, data],
-            tripData: s.tripRoutes.length === 0 ? data : s.tripData,  // 第一条设为默认
-          }))
-        } else if (event === 'done') {
-          set((s) => ({
-            isPlanning: false,
-            routeCount: data.route_count || s.tripRoutes.length || 1,
-          }))
-        } else if (event === 'chunk') {
-          // LLM 文本输出（非结构化）
-          if (data.text) {
-            set((s) => ({ steps: [...s.steps, { type: 'step', text: data.text.slice(0, 300) }] }))
-          }
-        } else if (event === 'error') {
-          set((s) => ({ error: data.message || '规划异常', isPlanning: false }))
-        }
-      },
-      (err) => {
-        const msg = typeof err === 'string' ? err : (err as any)?.message || '规划失败'
-        set({ isPlanning: false, error: msg })
+    startPlan: async (body) => {
+      // 先取消上一次的请求
+      if (_abort) {
+        _abort()
+        _abort = null
       }
-    )
-  },
+      set({ isPlanning: true, steps: [], tripData: null, tripRoutes: [], error: null, weatherData: null, toolPhase: 'idle', toolCount: { total: 0, done: 0 } })
+      const { streamPlan } = await import('../api')
 
-  cancelPlan: () => {
-    set({ isPlanning: false })
-  },
+      _abort = streamPlan(
+        body,
+        (event, data) => {
+          if (event === 'step') {
+            set((s) => ({ steps: [...s.steps, { type: 'step', text: data.text }] }))
+          } else if (event === 'tool_call') {
+            set((s) => ({
+              toolPhase: 'calling',
+              toolCount: { total: s.toolCount.total + 1, done: s.toolCount.done },
+              steps: [...s.steps, { type: 'tool_call' as const, text: '🔍 正在搜索...', data }],
+            }))
+          } else if (event === 'tool_result') {
+            set((s) => {
+              const done = s.toolCount.done + 1
+              const total = s.toolCount.total
+              return {
+                toolCount: { total, done },
+                toolPhase: done >= total ? 'done' : 'calling',
+                steps: [...s.steps, { type: 'tool_result', text: `✅ ${data.summary}`, data }],
+              }
+            })
+          } else if (event === 'weather') {
+            set({ weatherData: data })
+          } else if (event === 'trip_data') {
+            set((s) => ({
+              tripRoutes: [...s.tripRoutes, data],
+              tripData: s.tripRoutes.length === 0 ? data : s.tripData,
+            }))
+          } else if (event === 'done') {
+            set((s) => ({
+              isPlanning: false,
+              routeCount: data.route_count || s.tripRoutes.length || 1,
+            }))
+            _abort = null
+          } else if (event === 'chunk') {
+            if (data.text) {
+              set((s) => ({ steps: [...s.steps, { type: 'step', text: data.text.slice(0, 300) }] }))
+            }
+          } else if (event === 'error') {
+            set((s) => ({ error: data.message || '规划异常', isPlanning: false }))
+            _abort = null
+          }
+        },
+        (err) => {
+          const msg = typeof err === 'string' ? err : (err as any)?.message || '规划失败'
+          set({ isPlanning: false, error: msg })
+          _abort = null
+        }
+      )
+    },
 
-  selectRoute: (index) => {
-    set((s) => ({ tripData: s.tripRoutes[index] || s.tripData }))
-  },
-}))
+    cancelPlan: () => {
+      if (_abort) {
+        _abort()
+        _abort = null
+      }
+      set({ isPlanning: false })
+    },
+
+    selectRoute: (index) => {
+      set((s) => ({ tripData: s.tripRoutes[index] || s.tripData }))
+    },
+  }
+})

@@ -82,7 +82,7 @@ cp .env.example .env
 
 ```bash
 # ==================== 数据库 ====================
-DATABASE_URL=postgresql+asyncpg://smartjourney:smartjourney@localhost:5432/smartjourney
+DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/smartjourney
 REDIS_URL=redis://localhost:6379/0
 
 # ==================== 安全 ====================
@@ -164,7 +164,7 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      - DATABASE_URL=postgresql+asyncpg://smartjourney:smartjourney@postgres:5432/smartjourney
+      - DATABASE_URL=postgresql+asyncpg://user:password@postgres:5432/smartjourney
       - REDIS_URL=redis://redis:6379/0
     depends_on:
       postgres:
@@ -351,7 +351,7 @@ npm run dev          # Vite 开发服务器 :5173
 
 ```bash
 # backend/.env
-DATABASE_URL=postgresql+asyncpg://smartjourney:smartjourney@localhost:5432/smartjourney
+DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/smartjourney
 REDIS_URL=redis://localhost:6379/0
 SECRET_KEY=dev-secret-change-in-production-min-32-chars!!
 JWT_ALGORITHM=HS256
@@ -370,9 +370,15 @@ CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost
 
 ---
 
-## 9. 生产部署检查清单
+## 生产部署检查清单
 
+- [x] PostgreSQL 连接池与性能参数调优（DB_POOL_SIZE, shared_buffers 等）
+- [x] nginx gzip 压缩 + 静态资源缓存头
+- [x] Redis AOF 持久化 + maxmemory 限制
+- [x] uvicorn 多 worker（--workers 4）
+- [x] 数据库部分索引（trips expiry 查询）
 - [ ] 修改所有默认密码（PostgreSQL、Secret Key）
+- [ ] 配置 HTTPS 证书（Let's Encrypt / 阿里云 SSL）
 - [ ] 配置 HTTPS 证书（Let's Encrypt / 阿里云 SSL）
 - [ ] 配置防火墙（仅开放 80/443）
 - [ ] 设置数据库定期备份

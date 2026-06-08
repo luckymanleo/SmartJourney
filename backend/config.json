@@ -41,7 +41,7 @@
   ],
   "features": {
     "trip_expiry_interval_seconds": 1800,
-    "mcp_tool_timeout_seconds": 90,
+    "mcp_tool_timeout_seconds": 60,
     "max_route_count": 3,
     "max_tool_calls_per_plan": 6,
     "max_plan_iterations": 2

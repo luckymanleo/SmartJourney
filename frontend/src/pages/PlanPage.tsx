@@ -29,6 +29,7 @@ export default function PlanPage() {
     if (initialQuery) {
       // 新查询进入时，清除上一次的规划结果，回到表单页面
       usePlanStore.setState({ tripData: null, tripRoutes: [], steps: [] })
+      setQuery(initialQuery)
       const parsed = parseTripQuery(initialQuery)
       setOrigin(parsed.origin)
       if (parsed.destination) setDestination(parsed.destination)
@@ -55,7 +56,7 @@ export default function PlanPage() {
     })
   }, [])
 
-  const { isPlanning, steps, tripData, tripRoutes, routeCount, error, weatherData, startPlan, selectRoute, toolPhase, toolCount } = usePlanStore()
+  const { isPlanning, steps, tripData, tripRoutes, routeCount, error, weatherData, startPlan, cancelPlan, selectRoute, toolPhase, toolCount } = usePlanStore()
 
   // 多路线选择
   const [selectedRouteIdx, setSelectedRouteIdx] = useState(0)
@@ -173,7 +174,7 @@ export default function PlanPage() {
             {weatherData.origin_weather && (
               <div className="bg-blue-50 rounded-xl p-3">
                 <div className="text-xs font-semibold text-blue-700 mb-1">
-                  🌤️ 出发地天气（{weatherData.origin}）
+                  🌤️ {weatherData.origin}（出发地）
                 </div>
                 <div className="text-[11px] text-blue-600 space-y-0.5">
                   {weatherData.origin_weather.split('\n').map((line: string, i: number) => (
@@ -185,7 +186,7 @@ export default function PlanPage() {
             {weatherData.dest_weather && (
               <div className="bg-blue-50 rounded-xl p-3">
                 <div className="text-xs font-semibold text-blue-700 mb-1">
-                  🌤️ 目的地天气（{weatherData.dest}）
+                  🌤️ {weatherData.dest}（目的地）
                 </div>
                 <div className="text-[11px] text-blue-600 space-y-0.5">
                   {weatherData.dest_weather.split('\n').map((line: string, i: number) => (
@@ -407,14 +408,17 @@ export default function PlanPage() {
         )}
 
         <button
-          onClick={handleGenerate}
-          disabled={isPlanning}
-          className="w-full bg-gradient-to-r from-primary-500 to-primary-700 text-white rounded-xl py-3 font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+          onClick={isPlanning ? cancelPlan : handleGenerate}
+          className={`w-full rounded-xl py-3 font-medium flex items-center justify-center gap-2 transition-colors ${
+            isPlanning
+              ? 'bg-red-500 text-white hover:bg-red-600'
+              : 'bg-gradient-to-r from-primary-500 to-primary-700 text-white'
+          }`}
         >
           {isPlanning ? (
             <>
               <Loader2 size={18} className="animate-spin" />
-              规划中...
+              取消规划
             </>
           ) : (
             <>

@@ -199,6 +199,7 @@ class AgentService:
         use_weather: bool = True,
         route_count: int = 1,
         route_strategy: int = -1,
+        _request = None,  # FastAPI Request — 用于检测客户端断开
     ) -> AsyncGenerator[ServerSentEvent, None]:
         """
         生成行程规划 — SSE 流式返回
@@ -270,9 +271,9 @@ class AgentService:
         # 组装天气摘要
         weather_parts = []
         if origin_weather:
-            weather_parts.append(f"## 🌤️ 出发地天气（{origin}）\n{origin_weather}")
+            weather_parts.append(f"## 🌤️ {origin}（出发地）\n{origin_weather}")
         if dest_weather:
-            weather_parts.append(f"## 🌤️ 目的地天气（{destination}）\n{dest_weather}")
+            weather_parts.append(f"## 🌤️ {destination}（目的地）\n{dest_weather}")
         weather_summary = "\n\n".join(weather_parts)
         if weather_summary:
             yield self._sse_event("step", {"step": "weather_done", "text": f"天气: {weather_summary[:80]}..."})

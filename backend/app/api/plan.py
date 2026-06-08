@@ -3,7 +3,7 @@
 import json
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sse_starlette.sse import EventSourceResponse
 
@@ -20,10 +20,11 @@ router = APIRouter()
 @router.post("/generate")
 async def generate_plan(
     req: GeneratePlanRequest,
+    request: Request,
     user=Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """AI 智能生成行程规划（SSE 流式返回）"""
+    """AI 智能生成行程规划（SSE 流式返回，支持取消）"""
     # 参数校验
     errors = []
     if not req.origin: errors.append("出发地")
@@ -66,24 +67,21 @@ async def optimize_plan(
     if not trip:
         raise HTTPException(status_code=404, detail="行程不存在")
 
-    # 构建上下文
-    context = f"当前行程:\n"
-    for day in (trip.days or []):
-        context += f"  Day {day.day_number}: "
-        context += ", ".join(i.title for i in (day.items or []))
-        context += "\n"
-
-    query = f"基于以下已有行程，{req.instruction}\n\n{context}"
-
     return EventSourceResponse(
         agent_service.generate_plan(
             db=db,
             user_id=user.id,
-            query=query,
-            destination=trip.destination,
-            start_date=trip.start_date,
-            end_date=trip.end_date,
+            query=req.query or "优化行程安排",
+            origin=trip.origin or "",
+            destination=trip.destination or "",
+            start_date=trip.start_date.isoformat() if trip.start_date else "",
+            end_date=trip.end_date.isoformat() if trip.end_date else "",
             traveler_count=trip.traveler_count,
-            budget_total=float(trip.budget_total) if trip.budget_total else None,
+            budget_total=float(trip.budget_total or 0),
+            preferences=req.preferences,
+            save_as_trip=True,
+            use_weather=req.use_weather if req.use_weather is not None else True,
+            route_count=1,
+            route_strategy=-1,
         )
     )

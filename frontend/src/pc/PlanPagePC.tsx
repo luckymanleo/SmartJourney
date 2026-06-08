@@ -34,6 +34,7 @@ export default function PlanPagePC() {
   useEffect(() => {
     if (initialQuery) {
       usePlanStore.setState({ tripData: null, tripRoutes: [], steps: [] })
+      setQuery(initialQuery)
       const p = parseTripQuery(initialQuery)
       setOrigin(p.origin)
       if (p.destination) setDestination(p.destination)
@@ -56,7 +57,7 @@ export default function PlanPagePC() {
     })
   }, [])
 
-  const { isPlanning, steps, tripData, tripRoutes, error, weatherData, startPlan, selectRoute, toolPhase, toolCount } = usePlanStore()
+  const { isPlanning, steps, tripData, tripRoutes, error, weatherData, startPlan, cancelPlan, selectRoute, toolPhase, toolCount } = usePlanStore()
   const [selectedRouteIdx, setSelectedRouteIdx] = useState(0)
   const currentTrip = tripRoutes[selectedRouteIdx] || tripData || tripRoutes[0]
 
@@ -127,10 +128,12 @@ export default function PlanPagePC() {
         </button>
       </div>
       {Object.keys(fieldErrors).length > 0 && <div className="bg-red-50 text-red-600 rounded-xl px-4 py-2.5 text-xs font-medium">请完善信息后再生成</div>}
-      <button onClick={handleGenerate} disabled={isPlanning}
+      <button onClick={isPlanning ? cancelPlan : handleGenerate}
         style={{width:'40%', margin:'0 auto'}}
-        className="bg-primary-600 text-white rounded-2xl py-4 px-8 font-semibold text-base flex items-center justify-center gap-2 disabled:opacity-50 hover:bg-primary-700 transition-colors shadow-sm">
-        {isPlanning ? <><Loader2 size={20} className="animate-spin" />规划中...</> : <><Sparkles size={20} />开始智能规划</>}
+        className={`rounded-2xl py-4 px-8 font-semibold text-base flex items-center justify-center gap-2 transition-colors shadow-sm ${
+          isPlanning ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-primary-600 text-white hover:bg-primary-700'
+        }`}>
+        {isPlanning ? <><Loader2 size={20} className="animate-spin" />取消规划</> : <><Sparkles size={20} />开始智能规划</>}
       </button>
     </div>
   )

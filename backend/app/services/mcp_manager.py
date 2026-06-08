@@ -18,7 +18,7 @@ _connected = False
 _reconnect_lock = asyncio.Lock()
 _last_reconnect_attempt = 0.0
 # 限制并发 MCP 连接数（MCP 服务端不能处理太多并发）
-_call_semaphore = asyncio.Semaphore(3)
+_call_semaphore = asyncio.Semaphore(6)
 
 
 async def init_remote_mcp():

@@ -38,28 +38,6 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-    command:
-      - "postgres"
-      - "-c"
-      - "shared_buffers=256MB"
-      - "-c"
-      - "effective_cache_size=1GB"
-      - "-c"
-      - "work_mem=16MB"
-      - "-c"
-      - "maintenance_work_mem=64MB"
-      - "-c"
-      - "random_page_cost=1.1"
-      - "-c"
-      - "effective_io_concurrency=200"
-      - "-c"
-      - "wal_buffers=16MB"
-      - "-c"
-      - "max_worker_processes=4"
-      - "-c"
-      - "max_parallel_workers_per_gather=2"
-      - "-c"
-      - "max_parallel_workers=4"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U smartjourney -d smartjourney"]
       interval: 5s
@@ -73,11 +51,6 @@ services:
       - "6379:6379"
     volumes:
       - redisdata:/data
-    command: >
-      redis-server
-      --appendonly yes
-      --maxmemory 256mb
-      --maxmemory-policy allkeys-lru
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
