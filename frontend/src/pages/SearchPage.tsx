@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useSearchStore, SearchHistoryItem } from '../stores/searchStore'
-import { Clock, X, Trash2 } from 'lucide-react'
+import { Clock, X, Trash2, AlertTriangle, RefreshCw } from 'lucide-react'
 import { renderSearchCard } from '../components/SearchCards'
+import { SearchSkeleton } from '../components/SearchSkeleton'
 import CityCascader from '../components/CityCascader'
 
 const TYPE_LABELS: Record<string, string> = {
@@ -163,17 +164,27 @@ export default function SearchPage() {
       </div>
 
       {loading && (
-        <div className="text-center py-8 text-gray-400 text-sm">加载中...</div>
+        <div>
+          <div className="text-sm text-gray-400 mb-3">正在搜索，请稍候...</div>
+          <SearchSkeleton count={4} />
+        </div>
       )}
 
       {!loading && error && (
-        <div className="bg-red-50 text-red-600 rounded-xl p-4 text-sm mb-4 flex items-start gap-2">
-          <span>⚠️</span>
-          <div>
-            <div className="font-medium mb-1">搜索失败</div>
-            <div className="text-xs text-red-500">{error}</div>
-            <button onClick={handleSearch} className="mt-2 text-xs text-red-600 underline">重试</button>
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle size={20} className="text-amber-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <div className="font-medium text-amber-800 text-sm mb-1">搜索失败</div>
+              <div className="text-xs text-amber-600">{error}</div>
+            </div>
           </div>
+          <button
+            onClick={handleSearch}
+            className="mt-3 w-full bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg py-2 text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+          >
+            <RefreshCw size={14} /> 重新搜索
+          </button>
         </div>
       )}
 

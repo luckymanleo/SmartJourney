@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useSearchStore, SearchHistoryItem } from '../stores/searchStore'
-import { Clock, X, Trash2 } from 'lucide-react'
+import { Clock, X, Trash2, AlertTriangle, RefreshCw } from 'lucide-react'
 import { renderSearchCard } from '../components/SearchCards'
+import { SearchSkeleton } from '../components/SearchSkeleton'
 import CityCascader from './CityCascaderPC'
 
 const TYPE_LABELS: Record<string, string> = {
@@ -142,12 +143,26 @@ export default function SearchPagePC() {
         </div>
       </div>
 
-      {loading && <div className="text-center py-12 text-gray-400 text-sm">加载中...</div>}
+      {loading && (
+        <div>
+          <div className="text-sm text-gray-400 mb-3">正在搜索，请稍候...</div>
+          <SearchSkeleton count={6} />
+        </div>
+      )}
 
       {!loading && error && (
-        <div className="bg-red-50 text-red-600 rounded-xl p-4 text-sm mb-4">
-          <div className="font-medium mb-1">搜索失败</div><div className="text-xs">{error}</div>
-          <button onClick={handleSearch} className="mt-2 text-xs text-red-600 underline">重试</button>
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-4 max-w-md">
+          <div className="flex items-start gap-3">
+            <AlertTriangle size={22} className="text-amber-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <div className="font-medium text-amber-800 mb-1">搜索失败</div>
+              <div className="text-sm text-amber-600">{error}</div>
+            </div>
+          </div>
+          <button onClick={handleSearch}
+            className="mt-4 w-full bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg py-2.5 text-sm font-medium flex items-center justify-center gap-2 transition-colors">
+            <RefreshCw size={15} /> 重新搜索
+          </button>
         </div>
       )}
 
