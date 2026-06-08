@@ -20,7 +20,7 @@ class RemoteMCPClient:
 
     async def _get_client(self) -> httpx.AsyncClient:
         if not self._client:
-            self._client = httpx.AsyncClient(timeout=httpx.Timeout(60))
+            self._client = httpx.AsyncClient(timeout=httpx.Timeout(90))
         return self._client
 
     async def connect(self) -> bool:

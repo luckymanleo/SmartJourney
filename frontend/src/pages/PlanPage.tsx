@@ -434,12 +434,22 @@ export default function PlanPage() {
         <div className="mt-6 bg-gray-50 rounded-xl p-4">
           <div className="text-sm font-medium text-gray-700 mb-3">规划进度</div>
 
-          {/* 阶段指示器 */}
+          {/* 阶段指示器 — 顺序点亮 */}
           <div className="flex items-center gap-2 mb-3">
-            <div className={`flex-1 h-1 rounded-full ${steps.length > 0 ? 'bg-primary-400' : 'bg-gray-200'}`} />
-            <div className={`flex-1 h-1 rounded-full ${toolPhase !== 'idle' ? 'bg-primary-400 animate-pulse' : 'bg-gray-200'}`} />
-            <div className={`flex-1 h-1 rounded-full ${toolPhase === 'done' ? 'bg-primary-400' : 'bg-gray-200'}`} />
-            <div className={`flex-1 h-1 rounded-full ${tripData ? 'bg-green-400' : 'bg-gray-200'}`} />
+            {/* 分析: toolPhase 离开 idle 即完成 */}
+            <div className={`flex-1 h-1 rounded-full ${
+              toolPhase !== 'idle' ? 'bg-blue-500' : steps.length > 0 ? 'bg-blue-400 animate-pulse' : 'bg-gray-200'
+            }`} />
+            {/* 搜索: calling 时脉冲，done 时常亮 */}
+            <div className={`flex-1 h-1 rounded-full ${
+              toolPhase === 'calling' ? 'bg-blue-400 animate-pulse' : toolPhase === 'done' ? 'bg-blue-500' : 'bg-gray-200'
+            }`} />
+            {/* 生成: done 且无 tripData 时脉冲，有 tripData 时常亮 */}
+            <div className={`flex-1 h-1 rounded-full ${
+              toolPhase === 'done' && !tripData ? 'bg-blue-400 animate-pulse' : tripData ? 'bg-blue-500' : 'bg-gray-200'
+            }`} />
+            {/* 完成: tripData 到达即绿色 */}
+            <div className={`flex-1 h-1 rounded-full ${tripData ? 'bg-green-500' : 'bg-gray-200'}`} />
           </div>
           <div className="flex justify-between text-[10px] text-gray-400 mb-3">
             <span>分析</span><span>搜索</span><span>生成</span><span>完成</span>

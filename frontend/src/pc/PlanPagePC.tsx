@@ -165,14 +165,16 @@ export default function PlanPagePC() {
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h3 className="text-base font-semibold text-gray-800 mb-5">规划进度</h3>
               <div className="flex items-center gap-1.5 mb-4">
-                {[0,1,2,3].map(i => (
-                  <div key={i} className={`flex-1 h-2 rounded-full transition-colors ${
-                    i===0 ? (steps.length>0?'bg-primary-400':'bg-gray-200') :
-                    i===1 ? (toolPhase!=='idle'?'bg-primary-400 animate-pulse':'bg-gray-200') :
-                    i===2 ? (toolPhase==='done'?'bg-primary-400':'bg-gray-200') :
-                    tripData?'bg-green-400':'bg-gray-200'
-                  }`} />
-                ))}
+                <div className={`flex-1 h-2 rounded-full transition-colors ${
+                  toolPhase !== 'idle' ? 'bg-blue-500' : steps.length > 0 ? 'bg-blue-400 animate-pulse' : 'bg-gray-200'
+                }`} />
+                <div className={`flex-1 h-2 rounded-full transition-colors ${
+                  toolPhase === 'calling' ? 'bg-blue-400 animate-pulse' : toolPhase === 'done' ? 'bg-blue-500' : 'bg-gray-200'
+                }`} />
+                <div className={`flex-1 h-2 rounded-full transition-colors ${
+                  toolPhase === 'done' && !tripData ? 'bg-blue-400 animate-pulse' : tripData ? 'bg-blue-500' : 'bg-gray-200'
+                }`} />
+                <div className={`flex-1 h-2 rounded-full transition-colors ${tripData ? 'bg-green-500' : 'bg-gray-200'}`} />
               </div>
               <div className="flex justify-between text-xs text-gray-400 mb-4"><span>分析</span><span>搜索</span><span>生成</span><span>完成</span></div>
               <div className="text-sm text-primary-600 font-medium mb-3">

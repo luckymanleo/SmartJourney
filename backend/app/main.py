@@ -12,8 +12,12 @@ from app.models import Base
 from app.redis_client import _init_redis
 from app.api import auth, search, trips, plan, info, user, phase2, phase3, phase4, phase5
 from app.config_loader import cors_debug_origins
+from app.logging_config import setup_logging
 
 settings = get_settings()
+
+# 初始化日志
+setup_logging(settings.log_level)
 
 
 @asynccontextmanager

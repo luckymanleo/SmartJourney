@@ -42,6 +42,13 @@ SYSTEM_PROMPT = """你是 SmartJourney（智旅）的智能旅行规划师。基
 - 总预算不超过用户预算的 110%
 - 搜索结果中如有 booking_url 务必包含在行程中，无则设为空字符串 ""，严禁编造链接
 
+## 跨城交通规则（必须遵守）
+
+- 第1天的第一个行程项必须是跨城交通（flight 或 train），从出发地到目的地
+- 最后1天的最后一个行程项必须是返程跨城交通，从目的地返回出发地（若只有去程信息则至少包含去程）
+- 抵达目的地后，用 transport 类型衔接市内交通（地铁/公交/打车到酒店）
+- 跨城交通优先使用搜索结果中真实存在的航班/车次，价格如实填写；搜索结果为空时可基于常识补全
+
 ## 输出格式
 
 只输出如下 JSON，不要任何解释文字：
@@ -206,6 +213,7 @@ class AgentService:
         v3: 后端主动构造查询 → 并行 MCP → 汇聚 → LLM 一次生成 → 异步保存
         """
         start_time = time.time()
+        logger.info(f"Plan start: user={user_id}, {origin}→{destination}, {traveler_count}p, ¥{budget_total or 0}")
 
         # 1. 构建用户消息
         user_message = self._build_user_message(
@@ -215,16 +223,20 @@ class AgentService:
         yield self._sse_event("step", {"step": "analyzing", "text": "正在分析出行需求..."})
 
         # 2. 构造所有查询（往返交通 + 目的地信息 + 天气）
-        queries = self._build_all_queries(origin, destination, start_date, end_date)
+        queries, is_cross_city = self._build_all_queries(origin, destination, start_date, end_date)
         yield self._sse_event("step", {
             "step": "searching",
             "text": f"正在并行搜索 {len(queries)} 个数据源..."
         })
 
-        # 3. 并行执行所有查询（Semaphore(3) 控制并发，空结果自动重试1次）
+        # 3. 并行执行所有查询（Semaphore(6) 控制并发，空结果自动重试1次）
         async def _run_one(name, q):
+            t0 = time.time()
             try:
                 result = await mcp_manager.call_tool(name, q)
+                elapsed = time.time() - t0
+                items = result.get("items", [])
+                logger.info(f"MCP {name}: {len(items)} items, {elapsed:.1f}s, query={q[:50]}")
                 # 空结果重试一次（MCP 服务器间歇性不稳定）
                 items = result.get("items", [])
                 if not items and not result.get("error"):
@@ -331,6 +343,7 @@ class AgentService:
                 "3. 即使某些搜索结果为空，也基于你的知识补全\n"
                 "4. days 按日期排列，每天包含合理的行程安排\n"
                 + (f"5. 目的地天气：{weather_summary}\n" if weather_summary else "")
+                + ("6. 跨城旅行：第1天首个行程必须是跨城交通（flight/train），最后1天末个行程必须是返程交通\n" if is_cross_city else "6. 同城旅行：无需跨城交通，使用 transport 安排市内出行即可\n")
             )},
         ]
 
@@ -361,15 +374,23 @@ class AgentService:
             if base_gen:
                 strat_prompt = base_gen + strat_prompt
             msg_copy.append({"role": "user", "content": strat_prompt})
-            resp = await self._call_llm(msg_copy, None)
-            if resp:
-                content = resp.get("choices", [{}])[0].get("message", {}).get("content", "")
-                tj = self._extract_json(content)
-                if tj:
-                    tj["route_tag"] = strategy["tag"]
-                    tj["route_index"] = idx
-                return tj or {"error": "parse_failed", "raw": content[:200]}
-            return {"error": "llm_failed"}
+            t0 = time.time()
+            logger.info(f"LLM call start: strategy={strategy['tag']}, tokens_est={sum(len(str(m.get('content',''))) for m in msg_copy)//4}")
+            try:
+                resp = await self._call_llm(msg_copy, None)
+                elapsed = time.time() - t0
+                if resp:
+                    content = resp.get("choices", [{}])[0].get("message", {}).get("content", "")
+                    logger.info(f"LLM call done: {elapsed:.1f}s, content_len={len(content)}")
+                    tj = self._extract_json(content)
+                    if tj:
+                        tj["route_tag"] = strategy["tag"]
+                        tj["route_index"] = idx
+                    return tj or {"error": "parse_failed", "raw": content[:200]}
+                return {"error": "llm_failed"}
+            except Exception as e:
+                logger.error(f"LLM call exception: {e}", exc_info=True)
+                return {"error": f"llm_exception: {str(e)[:100]}"}
 
         if strategies:
             gen_results = await asyncio.gather(*[
@@ -393,9 +414,12 @@ class AgentService:
                     yield self._sse_event("chunk", {"text": content[:500]})
 
         if not trip_jsons:
+            elapsed = time.time() - start_time
+            logger.warning(f"Plan done: 0 routes generated, {elapsed:.1f}s")
             yield self._sse_event("chunk", {"text": "行程生成遇到问题，请重新规划"})
 
         elapsed = time.time() - start_time
+        logger.info(f"Plan done: {len(trip_jsons)} routes, {elapsed:.1f}s")
         yield self._sse_event("done", {
             "elapsed_seconds": round(elapsed, 1),
             "routes_generated": len(trip_jsons),
@@ -438,7 +462,7 @@ class AgentService:
         if budget_total:
             parts.append(f"总预算：{budget_total:.0f} 元")
 
-        parts.append("\n请按流程搜索并生成行程，最终输出完整的 JSON 行程方案。")
+        parts.append("\n请基于搜索结果生成完整的 JSON 行程方案。注意：第1天必须包含从出发地到目的地的跨城交通（flight/train），最后1天必须包含返程交通。")
         return "\n".join(parts)
 
     @staticmethod
@@ -456,13 +480,16 @@ class AgentService:
             pass
         return str(iso_date)
 
-    def _build_all_queries(self, origin, destination, start_date, end_date) -> list[tuple[str, str]]:
-        """从用户输入构造所有 MCP 查询列表（往返交通按类型拆分 + 目的地信息）"""
+    def _build_all_queries(self, origin, destination, start_date, end_date) -> tuple[list[tuple[str, str]], bool]:
+        """从用户输入构造所有 MCP 查询列表，返回 (查询列表, 是否跨城)"""
         queries = []
         dep_date = self._to_cn_date(start_date)
         ret_date = self._to_cn_date(end_date)
 
-        if origin and destination:
+        # 判断是否跨城旅行
+        is_cross_city = bool(origin and destination and origin != destination)
+
+        if is_cross_city:
             # 去程机票
             queries.append(("search_flight", f"{origin}到{destination}{dep_date}机票"))
             # 返程机票
@@ -476,13 +503,18 @@ class AgentService:
             if ret_date:
                 for ttype in ["高铁", "动车", "火车票"]:
                     queries.append(("search_train", f"{destination}到{origin}{ret_date}{ttype}"))
+        else:
+            # 同城旅行：搜索市内交通
+            city = destination or origin
+            if city:
+                queries.append(("search_transport", f"{city}市 市内交通"))
 
         if destination:
             queries.append(("search_hotel", f"{destination}酒店"))
             queries.append(("search_poi", f"{destination}景点"))
             queries.append(("search_food", f"{destination}美食"))
 
-        return queries
+        return queries, is_cross_city
 
     async def _call_llm(self, messages: list, tools: list = None) -> dict | None:
         """调用 LLM API"""
@@ -611,11 +643,11 @@ class AgentService:
         # 每种工具提取关键字段
         compact = {"tool": tool_name, "count": len(items), "items": []}
         key_fields = {
-            "search_flight": ["title", "description", "price"],
-            "search_train": ["title", "description", "price"],
-            "search_hotel": ["title", "stars", "price_per_night", "location"],
-            "search_poi": ["title", "level", "ticket_price", "description"],
-            "search_food": ["title", "cuisine", "avg_price", "description"],
+            "search_flight": ["title", "description", "price", "booking_url"],
+            "search_train": ["title", "description", "price", "booking_url"],
+            "search_hotel": ["title", "stars", "price_per_night", "location", "booking_url"],
+            "search_poi": ["title", "level", "ticket_price", "description", "booking_url"],
+            "search_food": ["title", "cuisine", "avg_price", "description", "booking_url"],
             "search_transport": ["title", "type", "duration", "price"],
         }
         fields = key_fields.get(tool_name, ["title", "description"])
