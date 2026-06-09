@@ -133,6 +133,8 @@ def _trip_to_dict(trip) -> dict:
         "cover_image": trip.cover_image,
         "route_tag": trip.route_tag,
         "weather_info": trip.weather_info,
+        "summary": trip.summary,
+        "tips": trip.tips,
         "notes": trip.notes,
         "created_at": trip.created_at.isoformat() if trip.created_at else None,
         "updated_at": trip.updated_at.isoformat() if trip.updated_at else None,

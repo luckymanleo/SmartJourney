@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Trash2 } from 'lucide-react'
+import { ArrowLeft, Trash2, AlertTriangle, X } from 'lucide-react'
 import { useTripStore } from '../stores/tripStore'
 import TripTimeline from '../components/TripTimeline'
 import TripMap from '../components/TripMap'
@@ -16,6 +16,7 @@ export default function TripDetailPage() {
   const [tab, setTab] = useState<Tab>('itinerary')
   const [mapDay, setMapDay] = useState(1)
   const [focusPoiId, setFocusPoiId] = useState<string | null>(null)
+  const [showDelete, setShowDelete] = useState(false)
 
   useEffect(() => {
     if (id) {
@@ -27,7 +28,7 @@ export default function TripDetailPage() {
   }, [id])
 
   const handleDelete = async () => {
-    if (!id || !confirm('确定删除这个行程吗？')) return
+    if (!id) return
     await deleteTrip(id)
     navigate('/trips')
   }
@@ -61,7 +62,10 @@ export default function TripDetailPage() {
             )}
           </div>
         </div>
-        <button onClick={handleDelete} className="p-2 text-gray-400 hover:text-red-500">
+        <button
+          onClick={() => setShowDelete(true)}
+          className="p-2.5 rounded-xl border border-red-100 text-red-400 active:bg-red-50 active:text-red-500 transition-colors"
+        >
           <Trash2 size={18} />
         </button>
       </div>
@@ -87,6 +91,21 @@ export default function TripDetailPage() {
         <div className="bg-blue-50 rounded-xl px-4 py-3 mb-4">
           <div className="text-xs font-medium text-blue-700 mb-1">🌤️ 天气情况</div>
           <div className="text-xs text-blue-600 whitespace-pre-line">{currentTrip.weather_info}</div>
+        </div>
+      )}
+
+      {/* Tips — always visible */}
+      {currentTrip.tips && currentTrip.tips.length > 0 && (
+        <div className="bg-amber-50 rounded-xl px-4 py-3 mb-4">
+          <div className="text-xs font-medium text-amber-700 mb-1">💡 出行提示</div>
+          <ul className="text-xs text-amber-600 space-y-1">
+            {currentTrip.tips.map((tip: string, i: number) => (
+              <li key={i} className="flex gap-1.5">
+                <span className="flex-shrink-0">•</span>
+                <span>{tip}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
@@ -118,7 +137,7 @@ export default function TripDetailPage() {
       {tab === 'itinerary' ? (
         <>
           {currentTrip.days && currentTrip.days.length > 0 ? (
-            <TripTimeline days={currentTrip.days} />
+            <TripTimeline days={currentTrip.days} travelerCount={currentTrip.traveler_count} />
           ) : (
             <div className="text-center text-gray-400 py-12">
               还没有安排行程项，去搜索并添加吧
@@ -200,6 +219,48 @@ export default function TripDetailPage() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          onClick={() => setShowDelete(false)}>
+          <div className="bg-white rounded-2xl shadow-xl mx-4 overflow-hidden"
+            style={{ width: 'clamp(280px, 85%, 400px)' }}
+            onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center">
+                  <AlertTriangle size={18} className="text-red-500" />
+                </div>
+                <h2 className="font-semibold text-gray-800 text-base">确认删除</h2>
+              </div>
+              <button onClick={() => setShowDelete(false)}
+                className="text-gray-400 active:text-gray-600 p-1 rounded-lg active:bg-gray-100 transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+            {/* Body */}
+            <div className="px-5 py-4">
+              <p className="text-sm text-gray-600 leading-relaxed">
+                确定要删除行程 <span className="font-semibold text-gray-800">「{currentTrip.title}」</span> 吗？
+              </p>
+              <p className="text-xs text-gray-400 mt-1.5">此操作不可撤销，行程中的所有数据将被永久删除。</p>
+            </div>
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-2.5 px-5 py-3.5 border-t border-gray-100 bg-gray-50">
+              <button onClick={() => setShowDelete(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-600 active:text-gray-800 bg-white border border-gray-200 rounded-lg active:bg-gray-50 transition-colors">
+                取消
+              </button>
+              <button onClick={handleDelete}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-500 active:bg-red-600 rounded-lg transition-colors">
+                确认删除
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

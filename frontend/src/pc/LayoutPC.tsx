@@ -63,7 +63,6 @@ export default function LayoutPC() {
     try {
       const res = await sendCode(phone)
       setStep('code')
-      // mock 模式返回验证码 → 不限频，不启动倒计时
       if (!res.data?.data?.code) startCountdown()
     } catch (e: any) { setError(e.response?.data?.detail || '发送失败') } finally { setLoading(false) }
   }
@@ -75,13 +74,11 @@ export default function LayoutPC() {
       const { login: doLogin } = useAuthStore.getState()
       await doLogin(phone, code)
       closeLogin(); setStep('phone'); setPhone(''); setCode(''); clearCountdown()
-      // 登录成功后跳转到待进入的页面
       const path = useAuthStore.getState().pendingPath
       if (path) navigate(path)
     } catch (e: any) { setError(e.response?.data?.detail || '登录失败') } finally { setLoading(false) }
   }
 
-  // 侧边栏链接点击：未登录则弹出登录框，记录目标路径
   const requireAuth = (to: string) => (e: React.MouseEvent) => {
     if (token) return
     e.preventDefault()
@@ -89,65 +86,74 @@ export default function LayoutPC() {
   }
 
   const navCls = (active: boolean) =>
-    `flex items-center gap-3.5 mx-4 px-3 py-2.5 rounded-lg text-[15px] transition-colors ${
-      active ? 'bg-primary-50 text-primary-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
+    `flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-sm transition-colors ${
+      active
+        ? 'bg-white border border-gray-200 text-gray-900 font-medium shadow-sm'
+        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
     }`
   const subCls = (active: boolean) =>
-    `flex items-center gap-3.5 mx-4 px-3 py-2 rounded-lg text-[13px] transition-colors ${
-      active ? 'bg-primary-50 text-primary-700 font-semibold' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+    `flex items-center gap-3 px-4 py-2 ml-6 mr-2 rounded-lg text-[13px] transition-colors border-l-2 ${
+      active
+        ? 'border-gray-800 text-gray-900 font-medium bg-gray-50'
+        : 'border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200'
     }`
   const grpCls = (active: boolean) =>
-    `w-full flex items-center gap-3.5 mx-4 px-3 py-2.5 rounded-lg text-[15px] transition-colors ${
-      active ? 'bg-primary-50 text-primary-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
+    `w-full flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-sm transition-colors ${
+      active
+        ? 'text-gray-900 font-medium'
+        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
     }`
+
+  const iconStyle = { width: '18px', height: '18px', flexShrink: 0 as const }
 
   return (
     <div className="h-screen flex overflow-hidden">
       {/* Sidebar */}
-      <aside className="flex-shrink-0 flex flex-col bg-white border-r border-gray-200" style={{width: 'clamp(200px, 20%, 320px)'}}>
-        <div className="px-5 py-5 border-b-2 border-primary-100 bg-gradient-to-r from-primary-50/50 to-white">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">🌍</span>
+      <aside className="flex-shrink-0 flex flex-col bg-white border-r border-gray-200" style={{width: 'clamp(200px, 20%, 280px)'}}>
+        {/* Logo — clean, no gradient */}
+        <div className="px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl">🌍</span>
             <div>
-              <h1 className="text-base font-bold text-primary-700 leading-tight">智旅</h1>
-              <p className="text-xs text-primary-400 font-medium leading-tight tracking-wide">SmartJourney</p>
+              <h1 className="text-sm font-bold text-gray-800 leading-tight">智旅</h1>
+              <p className="text-[10px] text-gray-400 leading-tight">SmartJourney</p>
             </div>
           </div>
         </div>
 
-        <nav className="py-3 overflow-auto">
+        <nav className="flex-1 py-2 overflow-auto">
           <NavLink to="/" end className={({ isActive }) => navCls(isActive)}>
-            <Home size={17} /><span>首页</span>
+            <Home size={16} style={iconStyle} /><span>首页</span>
           </NavLink>
 
-          <div className="mt-1">
+          <div className="mt-0.5">
             <button onClick={() => { const v = !tripOpen; setTripOpen(v); saveState('trip', v) }} className={grpCls(isTripRoute)}>
-              <MapPin size={17} />
+              <MapPin size={16} style={iconStyle} />
               <span className="flex-1 text-left">行程</span>
-              {tripOpen ? <ChevronDown size={14} className="text-gray-400" /> : <ChevronRight size={14} className="text-gray-400" />}
+              {tripOpen ? <ChevronDown size={14} className="text-gray-300 flex-shrink-0" /> : <ChevronRight size={14} className="text-gray-300 flex-shrink-0" />}
             </button>
             {tripOpen && (
-              <div className="ml-2 mt-0.5 border-l-2 border-gray-100 space-y-0.5">
+              <div className="mt-0.5">
                 {tripChildren.map(({ to, icon: Icon, label }) => (
                   <NavLink key={to} to={to} onClick={requireAuth(to)} className={({ isActive }) => subCls(isActive)}>
-                    <Icon size={15} className="w-[17px]" /><span>{label}</span>
+                    <Icon size={14} style={iconStyle} /><span>{label}</span>
                   </NavLink>
                 ))}
               </div>
             )}
           </div>
 
-          <div className="mt-1">
+          <div className="mt-0.5">
             <button onClick={() => { const v = !searchOpen; setSearchOpen(v); saveState('search', v) }} className={grpCls(isSearchRoute)}>
-              <span className="w-[17px] text-center text-base">🔍</span>
+              <span className="text-sm flex-shrink-0" style={iconStyle}>🔍</span>
               <span className="flex-1 text-left">搜索</span>
-              {searchOpen ? <ChevronDown size={14} className="text-gray-400" /> : <ChevronRight size={14} className="text-gray-400" />}
+              {searchOpen ? <ChevronDown size={14} className="text-gray-300 flex-shrink-0" /> : <ChevronRight size={14} className="text-gray-300 flex-shrink-0" />}
             </button>
             {searchOpen && (
-              <div className="ml-2 mt-0.5 border-l-2 border-gray-100 space-y-0.5">
+              <div className="mt-0.5">
                 {searchChildren.map(({ to, icon, label }) => (
                   <NavLink key={to} to={to} onClick={requireAuth(to)} className={({ isActive }) => subCls(isActive)}>
-                    <span className="w-[17px] text-center text-sm">{icon}</span><span>{label}</span>
+                    <span className="text-sm flex-shrink-0" style={iconStyle}>{icon}</span><span>{label}</span>
                   </NavLink>
                 ))}
               </div>
@@ -155,26 +161,27 @@ export default function LayoutPC() {
           </div>
 
           <NavLink to="/settings" onClick={requireAuth('/settings')} className={({ isActive }) => navCls(isActive)}>
-            <Settings size={17} /><span>设置</span>
+            <Settings size={16} style={iconStyle} /><span>设置</span>
           </NavLink>
         </nav>
 
-        <div className="px-4 py-3 border-t border-gray-100 mt-auto mb-[5vh]">
+        {/* User area — simplified */}
+        <div className="px-4 py-3 border-t border-gray-100">
           {token && user ? (
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-sm flex-shrink-0">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 font-bold text-xs flex-shrink-0">
                 {user.nickname?.[0] || '旅'}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-base font-medium text-gray-700 truncate">{user.nickname || '旅行者'}</div>
-                <div className="text-sm text-gray-400">{user.phone}</div>
+                <div className="text-[13px] font-medium text-gray-700 truncate">{user.nickname || '旅行者'}</div>
+                <div className="text-[11px] text-gray-400">{user.phone}</div>
               </div>
-              <button onClick={logout} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="退出登录">
-                <LogOut size={16} />
+              <button onClick={logout} className="p-1 text-gray-300 hover:text-red-400 hover:bg-red-50 rounded-md transition-colors flex-shrink-0" title="退出登录">
+                <LogOut size={14} />
               </button>
             </div>
           ) : (
-            <button onClick={() => openLogin()} className="text-sm text-primary-600 hover:underline">登录 / 注册</button>
+            <button onClick={() => openLogin()} className="text-[13px] text-gray-500 hover:text-gray-700">登录 / 注册</button>
           )}
         </div>
       </aside>
@@ -231,6 +238,7 @@ export default function LayoutPC() {
           </div>
         </div>
       )}
+
     </div>
   )
 }

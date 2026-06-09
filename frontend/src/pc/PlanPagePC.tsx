@@ -211,7 +211,7 @@ export default function PlanPagePC() {
                 </div>
               )}
               {route.summary && <div className="bg-primary-50 rounded-xl p-4 text-sm text-gray-700">{route.summary}</div>}
-              <TripTimeline days={route.days} />
+              <TripTimeline days={route.days} travelerCount={travelers || 1} />
             </div>
           )}
 

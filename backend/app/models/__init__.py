@@ -84,6 +84,8 @@ class Trip(Base):
     cover_image: Mapped[str | None] = mapped_column(Text, nullable=True, comment="封面图URL")
     route_tag: Mapped[str | None] = mapped_column(String(50), nullable=True, comment="路线策略标签（经济/舒适/快速）")
     weather_info: Mapped[str | None] = mapped_column(Text, nullable=True, comment="出行期间天气摘要")
+    summary: Mapped[str | None] = mapped_column(Text, nullable=True, comment="行程概要（2-3句话）")
+    tips: Mapped[list | None] = mapped_column(JSON, nullable=True, comment="出行提示列表")
     notes: Mapped[str | None] = mapped_column(Text, nullable=True, comment="备注")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, comment="创建时间")
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, comment="最后更新时间")

@@ -25,7 +25,9 @@ const typeConfig: Record<string, { icon: string; color: string }> = {
   transport: { icon: '🚗', color: 'bg-gray-100 text-gray-700' },
 }
 
-export default function TripTimeline({ days }: { days: TripDay[] }) {
+export default function TripTimeline({ days, travelerCount }: { days: TripDay[]; travelerCount?: number }) {
+  const showUnit = travelerCount && travelerCount > 1
+
   return (
     <div className="space-y-6">
       {days.map((day) => (
@@ -43,6 +45,8 @@ export default function TripTimeline({ days }: { days: TripDay[] }) {
           <div className="ml-4 border-l-2 border-primary-200 pl-4 space-y-3">
             {day.items?.map((item) => {
               const cfg = typeConfig[item.type] || { icon: '📍', color: 'bg-gray-100' }
+              const unitPrice = showUnit && item.price ? item.price / travelerCount! : null
+              const isInt = unitPrice && unitPrice === Math.floor(unitPrice)
               return (
                 <div key={item.id} className="relative">
                   <div className="absolute -left-[30px] top-2 w-3 h-3 bg-primary-400 rounded-full border-2 border-white" />
@@ -53,7 +57,22 @@ export default function TripTimeline({ days }: { days: TripDay[] }) {
                   <div className="font-medium text-gray-800 text-sm">{item.title}</div>
                   <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
                     {item.start_time && <span>🕐 {item.start_time}{item.end_time ? ` - ${item.end_time}` : ''}</span>}
-                    {item.price && <span className="text-primary-600 font-medium">¥{item.price}</span>}
+                    {item.price && (
+                      <span className="text-primary-600 font-medium">
+                        {showUnit && unitPrice ? (
+                          <>
+                            <span className="text-gray-400 font-normal">¥</span>
+                            {isInt ? unitPrice.toLocaleString() : unitPrice.toFixed(2)}
+                            <span className="text-gray-400 font-normal">/人</span>
+                            <span className="text-gray-300 mx-0.5">·</span>
+                            <span className="text-gray-400 font-normal">共</span>
+                            ¥{item.price.toLocaleString()}
+                          </>
+                        ) : (
+                          <>¥{item.price.toLocaleString()}</>
+                        )}
+                      </span>
+                    )}
                   </div>
                   {item.description && (
                     <div className="text-xs text-gray-400 mt-1">{item.description}</div>

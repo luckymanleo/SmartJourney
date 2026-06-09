@@ -13,6 +13,7 @@ import json
 import logging
 import re
 import time
+import uuid
 from datetime import date, timedelta
 from typing import AsyncGenerator, Optional
 
@@ -33,6 +34,12 @@ settings = get_settings()
 
 SYSTEM_PROMPT = """你是 SmartJourney（智旅）的智能旅行规划师。基于已搜索到的真实数据，生成一份完整的 JSON 旅行计划。
 
+## 核心铁律
+
+- **价格必须从搜索结果逐项提取，严禁全部填0或使用示例中的默认值**
+- **搜索结果中有 booking_url 必须如实填入，无则填 ""**
+- 严禁编造链接或价格
+
 ## 规则
 
 - 每天安排 2-3 个景点，上午 1 个、下午 1-2 个
@@ -41,22 +48,22 @@ SYSTEM_PROMPT = """你是 SmartJourney（智旅）的智能旅行规划师。基
 - 根据用户出行需求中的具体偏好安排合适的景点类型和节奏，不要凭空添加用户未提及的出行主题
 - 总预算不超过用户预算的 110%
 - 每天 items 数组必须按 start_time 从早到晚排序（09:00 在前，19:00 在后），禁止时间倒序
-- 搜索结果中如有 booking_url 务必包含在行程中，无则设为空字符串 ""，严禁编造链接
+- items 中每个对象的 price 和 booking_url 必须从搜索结果中逐一提取。price 为数值（元），搜索结果中未找到价格时方可填 0
 
 ## 跨城交通规则（必须遵守）
 
 - 第1天的第一个行程项必须是跨城交通（flight 或 train），从出发地到目的地
 - 最后1天的最后一个行程项必须是返程跨城交通，从目的地返回出发地（若只有去程信息则至少包含去程）
 - 抵达目的地后，用 transport 类型衔接市内交通（地铁/公交/打车到酒店）
-- 若 Day 1 出发时间在下午/晚上（如 14:00 后），出发前可安排出发地 1-2 个景点或美食（使用 origin 城市数据），出发前 1-2 小时前往车站/机场
-- 跨城交通优先使用搜索结果中真实存在的航班/车次，价格如实填写；搜索结果为空时可基于常识补全
+- Day 1 跨城交通出发前如有 ≥4 小时空档，必须安排出发地 1-2 个景点/美食（即使搜索结果为空也应基于常识补全，如城市公园、博物馆、本地小吃）。出发前预留 1.5-2h 前往车站/机场。Day 2 如为在途日，抵达后应从酒店入住开始安排
+- 跨城交通优先使用搜索结果中真实存在的航班/车次，价格和 booking_url 如实填写；搜索结果为空时可基于常识补全车次但 price 也需根据常识估算（如高铁二等座约 0.5元/km）
 
 ## 输出格式
 
-只输出如下 JSON，不要任何解释文字：
+只输出如下 JSON，不要任何解释文字。**注意：示例中的 0 和 "" 仅为占位符，实际输出中必须替换为搜索结果中的真实值。**
 
 {
-  "title": "出发地→目的地 M人N日游（严格格式：出发地→目的地+人数+天数，如\"深圳→上海 5人4日游\"，禁止在 title 中添加任何修饰性主题词）",
+  "title": "出发地→目的地 M人N日游（严格格式：出发地→目的地+人数+天数，如"深圳→上海 5人4日游"，禁止在 title 中添加任何修饰性主题词）",
   "summary": "2-3句话概要",
   "tips": ["提示1", "提示2"],
   "days": [
@@ -64,13 +71,14 @@ SYSTEM_PROMPT = """你是 SmartJourney（智旅）的智能旅行规划师。基
       "day_number": 1,
       "date": "2026-06-03",
       "items": [
-        {"type": "flight|train|hotel|poi|food|transport|other", "title": "...", "start_time": "08:00", "end_time": "10:00", "price": 0, "booking_url": ""}
+        {"type": "flight|train|hotel|poi|food|transport|other", "title": "从搜索结果中提取的标题", "start_time": "08:00", "end_time": "10:00", "price": "从搜索结果提取价格（数值），未找到填0", "booking_url": "从搜索结果提取链接，无则填\"\""}
       ]
     }
   ],
-  "budget": {"transport": 0, "lodging": 0, "food": 0, "tickets": 0, "other": 0}
+  "budget": {"transport": "交通总价", "lodging": "住宿总价", "food": "餐饮总价", "tickets": "门票总价", "other": "其他总价"}
 }
-"""
+
+**再次强调：price 为数值类型，每个 item 的 price 都必须从搜索结果中逐一查找提取。不允许所有 item 都填 0。**"""
 
 # ==================== Function Definitions for LLM ====================
 
@@ -400,6 +408,8 @@ class AgentService:
             ])
             for s, r in zip(strategies, gen_results):
                 if r and not r.get("error") and r.get("days"):
+                    if not r.get("trip_id"):
+                        r["trip_id"] = str(uuid.uuid4())
                     trip_jsons.append(r)
                     yield self._sse_event("trip_data", r)
         else:
@@ -410,6 +420,8 @@ class AgentService:
                 if trip_json:
                     if not trip_json.get("days"):
                         trip_json["days"] = []
+                    if not trip_json.get("trip_id"):
+                        trip_json["trip_id"] = str(uuid.uuid4())
                     trip_jsons.append(trip_json)
                     yield self._sse_event("trip_data", trip_json)
                 elif content:
@@ -464,7 +476,9 @@ class AgentService:
         if budget_total:
             parts.append(f"总预算：{budget_total:.0f} 元")
 
-        parts.append("\n请基于搜索结果生成完整的 JSON 行程方案。注意：第1天必须包含从出发地到目的地的跨城交通（flight/train），最后1天必须包含返程交通。")
+        parts.append("\n请基于搜索结果生成完整的 JSON 行程方案。")
+        parts.append("注意：第1天必须包含从出发地到目的地的跨城交通（flight/train），最后1天必须包含返程交通。")
+        parts.append("第1天若跨城交通在下午/晚上出发，上车前有大量空档时间，务必安排出发地 1-2 个活动。")
         return "\n".join(parts)
 
     @staticmethod
@@ -728,7 +742,8 @@ class AgentService:
     async def _save_trip(self, db, user_id, trip_json, origin, destination, start_date, end_date, traveler_count, budget_total, weather_info=""):
         """保存行程、行程项、预算到数据库"""
         from app.services.trip_service import create_trip, add_trip_item
-        trip = await create_trip(db, user_id, {
+        trip_id = trip_json.get("trip_id")
+        trip_data = {
             "title": trip_json.get("title", f"{destination or '未命名'}旅行"),
             "origin": origin or trip_json.get("origin"),
             "destination": destination or trip_json.get("destination"),
@@ -737,8 +752,13 @@ class AgentService:
             "traveler_count": traveler_count,
             "budget_total": budget_total,
             "route_tag": trip_json.get("route_tag") or None,
+            "tips": trip_json.get("tips"),
+            "summary": trip_json.get("summary"),
             "weather_info": weather_info or None,
-        })
+        }
+        if trip_id:
+            trip_data["id"] = trip_id
+        trip = await create_trip(db, user_id, trip_data)
         trip_json["trip_id"] = trip.id
         for day_data in trip_json.get("days", []):
             day_num = day_data.get("day_number", 1)

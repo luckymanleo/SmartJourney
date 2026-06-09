@@ -83,6 +83,9 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
 
   // Sync external selectedDay → internal filterDay
   useEffect(() => { if (selectedDay) setFilterDay(selectedDay) }, [selectedDay])
+
+  // Clear selected POI when switching days
+  useEffect(() => { setSelectedPoi(null) }, [effectiveDay])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [amapKey, setAmapKey] = useState('')

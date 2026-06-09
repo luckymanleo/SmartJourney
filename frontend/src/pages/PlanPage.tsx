@@ -145,13 +145,7 @@ export default function PlanPage() {
 
         {/* 导航入口 */}
         {hasTripId && (
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => navigate(`/trips/${route.trip_id}`)}
-              className="flex-1 bg-primary-600 text-white rounded-xl py-2.5 text-sm font-medium flex items-center justify-center gap-1.5"
-            >
-              查看行程详情 <ArrowRight size={16} />
-            </button>
+          <div className="flex justify-end mb-4">
             <button
               onClick={() => navigate('/trips')}
               className="flex items-center gap-1.5 px-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-600"
@@ -209,7 +203,7 @@ export default function PlanPage() {
           </div>
         )}
 
-        {route?.days && <TripTimeline days={route.days} />}
+        {route?.days && <TripTimeline days={route.days} travelerCount={travelers || 1} />}
 
         {route?.budget && typeof route.budget === 'object' && (
           <div className="mt-6">
@@ -228,12 +222,23 @@ export default function PlanPage() {
           </div>
         )}
 
-        <button
-          onClick={() => usePlanStore.setState({ tripData: null, tripRoutes: [], steps: [] })}
-          className="w-full mt-6 border border-primary-300 text-primary-600 rounded-xl py-3 font-medium"
-        >
-          重新规划
-        </button>
+        <div className="flex gap-2 mt-6">
+          <button
+            onClick={() => usePlanStore.setState({ tripData: null, tripRoutes: [], steps: [] })}
+            className="flex-1 border border-primary-300 text-primary-600 rounded-xl py-3 font-medium"
+          >
+            重新规划
+          </button>
+          {hasTripId && (
+            <button
+              onClick={() => navigate(`/trips/${route.trip_id}`)}
+              className="flex-1 bg-primary-600 text-white rounded-xl py-3 font-medium flex items-center justify-center gap-1.5"
+            >
+              <ArrowRight size={16} />
+              查看详情
+            </button>
+          )}
+        </div>
       </div>
     )
   }

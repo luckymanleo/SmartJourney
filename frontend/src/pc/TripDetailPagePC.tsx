@@ -125,7 +125,7 @@ export default function TripDetailPagePC() {
           <div className="overflow-y-auto" style={{ flex: '0 0 58%' }}>
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               {currentTrip.days && currentTrip.days.length > 0 ? (
-                <TripTimeline days={currentTrip.days} />
+                <TripTimeline days={currentTrip.days} travelerCount={currentTrip.traveler_count} />
               ) : (
                 <div className="flex items-center justify-center py-16 text-gray-400 text-sm">还没有安排行程项</div>
               )}
@@ -134,6 +134,30 @@ export default function TripDetailPagePC() {
 
           {/* Right: Info panels 42% */}
           <div className="overflow-y-auto space-y-3" style={{ flex: '0 0 42%' }}>
+
+            {/* AI Summary */}
+            {currentTrip.summary && (
+              <div className="bg-primary-50 rounded-xl border border-primary-100 p-4">
+                <h3 className="text-sm font-semibold text-primary-700 mb-2">📋 行程简介</h3>
+                <p className="text-[13px] text-gray-700 leading-relaxed">{currentTrip.summary}</p>
+              </div>
+            )}
+
+            {/* Tips */}
+            {currentTrip.tips && currentTrip.tips.length > 0 && (
+              <div className="bg-white rounded-xl border border-amber-200 p-4">
+                <h3 className="text-sm font-semibold text-amber-700 mb-2">💡 出行提示</h3>
+                <ul className="space-y-1.5">
+                  {currentTrip.tips.map((tip: string, i: number) => (
+                    <li key={i} className="text-xs text-amber-600 flex gap-1.5">
+                      <span className="flex-shrink-0">•</span>
+                      <span>{tip}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* Weather */}
             {(weatherParts.length > 0 || currentTrip.weather_info) && (
               <div className="bg-white rounded-xl border border-gray-200 p-4">

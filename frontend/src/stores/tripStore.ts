@@ -12,6 +12,8 @@ interface Trip {
   budget_total: number | null
   route_tag: string | null
   weather_info: string | null
+  tips: string[] | null
+  summary: string | null
   created_at: string | null
   days: TripDay[]
 }
