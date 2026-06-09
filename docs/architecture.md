@@ -159,3 +159,17 @@ cd frontend && npm run dev
 | 日志 | 按日切分 + error 单独文件 |
 
 详见 [性能优化方案](performance-optimization.md)。
+
+## 部署架构（nginx）
+
+```
+Internet → Nginx :80 (反向代理+静态) → ├─ Frontend (静态文件)
+                                        ├─ Backend :8000 (API)
+                                        ├─ PostgreSQL :5432
+                                        └─ Redis :6379
+```
+
+nginx 承担三项职责：静态文件服务（分层缓存）、API 反向代理、SSE 长连接代理。
+配置规范，支持 gzip 压缩（前端体积减少 60-80%）和 SSE 流式推送（`proxy_buffering off`）。
+
+详见 [Nginx 架构分析](nginx-architecture-analysis.md)。

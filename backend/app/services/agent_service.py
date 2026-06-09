@@ -40,6 +40,7 @@ SYSTEM_PROMPT = """你是 SmartJourney（智旅）的智能旅行规划师。基
 - 午餐 12:00-13:00，晚餐 18:00-19:00
 - 根据用户出行需求中的具体偏好安排合适的景点类型和节奏，不要凭空添加用户未提及的出行主题
 - 总预算不超过用户预算的 110%
+- 每天 items 数组必须按 start_time 从早到晚排序（09:00 在前，19:00 在后），禁止时间倒序
 - 搜索结果中如有 booking_url 务必包含在行程中，无则设为空字符串 ""，严禁编造链接
 
 ## 跨城交通规则（必须遵守）
@@ -47,6 +48,7 @@ SYSTEM_PROMPT = """你是 SmartJourney（智旅）的智能旅行规划师。基
 - 第1天的第一个行程项必须是跨城交通（flight 或 train），从出发地到目的地
 - 最后1天的最后一个行程项必须是返程跨城交通，从目的地返回出发地（若只有去程信息则至少包含去程）
 - 抵达目的地后，用 transport 类型衔接市内交通（地铁/公交/打车到酒店）
+- 若 Day 1 出发时间在下午/晚上（如 14:00 后），出发前可安排出发地 1-2 个景点或美食（使用 origin 城市数据），出发前 1-2 小时前往车站/机场
 - 跨城交通优先使用搜索结果中真实存在的航班/车次，价格如实填写；搜索结果为空时可基于常识补全
 
 ## 输出格式
@@ -514,6 +516,11 @@ class AgentService:
             queries.append(("search_poi", f"{destination}景点"))
             queries.append(("search_food", f"{destination}美食"))
 
+        # 跨城时，出发地也需要搜（Day 1 出发前可能有空档）
+        if is_cross_city and origin:
+            queries.append(("search_poi", f"{origin}景点"))
+            queries.append(("search_food", f"{origin}美食"))
+
         return queries, is_cross_city
 
     async def _call_llm(self, messages: list, tools: list = None) -> dict | None:
@@ -738,16 +745,20 @@ class AgentService:
             target_day = next((d for d in trip.days if d.day_number == day_num), None)
             if not target_day:
                 continue
-            for item_data in day_data.get("items", []):
+            items = day_data.get("items", [])
+            # 按 start_time 排序，确保时间线按时间顺序展示
+            items.sort(key=lambda i: i.get("start_time", "99:99"))
+            for idx, item_data in enumerate(items):
                 await add_trip_item(db, trip.id, user_id, {
                     "day_id": target_day.id,
                     "type": item_data.get("type", "other"),
                     "title": item_data.get("title", ""),
-                    "start_time": item_data.get("start_time"),
-                    "end_time": item_data.get("end_time"),
+                    "start_time": (item_data.get("start_time") or "")[:10] or None,
+                    "end_time": (item_data.get("end_time") or "")[:10] or None,
                     "price": item_data.get("price"),
                     "booking_url": item_data.get("booking_url"),
                     "extra_data": item_data.get("extra_data"),
+                    "sort_order": idx,
                 })
         budget_data = trip_json.get("budget", {})
         if budget_data:

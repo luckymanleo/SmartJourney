@@ -11,7 +11,7 @@
   ✅ Phase 1-3: 核心全栈（FastAPI + React + MCP + AI规划）
   ✅ PC Web 双版本（Vite 多页面 + HashRouter）
   ✅ v2.1 体验打磨（短信验证码 + 用户系统 + 双端对齐）
-  ✅ v2.2 性能优化（gzip + PG调优 + MCP缓存 + 代码分割）
+  ✅ v2.2 性能优化（gzip + PG调优 + MCP Redis缓存 + vendor代码分割 + Semaphore 6）
 ```
 
 ---

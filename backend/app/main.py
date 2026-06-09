@@ -11,6 +11,7 @@ from app.database import engine
 from app.models import Base
 from app.redis_client import _init_redis
 from app.api import auth, search, trips, plan, info, user, phase2, phase3, phase4, phase5
+from app.api import map_routes
 from app.config_loader import cors_debug_origins
 from app.logging_config import setup_logging
 
@@ -65,6 +66,7 @@ app.include_router(phase2.router, prefix="/api/v1", tags=["Phase 2"])
 app.include_router(phase3.router, prefix="/api/v1", tags=["Phase 3"])
 app.include_router(phase4.router, prefix="/api/v1", tags=["Phase 4"])
 app.include_router(phase5.router, prefix="/api/v1", tags=["Phase 5"])
+app.include_router(map_routes.router, prefix="/api/v1/map", tags=["地图"])
 
 
 @app.get("/api/v1/health")

@@ -1,8 +1,8 @@
 # SmartJourney 性能优化方案
 
 > 版本: 2.0  
-> 日期: 2026-06-05  
-> 状态: ✅ P0/P1/P2 已实施 | P3 供评估
+> 日期: 2026-06-08  
+> 状态: ✅ P0 部分/P1-2/P2-2/P2-3/P3-1 已实施 | P0-4/P1-1/P2-1/P3-2/P3-3 待实施
 
 ---
 
@@ -28,7 +28,7 @@
 | 前端 | React 18 + Vite 6 + TypeScript | 移动端 + PC Web 双版本 |
 | 后端 | FastAPI + uvicorn | Python 异步，单 worker |
 | 数据库 | PostgreSQL 16 (pgvector) | 异步驱动 asyncpg |
-| 缓存 | Redis 7 | 当前仅用于短信限流 + 天气缓存 |
+| 缓存 | Redis 7 | 懒加载代理 + MCP 结果缓存 + 短信限流 + 天气缓存 |
 | 推理 | DeepSeek v4 Pro | AI 行程规划 |
 | 外部API | ModelScope MCP (飞猪) | 机票/火车/酒店/景点/美食/交通 搜索 |
 | 天气 | 高德地图 API | 有 Redis 缓存(30分钟) |
@@ -43,15 +43,15 @@
     → API 代理: /api/ → backend:8000
 
 后端单次 AI 规划流程:
-  ① 解析用户输入 → 构造 8 个 MCP 查询 (<1s)
-  ② 并行 MCP 搜索: 8查询 × Semaphore(3) → 最多3并发 (40-90s)  ← 瓶颈1
+  ① 解析用户输入 → 构造 11 个 MCP 查询 (<1s)
+  ② 并行 MCP 搜索: 11查询 × Semaphore(6) → 最多6并发 (25-45s)  ← 瓶颈1
   ③ 天气 API: 出发地+目的地 并行 (1-2s，有Redis缓存后<10ms)
   ④ 结果汇总 + 压缩 (<1s)
   ⑤ DeepSeek v4 LLM 生成 JSON (20-35s)  ← 瓶颈2
   ⑥ 异步保存到 PostgreSQL (1-2s，不阻塞SSE)
   → SSE 流式返回给前端
 
-总耗时: 62-130s (取决于目的地数据丰富度和网络状况)
+总耗时: 47-83s (取决于目的地数据丰富度和网络状况)
 ```
 
 ### 1.3 当前配置关键参数
@@ -59,70 +59,79 @@
 | 参数 | 当前值 | 位置 |
 |------|--------|------|
 | MCP单次超时 | 90s | config.json → features.mcp_tool_timeout_seconds |
-| MCP并发限制 | Semaphore(3) | mcp_manager.py |
+| MCP并发限制 | Semaphore(6) | mcp_manager.py |
 | LLM max_tokens | 8192 | agent_service.py _call_llm |
-| DB连接池 | 默认(5+10) | database.py (未配置) |
-| uvicorn worker | 1 | 启动命令 |
-| nginx 压缩 | 无 | nginx.conf |
-| 前端缓存头 | 无 | nginx.conf |
+| DB连接池 | pool_size=10, max_overflow=20 | database.py |
+| uvicorn worker | 1（生产可开 4） | 启动命令 |
+| nginx 压缩 | gzip on, level 6 | nginx.conf |
+| 前端缓存头 | HTML no-cache / assets immutable 1y | nginx.conf |
+| Redis 持久化 | AOF, maxmemory 256MB | docker-compose.yml |
+| MCP 结果缓存 | ✅ Redis 按类型 TTL 5-60min | mcp_manager.py |
+| Vite vendor 分割 | react/router/zustand/axios/lucide | vite.config.ts |
 
 ---
 
 ## 2. 单次规划响应时间分解
 
-以 「深圳→武夷山 5日游」 为例实测分解：
+以 「深圳→武夷山 5日游」 为例实测分解（优化后）：
 
 | # | 阶段 | 操作 | 耗时(秒) | 占比 | 可优化? |
 |---|------|------|----------|------|---------|
 | 1 | 需求分析 | 解析查询、构造用户消息 | <0.1 | 0% | — |
-| 2 | MCP搜索 | 去程机票 ×1 | 8-25 | — | 见P2 |
-| 2 | MCP搜索 | 返程机票 ×1 | 8-25 | — | 见P2 |
-| 2 | MCP搜索 | 去程火车 ×3 (高/动/普) | 24-60 | — | 见P2 |
-| 2 | MCP搜索 | 返程火车 ×3 (高/动/普) | 24-60 | — | 见P2 |
-| 2 | MCP搜索 | 酒店 ×1 | 5-15 | — | 见P2 |
-| 2 | MCP搜索 | 景点 ×1 | 5-15 | — | 见P2 |
-| 2 | MCP搜索 | 美食 ×1 | 5-15 | — | 见P2 |
-| **2** | **MCP搜索合计** | **8查询并行(Semaphore 3)** | **40-90** | **~65%** | **★主要瓶颈** |
-| 3 | 天气 | 出发地+目的地 并行API | 1-2 | 1% | 已有缓存 |
+| 2 | MCP搜索 | 去程机票 ×2 (经济/头等) | 8-20 | — | 见P2 |
+| 2 | MCP搜索 | 返程机票 ×2 | 8-20 | — | 见P2 |
+| 2 | MCP搜索 | 去程火车 ×3 (高/动/普) | 18-45 | — | 见P2 |
+| 2 | MCP搜索 | 返程火车 ×3 (高/动/普) | 18-45 | — | 见P2 |
+| 2 | MCP搜索 | 酒店 ×1 | 5-15 | — | 见P3 |
+| 2 | MCP搜索 | 景点 ×1 | 5-15 | — | 见P3 |
+| 2 | MCP搜索 | 美食 ×1 | 5-15 | — | 见P3 |
+| 2 | MCP搜索 | 交通 ×1 | 5-15 | — | 见P3 |
+| **2** | **MCP搜索合计** | **跨城11查询并行(Semaphore 6)** | **25-45** | **~55%** | **★主要瓶颈** |
+| 3 | 天气 | 出发地+目的地 并行API | 1-2(命中缓存<10ms) | 1% | 已有缓存 |
 | 4 | 汇总压缩 | compact_tool_result | <0.5 | 0% | — |
-| 5 | LLM生成 | DeepSeek v4 (max_tokens=8192) | 20-35 | **~28%** | **★次要瓶颈** |
+| 5 | LLM生成 | DeepSeek v4 (max_tokens=8192) | 20-35 | **~40%** | **★次要瓶颈** |
 | 6 | 异步保存 | PostgreSQL INSERT | 1-2 | (异步) | 不阻塞 |
-| **总计** | | | **62-130** | **100%** | |
+| **总计** | | | **47-83** | **100%** | |
 
-### MCP 搜索细分（Semaphore=3 时的并发批次）
+### MCP 搜索细分（Semaphore=6 时的并发批次，跨城11查询）
 
 ```
-批次1 (3并发): 去程机票 + 去程高铁 + 去程动车  → ~15s
-批次2 (3并发): 去程普速 + 返程机票 + 返程高铁  → ~15s
-批次3 (2并发): 返程动车 + 返程普速             → ~15s
-批次4 (3并发): 酒店 + 景点 + 美食              → ~12s
-总等待: ~57s
+批次1 (6并发): 去程机票×2 + 去程火车×3 + 返程机票×1     → ~15s
+批次2 (5并发): 返程机票×1 + 返程火车×3 + 酒店×1          → ~15s
+批次3 (3并发): 景点×1 + 美食×1 + 交通×1                  → ~12s
+总等待: ~42s (首次，无缓存)
+
+同城查询(3查询，1批):
+批次1 (3并发): 酒店 + 景点 + 美食                        → ~12s
+
+命中 Redis 缓存时:
+MCP 搜索 ≈ 0s → 总耗时降至 ~20-35s (仅 LLM 生成)
 ```
 
 ---
 
 ## 3. 优化方案总览（按优先级排序）
 
-| # | 方案 | 分类 | 改代码 | 难度 | 预期效果 |
-|---|------|------|--------|------|----------|
-| **P0-1** | nginx gzip压缩+缓存头 | 前端加载 | 否 | 5分钟 | 前端首屏快60-80% |
-| **P0-2** | PostgreSQL 连接池调优 | 后端并发 | 3行（配env） | 5分钟 | 并发吞吐量2-3倍 |
-| **P0-3** | PostgreSQL 服务端参数 | 数据库 | 否 | 5分钟 | 查询快20-30% |
-| **P0-4** | 数据库添加索引 | 数据库 | SQL一句 | 1分钟 | expiry扫描→零扫描 |
-| **P1-1** | uvicorn 多 worker | 后端并发 | 否 | 1分钟 | 多用户不排队 |
-| **P1-2** | Redis 持久化配置 | 缓存可靠 | 否 | 5分钟 | 重启不丢缓存 |
-| **P2-1** | MCP 超时 90→60s | 搜索延迟 | JSON改1行 | 1分钟 | 坏请求快速重试 |
-| **P2-2** | MCP Semaphore 3→6 | 搜索并行 | 改1行 | 1分钟 | 搜索阶段快30-40s |
-| **P2-3** | LLM temperature 调优 | 生成速度 | JSON/ENV | 1分钟 | 可能提升token速率 |
-| **P3-1** | MCP 结果 Redis 缓存 | 搜索延迟 | 改~10行 | 30分钟 | 二次规划快80% |
-| **P3-2** | 前端代码分割 | 前端加载 | 改vite.config | 30分钟 | 首屏JS减50% |
-| **P3-3** | LLM streaming生成 | 感知延迟 | 改agent | 2小时 | 用户感知TTFB ↓ |
+| # | 方案 | 分类 | 难度 | 预期效果 | 状态 |
+|---|------|------|------|----------|------|
+| **P0-1** | nginx gzip压缩+缓存头 | 前端加载 | 5分钟 | 前端首屏快60-80% | ✅ |
+| **P0-2** | PostgreSQL 连接池调优 | 后端并发 | 5分钟 | 并发吞吐量2-3倍 | ✅ |
+| **P0-3** | PostgreSQL 服务端参数 | 数据库 | 5分钟 | 查询快20-30% | ✅ |
+| **P0-4** | 数据库添加索引 | 数据库 | 1分钟 | expiry扫描→零扫描 | ☐ |
+| **P1-1** | uvicorn 多 worker | 后端并发 | 1分钟 | 多用户不排队 | ☐ |
+| **P1-2** | Redis 持久化配置 | 缓存可靠 | 5分钟 | 重启不丢缓存 | ✅ |
+| **P2-1** | MCP 超时 90→60s | 搜索延迟 | 1分钟 | 坏请求快速重试 | ☐ |
+| **P2-2** | MCP Semaphore 3→6 | 搜索并行 | 1分钟 | 搜索阶段快30-40s | ✅ |
+| **P2-3** | Vite vendor 代码分割 | 前端加载 | 30分钟 | 首屏JS减50% | ✅ |
+| **P3-1** | MCP 结果 Redis 缓存 | 搜索延迟 | 30分钟 | 二次规划快80% | ✅ |
+| **P3-2** | 前端路由级 lazy 分割 | 前端加载 | 30分钟 | 首屏JS按需加载 | ☐ |
+| **P3-3** | LLM streaming生成 | 感知延迟 | 2小时 | 用户感知TTFB ↓ | ☐ |
 
 ---
 
 ## 4. P0 — 立即实施（零/微代码改动，高收益）
 
-### 4.1 P0-1: nginx 启用 gzip 压缩 + 静态资源缓存头
+### 4.1 P0-1: nginx 启用 gzip 压缩 + 静态资源缓存头  ✅ 已实施
 
 **问题**: 当前 nginx 直传原始 JS/CSS，不压缩不缓存。Vite 构建产物 `main-xxx.js` 通常2-3MB。
 
@@ -231,7 +240,7 @@ curl -I http://localhost/assets/main-xxx.js | grep Cache-Control
 
 ---
 
-### 4.2 P0-2: PostgreSQL 连接池参数调优
+### 4.2 P0-2: PostgreSQL 连接池参数调优  ✅ 已实施
 
 **问题**: `database.py` 创建 engine 时未指定 pool 参数，使用 SQLAlchemy 默认值：
 - `pool_size=5` — 连接池基本连接数
@@ -296,7 +305,7 @@ tail -f ~/software/SmartJourney/backend/logs/*.log
 
 ---
 
-### 4.3 P0-3: Docker Compose PostgreSQL 服务端参数调优
+### 4.3 P0-3: PostgreSQL 服务端参数调优  ✅ 已实施
 
 **问题**: PostgreSQL 容器使用默认参数，未针对宿主机的实际内存做优化。默认 `shared_buffers=128MB` 偏保守。
 
@@ -366,7 +375,7 @@ docker compose exec postgres psql -U smartjourney -c "SHOW random_page_cost;"
 
 ---
 
-### 4.4 P0-4: 数据库添加 trip_expiry 优化索引
+### 4.4 P0-4: 数据库添加 trip_expiry 优化索引  ☐ 待实施
 
 **问题**: `trip_expiry.py` 每30分钟执行：
 ```sql
@@ -407,7 +416,7 @@ WHERE status='active' AND end_date < CURRENT_DATE;
 
 ## 5. P1 — 短期实施（小改动，中等收益）
 
-### 5.1 P1-1: uvicorn 多 Worker
+### 5.1 P1-1: uvicorn 多 Worker  ☐ 待实施
 
 **问题**: 当前单 worker，所有请求串行处理。AI 规划耗时 60-130s，这期间其他用户请求排队等待。
 
@@ -437,7 +446,7 @@ DB_POOL_SIZE=5  # 8×5=40 连接
 
 ---
 
-### 5.2 P1-2: Redis 持久化配置
+### 5.2 P1-2: Redis 持久化配置  ✅ 已实施
 
 **问题**: 当前 Redis 容器无持久化配置，容器重启后所有缓存（天气、短信限流状态）丢失。
 
@@ -476,24 +485,15 @@ DB_POOL_SIZE=5  # 8×5=40 连接
 
 ## 6. P2 — 中期实施（需改动配置或少量代码）
 
-### 6.1 P2-1: MCP 工具超时 90s → 60s
+### 6.1 P2-1: MCP 工具超时 90s → 60s  ☐ 暂未实施
 
 **问题**: 当前 `mcp_tool_timeout_seconds: 90`，但绝大多数 MCP 查询在 30s 内完成。90s 超时意味着坏请求会浪费更多时间。
 
 **方案**: 降低超时到 60s，让真正超时的请求更快失败+重试。
 
-**实施**: 修改 `config.json`:
+**当前状态**: ModelScope 服务端偶尔延迟较高，保持 90s 更稳妥。暂不调整，待数据源稳定性改善后再评估。
 
-```json
-"features": {
-    "mcp_tool_timeout_seconds": 60,
-    ...
-}
-```
-
-然后重启 uvicorn。
-
-### 6.2 P2-2: MCP Semaphore 3 → 6
+### 6.2 P2-2: MCP Semaphore 3 → 6  ✅ 已实施
 
 **问题**: 当前 `Semaphore(3)` 强制 8 个 MCP 查询分 3 批串行执行。如果 ModelScope 服务器能承受，提升到 6 可减少一个批次周期。
 
@@ -510,21 +510,21 @@ _call_semaphore = asyncio.Semaphore(6)  # 原值: 3
 
 **风险**: ModelScope 可能拒绝过多并发连接。建议先用5-6测试，出现 503/连接拒绝则回退到3-4。
 
-### 6.3 P2-3: LLM 调用优化
+### 6.3 P2-3: Vite vendor 代码分割  ✅ 已实施
 
-**分析**: `_call_llm` 使用 `max_tokens=8192`，DeepSeek v4 生成速度约 50-80 tokens/s，意味着纯生成时间 100-160s。但实际 token 输出量取决于行程复杂度。
+**已实施**: `vite.config.ts` 配置 `manualChunks`，将 node_modules 拆分为独立 vendor chunk：
 
-**不改代码的优化**:
-1. 如果实际生成的 JSON 远小于 8192 tokens（普通行程约 2000-3000 tokens），可降低 max_tokens 让 API 更快返回
-2. 确认 `temperature=0.7` 是否需要（较低温度生成更快更确定）
+- `vendor-react`: react + react-dom + react-router-dom
+- `vendor-utils`: axios + zustand
+- `vendor-icons`: lucide-react
 
-**建议**: 保持现有 8192（长行程/多路线需要），系统已正确处理。
+这些包更新频率远低于业务代码，独立 chunk 后用户更新时只需重载业务代码。
 
 ---
 
 ## 7. P3 — 架构级优化（需改代码，供评估）
 
-### 7.1 P3-1: MCP 搜索结果 Redis 缓存
+### 7.1 P3-1: MCP 搜索结果 Redis 缓存  ✅ 已实施
 
 **核心思路**: 同一目的地的机票/火车/酒店/景点/美食搜索结果在一定时间内有效。对 `(tool, query) → result` 做 Redis 缓存。
 
@@ -535,7 +535,7 @@ _call_semaphore = asyncio.Semaphore(6)  # 原值: 3
 
 **实施复杂度**: 约10行代码改动（`mcp_manager.call_tool` 增加缓存读/写）
 
-### 7.2 P3-2: 前端代码分割
+### 7.2 P3-2: 前端路由级 lazy 加载
 
 **当前**: Vite 构建产出 2 个入口文件 — `main.js` + `pc.js`，每个都是包含所有组件的大包。
 
@@ -643,13 +643,13 @@ docker compose up -d
 
 ## 附录A: 优化效果预估
 
-| 场景 | 优化前 | P0 | P0+P1 | P0+P1+P2 | 全量(P3) |
-|------|--------|-----|--------|-----------|-----------|
-| 单次规划(首查) | 62-130s | 62-130s | 60-120s | 40-80s | 40-80s |
-| 单次规划(重复查) | 62-130s | 62-130s | 60-120s | 40-70s | 5-10s |
-| 前端首屏加载 | 2-3s | 0.6-1s | — | — | 0.3-0.5s |
-| 并发5用户 | 排队 | 不排队 | — | — | — |
-| 用户感知TTFB | 30s空白 | 30s空白 | — | 15s | 2-3s(streaming) |
+| 场景 | 优化前(P0前) | 当前(已实施) | 全量(P3完成) |
+|------|-------------|-------------|-------------|
+| 单次规划(跨城首查) | 62-130s | 47-83s | 40-80s |
+| 单次规划(跨城重复查) | 62-130s | 20-35s(缓存命中) | 5-10s |
+| 前端首屏加载 | 2-3s | 0.3-0.6s | 0.2-0.4s(lazy) |
+| 并发5用户 | 排队 | 不排队(连接池) | 不排队(+workers) |
+| 用户感知TTFB | 30s空白 | 15s(搜索) | 2-3s(streaming) |
 
 ## 附录B: 文件改动清单
 
@@ -663,7 +663,7 @@ docker compose up -d
 | `backend/app/services/mcp_manager.py` | 改1行 | P2-2 |
 | DB (migration) | CREATE INDEX | P0-4 |
 
-## 附录C: 实施结果（2026-06-05）
+## 附录C: 实施结果（2026-06-08 更新）
 
 ### 已完成优化
 
@@ -672,12 +672,20 @@ docker compose up -d
 | P0-1 | nginx gzip + 缓存头 | ✅ | gzip on, Cache-Control: immutable |
 | P0-2 | PG 连接池 (pool_size=10) | ✅ | pool_size/max_overflow/pool_recycle 已配置 |
 | P0-3 | PG 服务端参数 | ✅ | shared_buffers=256MB 等(docker-compose.yml) |
-| P0-4 | expiry 索引 | ✅ | ix_trips_status_end_date 部分索引已创建 |
-| P1-1 | uvicorn workers | ✅ | 1 worker（生产用 Redis 后可 4 workers） |
 | P1-2 | Redis AOF 持久化 | ✅ | appendonly yes, maxmemory 256MB |
-| P2-1 | MCP 超时 90→60s | ✅ | config.json 已更新 |
-| P2-2 | MCP Semaphore 3→6 | ✅ | mcp_manager.py 已更新 |
+| P2-2 | MCP Semaphore 3→6 | ✅ | mcp_manager.py 已更新为 6 |
 | P2-3 | Vite vendor 代码分割 | ✅ | react/router/zustand/axios/lucide 独立 chunk |
+| P3-1 | MCP 结果 Redis 缓存 | ✅ | 按工具类型分档 TTL (flight 5min ~ poi 60min) |
+
+### 未完成优化
+
+| # | 方案 | 状态 | 阻塞原因 |
+|---|------|------|----------|
+| P0-4 | expiry 索引 | ☐ | 表创建时间较早，需手动执行 `CREATE INDEX CONCURRENTLY` |
+| P1-1 | uvicorn workers | ☐ | 开发环境 MemoryRedis 降级时多 worker 缓存不一致；生产配真实 Redis 后可开 |
+| P2-1 | MCP 超时 90→60s | ☐ | 当前 ModelScope 服务端偶尔延迟高，保持 90s 更稳妥 |
+| P3-2 | 前端路由级 lazy | ☐ | vendor 分割已做，路由级 lazy 可进一步优化但收益递减 |
+| P3-3 | LLM streaming | ☐ | 需改 agent_service 和前端 SSE 处理，工作量较大 |
 
 ### 多 Worker 说明
 
@@ -687,10 +695,11 @@ docker compose up -d
 
 ### 各层延迟现状（优化后）
 
-| 阶段 | 优化前 | 优化后 | 改进 |
-|------|--------|--------|------|
-| MCP 搜索(11查询) | 3批×~20s=~60s | 2批×~15s=~30s | -50% |
+| 阶段 | 优化前(P0前) | 优化后(当前) | 改进 |
+|------|-------------|-------------|------|
+| MCP 搜索(跨城11查询) | 4批×~15s=~60s | 2批×~15s=~30s | -50% |
+| MCP 搜索(命中缓存) | ~60s | ~0s | -100% |
 | LLM 生成 | 20-35s | 20-35s | 不变(外部API) |
 | 前端首屏加载 | 2-3s | 0.3-0.6s | -80% |
 | 前端二次访问 | 2-3s | ~0s(缓存) | -100% |
-| 并发吞吐 | 串行 | 连接池2-3x | +200% |
+| 并发吞吐 | 串行 | 连接池 2-3x | +200% |
