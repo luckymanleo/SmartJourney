@@ -27,6 +27,7 @@ Zone.Identifier
 
 # Logs
 *.log
+logs/
 
 # Python
 *.egg-info/
