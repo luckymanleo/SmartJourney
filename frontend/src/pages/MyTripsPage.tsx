@@ -1,17 +1,93 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, AlertTriangle, X } from 'lucide-react'
+import { Plus, AlertTriangle, X, List, MapPin } from 'lucide-react'
 import { useTripStore } from '../stores/tripStore'
 import TripCard from '../components/TripCard'
+
+type ViewMode = 'list' | 'map'
 
 export default function MyTripsPage() {
   const navigate = useNavigate()
   const { trips, loading, fetchTrips, deleteTrip } = useTripStore()
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null)
+  const [viewMode, setViewMode] = useState<ViewMode>('list')
+
+  const mapContainerRef = useRef<HTMLDivElement>(null)
+  const mapRef = useRef<any>(null)
 
   useEffect(() => {
     fetchTrips()
   }, [])
+
+  useEffect(() => {
+    if (viewMode !== 'map' || !trips.length || !mapContainerRef.current) return
+
+    const AMap = (window as any).AMap
+    if (!AMap) {
+      // Load Amap key from config
+      const token = localStorage.getItem('sj_token') || ''
+      fetch('/api/v1/map/config', { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.json())
+        .then(cfg => {
+          if (cfg.code === 0 && cfg.data?.js_key) {
+            const script = document.createElement('script')
+            script.src = `https://webapi.amap.com/maps?v=2.0&key=${cfg.data.js_key}`
+            script.async = true
+            script.onload = () => initMap()
+            document.head.appendChild(script)
+          }
+        })
+        .catch(() => {})
+      return
+    }
+    initMap()
+
+    function initMap() {
+      const A = (window as any).AMap
+      if (!A || !mapContainerRef.current) return
+
+      if (mapRef.current) { mapRef.current.destroy(); mapRef.current = null }
+
+      const markers: any[] = []
+      const points: [number, number][] = []
+
+      trips.forEach((trip) => {
+        if (trip.dest_lng && trip.dest_lat) {
+          points.push([trip.dest_lng, trip.dest_lat])
+          const m = new A.Marker({
+            position: [trip.dest_lng, trip.dest_lat],
+            label: {
+              content: `<div style="font-size:11px;background:#3b82f6;color:#fff;padding:2px 8px;border-radius:12px;white-space:nowrap">${trip.destination || trip.title}</div>`,
+              direction: 'top',
+              offset: [0, -25],
+            },
+          })
+          m.on('click', () => navigate(`/trips/${trip.id}`))
+          markers.push(m)
+        }
+      })
+
+      if (points.length === 0) return
+
+      const centerLng = points.reduce((s, p) => s + p[0], 0) / points.length
+      const centerLat = points.reduce((s, p) => s + p[1], 0) / points.length
+
+      const map = new A.Map(mapContainerRef.current, {
+        zoom: points.length === 1 ? 12 : 5,
+        center: [centerLng, centerLat],
+        resizeEnable: true,
+      })
+      markers.forEach(m => m.setMap(map))
+      map.setFitView(markers, false, [40, 40, 40, 40])
+      mapRef.current = map
+    }
+
+    return () => {
+      if (mapRef.current) { mapRef.current.destroy(); mapRef.current = null }
+    }
+  }, [viewMode, trips])
+
+  const tripsWithCoords = trips.filter(t => t.dest_lng && t.dest_lat)
 
   const handleConfirmDelete = () => {
     if (deleteTarget) {
@@ -23,7 +99,25 @@ export default function MyTripsPage() {
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold text-gray-800">我的行程</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl font-bold text-gray-800">我的行程</h1>
+          {tripsWithCoords.length > 0 && (
+            <div className="flex bg-gray-100 rounded-lg p-0.5">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-400'}`}
+              >
+                <List size={16} />
+              </button>
+              <button
+                onClick={() => setViewMode('map')}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === 'map' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-400'}`}
+              >
+                <MapPin size={16} />
+              </button>
+            </div>
+          )}
+        </div>
         <button
           onClick={() => navigate('/plan')}
           className="bg-primary-600 text-white rounded-full w-10 h-10 flex items-center justify-center"
@@ -34,11 +128,24 @@ export default function MyTripsPage() {
 
       {loading && <div className="text-center text-gray-500 py-8">加载中...</div>}
 
-      <div className="space-y-3">
-        {trips.map((trip) => (
-          <TripCard key={trip.id} trip={trip} onRequestDelete={(id, title) => setDeleteTarget({ id, title })} />
-        ))}
-      </div>
+      {viewMode === 'map' && !loading && (
+        <div className="relative rounded-xl overflow-hidden border border-gray-200 mb-4" style={{ height: '50vh' }}>
+          <div ref={mapContainerRef} className="w-full h-full" />
+          {tripsWithCoords.length === 0 && (
+            <div className="absolute inset-0 bg-gray-50 flex items-center justify-center text-gray-400 text-sm">
+              暂无目的地坐标
+            </div>
+          )}
+        </div>
+      )}
+
+      {viewMode === 'list' && (
+        <div className="space-y-3">
+          {trips.map((trip) => (
+            <TripCard key={trip.id} trip={trip} onRequestDelete={(id, title) => setDeleteTarget({ id, title })} />
+          ))}
+        </div>
+      )}
 
       {!loading && trips.length === 0 && (
         <div className="text-center py-16">

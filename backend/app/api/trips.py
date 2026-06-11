@@ -34,10 +34,13 @@ async def list_trips(
     db: AsyncSession = Depends(get_db),
 ):
     trips, total = await trip_service.list_trips(db, user.id, status, page, page_size)
+    trip_dicts = [_trip_to_dict(t) for t in trips]
+    # 批量 geocode 目的地城市（Redis 缓存 24h）
+    await _enrich_dest_coords(trip_dicts)
     return {
         "code": 0,
         "data": {
-            "items": [_trip_to_dict(t) for t in trips],
+            "items": trip_dicts,
             "total": total,
             "page": page,
             "page_size": page_size,
@@ -125,7 +128,10 @@ def _trip_to_dict(trip) -> dict:
         "id": trip.id,
         "title": trip.title,
         "status": trip.status,
+        "origin": trip.origin,
         "destination": trip.destination,
+        "dest_lng": None,
+        "dest_lat": None,
         "start_date": trip.start_date.isoformat() if trip.start_date else None,
         "end_date": trip.end_date.isoformat() if trip.end_date else None,
         "traveler_count": trip.traveler_count,
@@ -176,3 +182,33 @@ def _item_to_dict(item) -> dict:
         "amap_poi_id": item.amap_poi_id,
         "sort_order": item.sort_order,
     }
+
+
+async def _enrich_dest_coords(trip_dicts: list[dict]):
+    """批量 geocode 目的地城市并注入 dest_lng/dest_lat（Redis 缓存 24h）"""
+    import asyncio
+    from app.services.map_service import geocode as amap_geocode
+
+    # 收集唯一城市名
+    cities: set[str] = set()
+    for t in trip_dicts:
+        if t.get("destination"):
+            cities.add(t["destination"])
+        if t.get("origin"):
+            cities.add(t["origin"])
+
+    if not cities:
+        return
+
+    # 并发 geocode（带缓存，几乎无开销）
+    results = await asyncio.gather(*[amap_geocode(c) for c in cities])
+    coord_map: dict[str, tuple[float, float]] = {}
+    for city, result in zip(cities, results):
+        if "error" not in result:
+            coord_map[city] = (result["lng"], result["lat"])
+
+    # 注入坐标
+    for t in trip_dicts:
+        dest = t.get("destination")
+        if dest and dest in coord_map:
+            t["dest_lng"], t["dest_lat"] = coord_map[dest]

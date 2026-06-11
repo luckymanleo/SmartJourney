@@ -6,6 +6,8 @@ interface Trip {
   status: string
   origin: string | null
   destination: string | null
+  dest_lng: number | null
+  dest_lat: number | null
   start_date: string | null
   end_date: string | null
   traveler_count: number

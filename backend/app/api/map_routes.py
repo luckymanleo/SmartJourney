@@ -20,17 +20,19 @@ def _build_geocode_address(item, trip_destination: str | None) -> str | None:
     if item.location:
         return item.location
     if item.title and trip_destination:
-        # 交通类（train/flight/transport）：提取到达站/机场
+        # 交通类（train/flight/transport）：提取出发站/机场（用户需导航到出发站）
         if item.type in ('train', 'flight', 'transport'):
-            # "G904 深圳北→天津西" → "天津西站"
-            # "深圳航空 ZH2539 深圳→武夷山" → "武夷山机场"
-            m = re.search(r'[→→](.+?)(?:（|\(|$)', item.title)
+            # "K636 深圳东 → 武夷山" → "深圳东站"
+            # "深圳航空 ZH2539 深圳→武夷山" → "深圳机场"
+            before_arrow = item.title.split('→')[0].split('→')[0]
+            m = re.search(r'([\u4e00-\u9fa5]{2,6}(?:东|西|南|北)?)\s*$', before_arrow)
             if m:
-                station = m.group(1).strip()
+                station = m.group(1)
                 suffix = '机场' if item.type == 'flight' else '站'
                 if not station.endswith(suffix):
                     station += suffix
                 return station
+            return None
         return f"{trip_destination} {item.title}"
     return item.title or None
 
