@@ -24,6 +24,10 @@
   ✅ AI 规划 trip_id 预生成（前端即时获取，支持规划结果跳转行程详情）
   ✅ 手机版删除确认弹窗（红色 AlertTriangle 模态框，替代原生 confirm）
   ✅ AI 规划 Prompt 优化（price 模板改占位符，新增核心铁律防 0 元）
+  ✅ PC 端未登录保护（ProtectedRoutePC + 登录引导页 + 弹窗）
+  ✅ 移动端未登录提示（ProtectedRoute 改为登录引导页，替代静默跳转）
+  ✅ POI 照片自动富化（行程生成时异步获取高德照片存 DB，前端直读+坐标回退）
+  ✅ POI 详情卡修复：key 强制重挂 + AbortController 防竞态 + token 平台兼容
 
 ---
 

@@ -219,6 +219,7 @@ async def get_preferences(db: AsyncSession, user_id: str) -> dict:
     data = {
         "use_weather": True,
         "route_strategy": -1,
+        "special_notes": "",
     }
 
     for p in prefs:
@@ -230,6 +231,8 @@ async def get_preferences(db: AsyncSession, user_id: str) -> dict:
                     data["route_strategy"] = int(p.value)
                 except (ValueError, TypeError):
                     pass
+            elif p.key == "special_notes":
+                data["special_notes"] = p.value
 
     return data
 
@@ -251,5 +254,8 @@ async def save_preferences(db: AsyncSession, user_id: str, data: dict) -> None:
     if "route_strategy" in data:
         db.add(UserPreference(user_id=user_id, category="general", key="route_strategy",
                               value=str(data["route_strategy"])))
+    if "special_notes" in data and data["special_notes"]:
+        db.add(UserPreference(user_id=user_id, category="general", key="special_notes",
+                              value=data["special_notes"]))
 
     await db.flush()

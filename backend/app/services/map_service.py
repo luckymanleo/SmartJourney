@@ -345,3 +345,44 @@ async def batch_geocode(addresses: list[str]) -> list[dict]:
     import asyncio
     results = await asyncio.gather(*[geocode(addr) for addr in addresses])
     return list(results)
+
+
+# ── POI 照片富化 ───────────────────────────────────────────────
+
+async def enrich_poi_photos(title: str, lng: float, lat: float) -> tuple[list[str] | None, str | None]:
+    """
+    用坐标 + 关键词搜索高德 POI，获取照片和 POI ID
+
+    Returns: (photos: list[str] | None, amap_poi_id: str | None)
+    """
+    import re
+
+    # 交通类用更大搜索半径和类型关键词
+    transport_kw = None
+    if any(kw in title for kw in ['机场', '航空', '航班']):
+        transport_kw = '机场'
+    elif any(kw in title for kw in ['站', '高铁', '动车', '火车']):
+        transport_kw = '火车站'
+
+    if transport_kw:
+        result = await poi_around_search(lng, lat, transport_kw, radius=3000, offset=1)
+    else:
+        # 提取核心关键词（去掉括号、数字等）
+        core = re.sub(r'[（(][^)）]*[)）]', '', title)
+        core = re.sub(r'[GDTZK\\d]+\\d*次?', '', core).strip()
+        result = await poi_around_search(lng, lat, core, radius=1000, offset=1)
+
+    pois = result.get("pois", [])
+    if not pois:
+        return None, None
+
+    best = pois[0]
+    amap_id = best.get("id") or None
+
+    # 获取详情（含照片）
+    if amap_id:
+        detail = await poi_detail(amap_id)
+        if "error" not in detail:
+            return detail.get("photos", []) or None, amap_id
+
+    return None, amap_id

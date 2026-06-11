@@ -46,9 +46,11 @@ SYSTEM_PROMPT = """你是 SmartJourney（智旅）的智能旅行规划师。基
 - 每个景点之间预留 30-60 分钟交通时间
 - 午餐 12:00-13:00，晚餐 18:00-19:00
 - 根据用户出行需求中的具体偏好安排合适的景点类型和节奏，不要凭空添加用户未提及的出行主题
-- 总预算不超过用户预算的 110%
+- 总预算允许 ±30% 浮动（严格预算则填此范围），宽松预算可浮动 ±50%。预算不足时优先压缩住宿和餐饮，保证交通和门票
+- items 中每个对象的 price 和 booking_url 必须直接复制搜索结果的对应字段值，一字不改。price 为数值（元）
 - 每天 items 数组必须按 start_time 从早到晚排序（09:00 在前，19:00 在后），禁止时间倒序
 - items 中每个对象的 price 和 booking_url 必须从搜索结果中逐一提取。price 为数值（元），搜索结果中未找到价格时方可填 0
+- **如有特殊要求（花粉过敏、素食、行动不便等），必须严格遵守：避开相关场所（花卉公园/植物园→花粉过敏），选择适配的替代方案，并在 tips 中提示用户**
 
 ## 跨城交通规则（必须遵守）
 
@@ -71,14 +73,14 @@ SYSTEM_PROMPT = """你是 SmartJourney（智旅）的智能旅行规划师。基
       "day_number": 1,
       "date": "2026-06-03",
       "items": [
-        {"type": "flight|train|hotel|poi|food|transport|other", "title": "从搜索结果中提取的标题", "start_time": "08:00", "end_time": "10:00", "price": "从搜索结果提取价格（数值），未找到填0", "booking_url": "从搜索结果提取链接，无则填\"\""}
+        {"type": "flight|train|hotel|poi|food|transport|other", "title": "...", "start_time": "08:00", "end_time": "10:00", "price": "从搜索结果复制实际价格（数值），无则填估算值", "booking_url": "从搜索结果复制，无则留空"}
       ]
     }
   ],
   "budget": {"transport": "交通总价", "lodging": "住宿总价", "food": "餐饮总价", "tickets": "门票总价", "other": "其他总价"}
 }
 
-**再次强调：price 为数值类型，每个 item 的 price 都必须从搜索结果中逐一查找提取。不允许所有 item 都填 0。**"""
+**再次强调：搜索结果中每个 item 都有 price 字段，你必须逐一复制到输出的对应 item 中。train/flight/hotel 的 price 绝不能为 0，无搜索结果的该项应基于常识估算（高铁 0.5元/km，经济酒店 150-300元/晚，景点门票 30-150元）。严禁输出全部 price=0 的行程。**"""
 
 # ==================== Function Definitions for LLM ====================
 
@@ -216,6 +218,7 @@ class AgentService:
         use_weather: bool = True,
         route_count: int = 1,
         route_strategy: int = -1,
+        special_notes: Optional[str] = None,
         _request = None,  # FastAPI Request — 用于检测客户端断开
     ) -> AsyncGenerator[ServerSentEvent, None]:
         """
@@ -228,7 +231,7 @@ class AgentService:
         # 1. 构建用户消息
         user_message = self._build_user_message(
             query, origin, destination, start_date, end_date,
-            traveler_count, budget_total, preferences,
+            traveler_count, budget_total, preferences, special_notes,
         )
         yield self._sse_event("step", {"step": "analyzing", "text": "正在分析出行需求..."})
 
@@ -448,7 +451,7 @@ class AgentService:
                         async with save_db.begin():
                             for tj in trip_jsons:
                                 try:
-                                    await self._save_trip(save_db, user_id, tj, origin, destination, start_date, end_date, traveler_count, budget_total, weather_summary)
+                                    await self._save_trip(save_db, user_id, tj, origin, destination, start_date, end_date, traveler_count, budget_total, special_notes, weather_summary)
                                 except Exception as e:
                                     logger.error(f"Failed to save route {tj.get('route_tag')}: {e}")
                     logger.info(f"Async save complete: {len(trip_jsons)} routes")
@@ -459,7 +462,7 @@ class AgentService:
     # ==================== 私有方法 ====================
 
     def _build_user_message(self, query, origin, destination, start_date, end_date,
-                            traveler_count, budget_total, preferences) -> str:
+                            traveler_count, budget_total, preferences, special_notes=None) -> str:
         parts = [query]
 
         if origin:
@@ -475,6 +478,8 @@ class AgentService:
             parts.append(f"出行人数：{traveler_count} 人")
         if budget_total:
             parts.append(f"总预算：{budget_total:.0f} 元")
+        if special_notes:
+            parts.append(f"⚠️ 特殊要求（必须严格遵守）：{special_notes}")
 
         parts.append("\n请基于搜索结果生成完整的 JSON 行程方案。")
         parts.append("注意：第1天必须包含从出发地到目的地的跨城交通（flight/train），最后1天必须包含返程交通。")
@@ -673,6 +678,10 @@ class AgentService:
         }
         fields = key_fields.get(tool_name, ["title", "description"])
 
+        # 价格字段名映射 — 统一为 price
+        price_aliases = {"price", "ticket_price", "avg_price", "price_per_night", "price_range"}
+        link_aliases = {"booking_url", "booking_link", "url", "link"}
+
         for item in items[:20]:  # 安全上限，覆盖几乎全部结果
             entry = {}
             for f in fields:
@@ -681,7 +690,13 @@ class AgentService:
                     # 描述截断
                     if f == "description" and isinstance(val, str):
                         val = val[:120]
-                    entry[f] = val
+                    # 统一价格字段名
+                    if f in price_aliases:
+                        entry["price"] = val
+                    elif f in link_aliases:
+                        entry["booking_url"] = val
+                    else:
+                        entry[f] = val
             compact["items"].append(entry)
 
         return json.dumps(compact, ensure_ascii=False)
@@ -739,7 +754,7 @@ class AgentService:
         except (json.JSONDecodeError, ValueError):
             return None
 
-    async def _save_trip(self, db, user_id, trip_json, origin, destination, start_date, end_date, traveler_count, budget_total, weather_info=""):
+    async def _save_trip(self, db, user_id, trip_json, origin, destination, start_date, end_date, traveler_count, budget_total, special_notes=None, weather_info=""):
         """保存行程、行程项、预算到数据库"""
         from app.services.trip_service import create_trip, add_trip_item
         trip_id = trip_json.get("trip_id")
@@ -754,6 +769,7 @@ class AgentService:
             "route_tag": trip_json.get("route_tag") or None,
             "tips": trip_json.get("tips"),
             "summary": trip_json.get("summary"),
+            "special_notes": special_notes,
             "weather_info": weather_info or None,
         }
         if trip_id:
@@ -769,9 +785,10 @@ class AgentService:
             # 按 start_time 排序，确保时间线按时间顺序展示
             items.sort(key=lambda i: i.get("start_time", "99:99"))
             for idx, item_data in enumerate(items):
+                item_type = item_data.get("type", "other")
                 await add_trip_item(db, trip.id, user_id, {
                     "day_id": target_day.id,
-                    "type": item_data.get("type", "other"),
+                    "type": item_type,
                     "title": item_data.get("title", ""),
                     "start_time": (item_data.get("start_time") or "")[:10] or None,
                     "end_time": (item_data.get("end_time") or "")[:10] or None,
@@ -780,6 +797,59 @@ class AgentService:
                     "extra_data": item_data.get("extra_data"),
                     "sort_order": idx,
                 })
+        await db.flush()
+
+        # ── POI 照片富化（异步后台，批量 geocode + Amap 搜索）──
+        from app.services.map_service import enrich_poi_photos, geocode as amap_geocode
+        from sqlalchemy import select as _select
+        from app.models import TripItem
+        import asyncio as _asyncio
+
+        trip_days = trip.days
+        async def _enrich_items():
+            try:
+                async with async_session_factory() as enrich_db:
+                    async with enrich_db.begin():
+                        item_result = await enrich_db.execute(
+                            _select(TripItem).where(
+                                TripItem.trip_day_id.in_([d.id for d in trip_days])
+                            )
+                        )
+                        items_to_enrich = item_result.scalars().all()
+                        for item in items_to_enrich:
+                            try:
+                                if item.photos and item.amap_poi_id:
+                                    continue
+                                lng, lat = item.lng, item.lat
+                                if lng is None or lat is None:
+                                    geo = await amap_geocode(item.location or item.title)
+                                    if "error" not in geo:
+                                        lng, lat = geo["lng"], geo["lat"]
+                                    else:
+                                        continue
+                                photos, amap_id = await enrich_poi_photos(item.title, lng, lat)
+                                update_vals = {}
+                                if photos:
+                                    update_vals["photos"] = photos
+                                if amap_id:
+                                    update_vals["amap_poi_id"] = amap_id
+                                if update_vals:
+                                    update_vals["lng"] = lng
+                                    update_vals["lat"] = lat
+                                    await enrich_db.execute(
+                                        TripItem.__table__.update()
+                                        .where(TripItem.id == item.id)
+                                        .values(**update_vals)
+                                    )
+                                    logger.info(f"Enriched {item.type}:{item.title} with {len(photos or [])} photos")
+                            except Exception as e:
+                                logger.warning(f"Enrich failed for {item.title}: {e}")
+                    logger.info(f"POI enrichment complete for trip {trip.id}")
+            except Exception as e:
+                logger.error(f"POI enrichment fatal: {e}")
+
+        _asyncio.create_task(_enrich_items())
+
         budget_data = trip_json.get("budget", {})
         if budget_data:
             from sqlalchemy import select, update

@@ -12,6 +12,8 @@ interface Poi {
   start_time?: string | null
   end_time?: string | null
   location?: string | null
+  photos?: string[] | null
+  amap_poi_id?: string | null
 }
 
 interface DayData {
@@ -309,6 +311,7 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
       {/* Poi detail card */}
       {selectedPoi && (
         <PoiDetailCard
+          key={selectedPoi.id}
           poi={selectedPoi}
           nextPoi={nextPoi}
           distance={dist}

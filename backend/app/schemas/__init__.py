@@ -156,6 +156,8 @@ class TripItemResponse(BaseModel):
     source: str = "fliggy"
     status: str = "planned"
     extra_data: Optional[dict] = None
+    photos: Optional[list] = None
+    amap_poi_id: Optional[str] = None
     sort_order: int = 0
 
     model_config = {"from_attributes": True}
@@ -222,6 +224,7 @@ class GeneratePlanRequest(BaseModel):
     use_weather: bool = True         # 是否参考天气因素（默认开启）
     route_count: int = Field(default=1, ge=1, le=3)  # 生成路线数量（默认1条）
     route_strategy: int = Field(default=-1, ge=-1, le=2)  # -1=全部, 0=经济, 1=舒适, 2=最快
+    special_notes: Optional[str] = None  # 特殊说明（花粉过敏、素食等）
 
 
 class OptimizePlanRequest(BaseModel):

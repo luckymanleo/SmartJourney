@@ -27,6 +27,28 @@ export default function TripDetailPage() {
     }
   }, [id])
 
+  const parseWeather = (info: string | null) => {
+    if (!info) return []
+    const parts: { city: string; data: string }[] = []
+    const lines = info.split('\n')
+    let current: { city: string; lines: string[] } | null = null
+    for (const line of lines) {
+      // Match "## 🌤️ 深圳（出发地天气）" or "## 🌤️ 武夷山（目的地天气）"
+      let m = line.match(/^##\s*🌤️\s*(?:出发地天气|目的地天气)?[（(]?([\u4e00-\u9fa5]{2,})[）)]?/)
+      if (!m) m = line.match(/^([\u4e00-\u9fa5]{2,})[：:]/)
+      if (m) {
+        if (current) parts.push({ city: current.city, data: current.lines.join('\n') })
+        current = { city: m[1], lines: [] }
+      } else if (current && line.trim()) {
+        current.lines.push(line.trim().replace(/^###\s*/g, ''))
+      }
+    }
+    if (current) parts.push({ city: current.city, data: current.lines.join('\n') })
+    return parts
+  }
+
+  const weatherParts = useMemo(() => parseWeather(currentTrip?.weather_info || null), [currentTrip])
+
   const handleDelete = async () => {
     if (!id) return
     await deleteTrip(id)
@@ -70,34 +92,26 @@ export default function TripDetailPage() {
         </button>
       </div>
 
-      {/* Trip Info — always visible */}
-      <div className="flex flex-wrap gap-3 mb-4 text-xs text-gray-500">
-        {currentTrip.start_date && (
-          <span>{currentTrip.start_date} - {currentTrip.end_date}</span>
-        )}
-        <span>{currentTrip.traveler_count}人</span>
-        {currentTrip.budget_total && (
-          <span>预算 ¥{currentTrip.budget_total.toLocaleString()}</span>
-        )}
-        {currentTrip.route_tag && (
-          <span className="bg-primary-50 text-primary-600 px-2 py-0.5 rounded-full text-[11px] font-medium">
-            {currentTrip.route_tag}
-          </span>
-        )}
-      </div>
-
-      {/* Weather — always visible */}
-      {currentTrip.weather_info && (
-        <div className="bg-blue-50 rounded-xl px-4 py-3 mb-4">
-          <div className="text-xs font-medium text-blue-700 mb-1">🌤️ 天气情况</div>
-          <div className="text-xs text-blue-600 whitespace-pre-line">{currentTrip.weather_info}</div>
+      {/* AI Summary */}
+      {currentTrip.summary && (
+        <div className="bg-primary-50 rounded-xl border border-primary-100 px-4 py-3 mb-3">
+          <div className="text-xs font-semibold text-primary-700 mb-1">📋 行程简介</div>
+          <p className="text-xs text-gray-700 leading-relaxed">{currentTrip.summary}</p>
         </div>
       )}
 
-      {/* Tips — always visible */}
+      {/* Special Notes */}
+      {currentTrip.special_notes && (
+        <div className="bg-orange-50 rounded-xl border border-orange-200 px-4 py-3 mb-3">
+          <div className="text-xs font-semibold text-orange-700 mb-1">⚠️ 特殊说明</div>
+          <p className="text-xs text-orange-600">{currentTrip.special_notes}</p>
+        </div>
+      )}
+
+      {/* Tips */}
       {currentTrip.tips && currentTrip.tips.length > 0 && (
-        <div className="bg-amber-50 rounded-xl px-4 py-3 mb-4">
-          <div className="text-xs font-medium text-amber-700 mb-1">💡 出行提示</div>
+        <div className="bg-amber-50 rounded-xl px-4 py-3 mb-3">
+          <div className="text-xs font-semibold text-amber-700 mb-1.5">💡 出行提示</div>
           <ul className="text-xs text-amber-600 space-y-1">
             {currentTrip.tips.map((tip: string, i: number) => (
               <li key={i} className="flex gap-1.5">
@@ -108,6 +122,50 @@ export default function TripDetailPage() {
           </ul>
         </div>
       )}
+
+      {/* Weather */}
+      {weatherParts.length > 0 && (
+        <div className="bg-blue-50 rounded-xl px-4 py-3 mb-3">
+          <div className="text-xs font-semibold text-blue-700 mb-2">🌤️ 天气</div>
+          {weatherParts.map((wp, i) => (
+            <div key={i} className={i > 0 ? 'mt-2 pt-2 border-t border-blue-200/50' : ''}>
+              <div className="text-xs font-medium text-blue-600 mb-0.5">{wp.city}</div>
+              <div className="text-[11px] text-blue-700 leading-relaxed whitespace-pre-line">{wp.data}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Trip Info */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+        <div className="text-xs font-semibold text-gray-600 mb-2.5">行程信息</div>
+        <div className="space-y-2 text-[13px] text-gray-600">
+          {currentTrip.start_date && (
+            <div className="flex items-center gap-2">
+              <span className="text-gray-400 text-xs w-4">📅</span>
+              <span>{currentTrip.start_date} - {currentTrip.end_date}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400 text-xs w-4">👥</span>
+            <span>{currentTrip.traveler_count}人</span>
+          </div>
+          {currentTrip.budget_total && (
+            <div className="flex items-center gap-2">
+              <span className="text-gray-400 text-xs w-4">💰</span>
+              <span className="text-primary-600 font-semibold">¥{currentTrip.budget_total.toLocaleString()}</span>
+            </div>
+          )}
+          {currentTrip.route_tag && (
+            <div className="flex items-center gap-2">
+              <span className="text-gray-400 text-xs w-4">🏷️</span>
+              <span className="bg-primary-50 text-primary-600 px-2 py-0.5 rounded-full text-[11px] font-medium">
+                {currentTrip.route_tag}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Tab bar */}
       <div className="flex bg-gray-100 rounded-lg p-1 mb-4">
@@ -204,6 +262,7 @@ export default function TripDetailPage() {
                     >
                       <span className="text-gray-300 text-xs w-4 text-right">{idx + 1}</span>
                       <span className="text-base">{emoji[item.type] || '📍'}</span>
+                      <span className="text-[10px] text-gray-400 flex-shrink-0">{item.type}</span>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm text-gray-800 truncate">{item.title}</div>
                         <div className="text-xs text-gray-400">

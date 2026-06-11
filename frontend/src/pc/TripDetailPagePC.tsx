@@ -143,6 +143,14 @@ export default function TripDetailPagePC() {
               </div>
             )}
 
+            {/* Special Notes */}
+            {currentTrip.special_notes && (
+              <div className="bg-orange-50 rounded-xl border border-orange-200 p-4">
+                <h3 className="text-sm font-semibold text-orange-700 mb-2">⚠️ 特殊说明</h3>
+                <p className="text-[13px] text-orange-600">{currentTrip.special_notes}</p>
+              </div>
+            )}
+
             {/* Tips */}
             {currentTrip.tips && currentTrip.tips.length > 0 && (
               <div className="bg-white rounded-xl border border-amber-200 p-4">
@@ -262,6 +270,7 @@ export default function TripDetailPagePC() {
                       >
                         <span className="text-gray-300 text-xs w-4 text-right pt-0.5">{idx + 1}</span>
                         <span className="text-base">{typeEmoji[item.type] || '📍'}</span>
+                        <span className="text-[10px] text-gray-400 flex-shrink-0 pt-0.5">{item.type}</span>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-gray-800 truncate">{item.title}</div>
                           <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">

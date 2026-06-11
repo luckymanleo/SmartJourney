@@ -23,6 +23,7 @@ export default function PlanPage() {
   const [useWeather, setUseWeather] = useState(true)  // 默认值，preferences 加载后覆盖
   const [routeStrategy, setRouteStrategy] = useState(-1)
   const [userEditedTravelers, setUserEditedTravelers] = useState(false)  // 用户手动改过人数
+  const [specialNotes, setSpecialNotes] = useState('')
 
   // 自动解析搜索词 → 填充所有字段
   useEffect(() => {
@@ -51,6 +52,7 @@ export default function PlanPage() {
         if (data) {
           if (typeof data.use_weather === 'boolean') setUseWeather(data.use_weather)
           if (typeof data.route_strategy === 'number') setRouteStrategy(data.route_strategy)
+          if (typeof data.special_notes === 'string') setSpecialNotes(data.special_notes)
         }
       }).catch(() => {})
     })
@@ -86,8 +88,9 @@ export default function PlanPage() {
       preferences: preferences || undefined,
       save_as_trip: true,
       use_weather: useWeather,
-      route_count: routeStrategy >= 0 ? 1 : 1,  // 指定策略时只生成1条
+      route_count: routeStrategy >= 0 ? 1 : 1,
       route_strategy: routeStrategy,
+      special_notes: specialNotes.trim() || undefined,
     })
   }
 
@@ -302,54 +305,6 @@ export default function PlanPage() {
           </div>
         </div>
 
-        {/* 天气因素开关 */}
-        <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
-          <div>
-            <span className="text-sm text-gray-700">🌤️ 参考天气因素</span>
-            <p className="text-[10px] text-gray-400 mt-0.5">
-              {useWeather ? '根据目的地天气自动调整行程（晴天户外、雨天室内等）' : '不考虑天气，生成通用行程方案'}
-            </p>
-          </div>
-          <button
-            onClick={() => setUseWeather(!useWeather)}
-            className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${
-              useWeather ? 'bg-primary-500' : 'bg-gray-300'
-            }`}
-          >
-            <div
-              className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                useWeather ? 'translate-x-5' : 'translate-x-0.5'
-              }`}
-            />
-          </button>
-        </div>
-
-        {/* 路线策略选择 */}
-        <div className="bg-gray-50 rounded-xl px-4 py-3">
-          <span className="text-sm text-gray-700">🎯 路线策略</span>
-          <div className="flex gap-2 mt-2">
-            {[
-              { label: '默认', value: -1, desc: '智能平衡' },
-              { label: '💰 经济实惠', value: 0, desc: '低价优先' },
-              { label: '🏨 舒适优先', value: 1, desc: '品质体验' },
-              { label: '⚡ 最快到达', value: 2, desc: '效率至上' },
-            ].map((s) => (
-              <button
-                key={s.value}
-                onClick={() => setRouteStrategy(s.value)}
-                className={`flex-1 rounded-lg px-2 py-2 text-xs font-medium transition-colors ${
-                  routeStrategy === s.value
-                    ? 'bg-primary-600 text-white shadow'
-                    : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300'
-                }`}
-              >
-                <div>{s.label}</div>
-                <div className="text-[10px] opacity-70 mt-0.5">{s.desc}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="text-xs text-gray-500 mb-1 flex items-center gap-1">
@@ -404,6 +359,67 @@ export default function PlanPage() {
               className="w-full border rounded-lg px-3 py-2 text-sm bg-gray-50 focus:bg-white outline-none focus:border-primary-400"
             />
           </div>
+        </div>
+
+        {/* Special Notes */}
+        <div>
+          <label className="text-xs text-gray-500 mb-1 flex items-center gap-1">
+            特殊说明 <span className="text-gray-300 font-normal">（选填）</span>
+          </label>
+          <input
+            value={specialNotes}
+            onChange={(e) => setSpecialNotes(e.target.value)}
+            placeholder="例如：花粉过敏、素食、行动不便"
+            className="w-full border rounded-lg px-3 py-2 text-sm bg-gray-50 focus:bg-white outline-none focus:border-primary-400"
+          />
+        </div>
+
+        {/* 路线策略选择 */}
+        <div className="bg-gray-50 rounded-xl px-4 py-3">
+          <span className="text-sm text-gray-700">🎯 路线策略</span>
+          <div className="flex gap-2 mt-2">
+            {[
+              { label: '默认', value: -1, desc: '智能平衡' },
+              { label: '💰 经济实惠', value: 0, desc: '低价优先' },
+              { label: '🏨 舒适优先', value: 1, desc: '品质体验' },
+              { label: '⚡ 最快到达', value: 2, desc: '效率至上' },
+            ].map((s) => (
+              <button
+                key={s.value}
+                onClick={() => setRouteStrategy(s.value)}
+                className={`flex-1 rounded-lg px-2 py-2 text-xs font-medium transition-colors ${
+                  routeStrategy === s.value
+                    ? 'bg-primary-600 text-white shadow'
+                    : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300'
+                }`}
+              >
+                <div>{s.label}</div>
+                <div className="text-[10px] opacity-70 mt-0.5">{s.desc}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 天气因素开关 */}
+        <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+          <div>
+            <span className="text-sm text-gray-700">🌤️ 参考天气因素</span>
+            <p className="text-[10px] text-gray-400 mt-0.5">
+              {useWeather ? '根据目的地天气自动调整行程（晴天户外、雨天室内等）' : '不考虑天气，生成通用行程方案'}
+            </p>
+          </div>
+          <button
+            onClick={() => setUseWeather(!useWeather)}
+            className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${
+              useWeather ? 'bg-primary-500' : 'bg-gray-300'
+            }`}
+          >
+            <div
+              className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                useWeather ? 'translate-x-5' : 'translate-x-0.5'
+              }`}
+            />
+          </button>
         </div>
 
         {Object.keys(fieldErrors).length > 0 && (

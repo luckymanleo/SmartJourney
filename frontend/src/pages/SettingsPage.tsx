@@ -5,7 +5,7 @@ import { getPreferences, savePreferences as savePrefs, updateProfile } from '../
 
 export default function SettingsPage() {
   const { user, logout } = useAuthStore()
-  const [prefs, setPrefs] = useState({ use_weather: true, route_strategy: -1 })
+  const [prefs, setPrefs] = useState({ use_weather: true, route_strategy: -1, special_notes: '' })
   const [saved, setSaved] = useState(false)
 
   // 昵称编辑
@@ -22,6 +22,7 @@ export default function SettingsPage() {
           ...prev,
           use_weather: typeof loaded.use_weather === 'boolean' ? loaded.use_weather : prev.use_weather,
           route_strategy: typeof loaded.route_strategy === 'number' ? loaded.route_strategy : prev.route_strategy,
+          special_notes: typeof loaded.special_notes === 'string' ? loaded.special_notes : prev.special_notes,
         }))
       }
     }).catch(() => {})
@@ -138,6 +139,15 @@ export default function SettingsPage() {
             </button>
           ))}
         </div>
+      </Section>
+
+      {/* Special Notes */}
+      <Section title="⚠️ 特殊说明（选填）">
+        <input type="text" value={prefs.special_notes}
+          onChange={(e) => setPrefs((p) => ({ ...p, special_notes: e.target.value }))}
+          placeholder="例如：花粉过敏、素食、行动不便"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary-400" />
+        <p className="text-xs text-gray-400 mt-1">设置后将在 AI 规划时自动填入，避免生成不合适的行程。</p>
       </Section>
 
       {/* Save Button */}

@@ -214,6 +214,8 @@ async def trip_map(
                     "start_time": item.start_time,
                     "end_time": item.end_time,
                     "location": item.location,
+                    "photos": item.photos,
+                    "amap_poi_id": item.amap_poi_id,
                 })
                 all_lngs.append(item.lng)
                 all_lats.append(item.lat)
@@ -256,6 +258,8 @@ async def trip_map(
                                 "start_time": item.start_time,
                                 "end_time": item.end_time,
                                 "location": item.location,
+                                "photos": item.photos,
+                                "amap_poi_id": item.amap_poi_id,
                             })
                             break
             except Exception:
@@ -344,6 +348,8 @@ async def trip_day_map(
                 "location": item.location,
                 "price": float(item.price) if item.price else None,
                 "booking_url": item.booking_url,
+                "photos": item.photos,
+                "amap_poi_id": item.amap_poi_id,
             })
 
     await db.commit()

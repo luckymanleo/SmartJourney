@@ -32,6 +32,7 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
+    allowedHosts: ['lijibiao.e1.luyouxia.net'],
     proxy: {
       '/api': {
         target: 'http://localhost:8000',

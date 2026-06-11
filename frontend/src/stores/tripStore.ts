@@ -14,6 +14,7 @@ interface Trip {
   weather_info: string | null
   tips: string[] | null
   summary: string | null
+  special_notes: string | null
   created_at: string | null
   days: TripDay[]
 }
@@ -55,16 +56,30 @@ export const useTripStore = create<TripStore>((set, get) => ({
 
   fetchTrips: async () => {
     set({ loading: true })
-    const { getTrips } = await import('../api')
-    const res = await getTrips()
-    set({ trips: res.data.data.items, loading: false })
+    try {
+      const { getTrips } = await import('../api')
+      const res = await getTrips()
+      set({ trips: res.data.data.items, loading: false })
+    } catch (e: any) {
+      set({ loading: false })
+      if (e?.response?.status !== 401) {
+        console.error('fetchTrips failed:', e?.message || e)
+      }
+    }
   },
 
   fetchTrip: async (id) => {
     set({ loading: true })
-    const { getTrip } = await import('../api')
-    const res = await getTrip(id)
-    set({ currentTrip: res.data.data, loading: false })
+    try {
+      const { getTrip } = await import('../api')
+      const res = await getTrip(id)
+      set({ currentTrip: res.data.data, loading: false })
+    } catch (e: any) {
+      set({ loading: false })
+      if (e?.response?.status !== 401) {
+        console.error('fetchTrip failed:', e?.message || e)
+      }
+    }
   },
 
   createTrip: async (data) => {

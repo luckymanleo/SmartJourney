@@ -24,9 +24,11 @@ interface Props {
     start_time?: string | null
     end_time?: string | null
     location?: string | null
+    photos?: string[] | null
+    amap_poi_id?: string | null
   } | null
   nextPoi?: { title: string; lng: number; lat: number } | null
-  distance?: string  // "🚶 步行15分钟"
+  distance?: string
   onClose: () => void
   compact?: boolean
 }
@@ -35,33 +37,88 @@ export default function PoiDetailCard({ poi, nextPoi, distance, onClose, compact
   const [detail, setDetail] = useState<PoiDetail | null>(null)
   const [photoIdx, setPhotoIdx] = useState(0)
 
-  // Fetch POI detail from backend for photos
   useEffect(() => {
-    if (!poi) { setDetail(null); return }
-    // First try to get more info via POI search
-    const token = localStorage.getItem('sj_token') || ''
-    fetch(`/api/v1/map/poi/text?keywords=${encodeURIComponent(poi.title)}&offset=1`, {
+    // Reset everything when POI changes (belt-and-suspenders with key prop)
+    setDetail(null)
+    setPhotoIdx(0)
+
+    if (!poi) return
+
+    // If DB already has photos, use them directly — no API call needed
+    if (poi.photos && poi.photos.length > 0) {
+      setDetail({
+        id: poi.id,
+        name: poi.title,
+        type: poi.type,
+        address: poi.location || '',
+        lng: poi.lng,
+        lat: poi.lat,
+        photos: poi.photos,
+      })
+      return
+    }
+
+    const abort = new AbortController()
+    const signal = abort.signal
+
+    // Platform-aware token key (PC vs mobile)
+    const isPC = typeof window !== 'undefined' && window.location.pathname.startsWith('/pc.html')
+    const tokenKey = isPC ? 'sj_pc_token' : 'sj_token'
+    const token = localStorage.getItem(tokenKey) || ''
+
+    if (['train', 'flight', 'transport', 'bus'].includes(poi.type)) {
+      const kw = poi.type === 'flight' ? '机场' : poi.type === 'train' ? '火车站' : '站'
+      fetch(`/api/v1/map/poi/around?lng=${poi.lng}&lat=${poi.lat}&keywords=${kw}&radius=3000&offset=1`, {
+        headers: { Authorization: `Bearer ${token}` },
+        signal,
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (signal.aborted) return
+          const pois = data?.data?.pois
+          if (pois?.length > 0) {
+            return fetch(`/api/v1/map/poi/${pois[0].id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+              signal,
+            }).then(r => r.json())
+          }
+          return null
+        })
+        .then(data => {
+          if (signal.aborted) return
+          if (data?.data) setDetail(data.data)
+        })
+        .catch(() => {})
+      return () => abort.abort()
+    }
+
+    // Non-transport: around-search by coordinates + keyword
+    fetch(`/api/v1/map/poi/around?lng=${poi.lng}&lat=${poi.lat}&keywords=${encodeURIComponent(poi.title)}&radius=500&offset=1`, {
       headers: { Authorization: `Bearer ${token}` },
+      signal,
     })
       .then(r => r.json())
       .then(data => {
+        if (signal.aborted) return
         const pois = data?.data?.pois
         if (pois?.length > 0) {
           const best = pois[0]
-          // Fetch detail for photos
           return fetch(`/api/v1/map/poi/${best.id}`, {
             headers: { Authorization: `Bearer ${token}` },
+            signal,
           }).then(r => r.json())
         }
         return null
       })
       .then(data => {
+        if (signal.aborted) return
         if (data?.data) {
           setDetail(data.data)
         }
       })
       .catch(() => {})
-  }, [poi?.id, poi?.title])
+    return () => abort.abort()
+  }, [poi?.id])
 
   if (!poi) return null
 
@@ -136,16 +193,16 @@ export default function PoiDetailCard({ poi, nextPoi, distance, onClose, compact
         </div>
       )}
 
-      {/* Next stop + distance */}
+      {/* Next stop */}
       {nextPoi && (
         <div className="text-xs text-gray-500 mb-2 flex items-center gap-1">
-          {distance && <span>{distance}</span>}
+          {distance && !distance.includes('km') && <span>{distance}</span>}
           <span>→</span>
           <span className="text-gray-700 font-medium">{nextPoi.title}</span>
         </div>
       )}
 
-      {/* Action buttons */}
+      {/* Navigation button */}
       <div className="flex gap-2">
         <button
           onClick={handleNavigate}

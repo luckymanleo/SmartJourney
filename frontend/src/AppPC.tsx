@@ -9,6 +9,26 @@ import TripDetailPagePC from './pc/TripDetailPagePC'
 import SettingsPagePC from './pc/SettingsPagePC'
 import { useAuthStore } from './stores/authStore'
 
+function ProtectedRoutePC({ children }: { children: React.ReactNode }) {
+  const { token, openLogin } = useAuthStore()
+  useEffect(() => { if (!token) openLogin() }, [token])
+  if (!token) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="text-4xl mb-3">🔒</div>
+          <div className="text-gray-500 text-sm mb-4">请先登录后访问此页面</div>
+          <button onClick={() => openLogin()}
+            className="bg-primary-600 text-white rounded-lg px-6 py-2.5 text-sm font-medium hover:bg-primary-700">
+            登录 / 注册
+          </button>
+        </div>
+      </div>
+    )
+  }
+  return <>{children}</>
+}
+
 export default function AppPC() {
   const restore = useAuthStore((s) => s.restore)
   const called = useRef(false)
@@ -18,11 +38,11 @@ export default function AppPC() {
     <Routes>
       <Route element={<LayoutPC />}>
         <Route path="/" element={<HomePagePC />} />
-        <Route path="/search/:type" element={<SearchPagePC />} />
-        <Route path="/plan" element={<PlanPagePC />} />
-        <Route path="/trips" element={<MyTripsPagePC />} />
-        <Route path="/trips/:id" element={<TripDetailPagePC />} />
-        <Route path="/settings" element={<SettingsPagePC />} />
+        <Route path="/search/:type" element={<ProtectedRoutePC><SearchPagePC /></ProtectedRoutePC>} />
+        <Route path="/plan" element={<ProtectedRoutePC><PlanPagePC /></ProtectedRoutePC>} />
+        <Route path="/trips" element={<ProtectedRoutePC><MyTripsPagePC /></ProtectedRoutePC>} />
+        <Route path="/trips/:id" element={<ProtectedRoutePC><TripDetailPagePC /></ProtectedRoutePC>} />
+        <Route path="/settings" element={<ProtectedRoutePC><SettingsPagePC /></ProtectedRoutePC>} />
       </Route>
     </Routes>
   )

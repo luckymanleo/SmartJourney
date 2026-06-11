@@ -90,16 +90,20 @@ export default function MyTripsPagePC() {
                   <span className="flex items-center gap-1"><Calendar size={12} />{trip.start_date}{trip.end_date ? ` - ${trip.end_date}` : ''}</span>
                 )}
                 <span className="flex items-center gap-1"><Users size={12} />{trip.traveler_count}人</span>
-                {trip.budget_total && (
-                  <span className="text-primary-600 font-semibold">¥{trip.budget_total.toLocaleString()}</span>
-                )}
               </div>
 
               {/* Summary — AI generated intro */}
               {trip.summary && (
-                <p className="text-gray-500 leading-relaxed mt-auto line-clamp-2" style={smallStyle}>
+                <p className="text-gray-500 leading-relaxed line-clamp-2 mb-2" style={smallStyle}>
                   {trip.summary}
                 </p>
+              )}
+
+              {/* Budget — bottom right */}
+              {trip.budget_total && (
+                <div className="text-right" style={cardTitleStyle}>
+                  <span className="text-primary-600 font-semibold">¥{trip.budget_total.toLocaleString()}</span>
+                </div>
               )}
             </div>
           ))}

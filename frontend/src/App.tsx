@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, useNavigate } from 'react-router-dom'
 import { useEffect, useRef } from 'react'
 import Layout from './components/Layout'
 import HomePage from './pages/HomePage'
@@ -11,7 +11,23 @@ import { useAuthStore } from './stores/authStore'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token)
-  if (!token) return <Navigate to="/" replace />
+  const navigate = useNavigate()
+  if (!token) {
+    return (
+      <div className="p-4">
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="text-5xl mb-4">🔒</div>
+          <div className="text-gray-500 text-sm mb-6">请先登录后访问此页面</div>
+          <button
+            onClick={() => navigate('/')}
+            className="bg-primary-600 text-white rounded-xl px-6 py-3 font-medium text-sm"
+          >
+            返回首页登录
+          </button>
+        </div>
+      </div>
+    )
+  }
   return <>{children}</>
 }
 

@@ -40,3 +40,6 @@ Zone.Identifier
 
 # Local config
 config.local.json
+
+# Tech analysis (generated docs)
+docs/tech-challenges.md

@@ -52,6 +52,7 @@ async def generate_plan(
             use_weather=req.use_weather,
             route_count=req.route_count,
             route_strategy=req.route_strategy,
+            special_notes=req.special_notes,
         )
     )
 

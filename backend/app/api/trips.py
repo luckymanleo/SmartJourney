@@ -135,6 +135,7 @@ def _trip_to_dict(trip) -> dict:
         "weather_info": trip.weather_info,
         "summary": trip.summary,
         "tips": trip.tips,
+        "special_notes": trip.special_notes,
         "notes": trip.notes,
         "created_at": trip.created_at.isoformat() if trip.created_at else None,
         "updated_at": trip.updated_at.isoformat() if trip.updated_at else None,
@@ -171,5 +172,7 @@ def _item_to_dict(item) -> dict:
         "source": item.source,
         "status": item.status,
         "extra_data": item.extra_data,
+        "photos": item.photos,
+        "amap_poi_id": item.amap_poi_id,
         "sort_order": item.sort_order,
     }

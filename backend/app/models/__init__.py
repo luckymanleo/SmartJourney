@@ -86,6 +86,7 @@ class Trip(Base):
     weather_info: Mapped[str | None] = mapped_column(Text, nullable=True, comment="出行期间天气摘要")
     summary: Mapped[str | None] = mapped_column(Text, nullable=True, comment="行程概要（2-3句话）")
     tips: Mapped[list | None] = mapped_column(JSON, nullable=True, comment="出行提示列表")
+    special_notes: Mapped[str | None] = mapped_column(Text, nullable=True, comment="特殊说明（花粉过敏、素食等）")
     notes: Mapped[str | None] = mapped_column(Text, nullable=True, comment="备注")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, comment="创建时间")
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, comment="最后更新时间")
@@ -146,6 +147,8 @@ class TripItem(Base):
     source: Mapped[str] = mapped_column(String(20), default="fliggy", comment="数据来源：fliggy/meituan/hotel_smart")
     status: Mapped[str] = mapped_column(String(20), default="planned", comment="状态：planned/booked/completed/cancelled")
     extra_data: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment="扩展数据（JSON）")
+    photos: Mapped[list | None] = mapped_column(JSON, nullable=True, comment="POI 照片 URL 列表")
+    amap_poi_id: Mapped[str | None] = mapped_column(String(50), nullable=True, comment="高德地图 POI ID")
     sort_order: Mapped[int] = mapped_column(Integer, default=0, comment="当天排序序号")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, comment="创建时间")
 

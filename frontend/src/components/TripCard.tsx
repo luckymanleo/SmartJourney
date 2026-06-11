@@ -13,9 +13,11 @@ interface TripCardProps {
     budget_total: number | null
     route_tag: string | null
     weather_info: string | null
+    summary: string | null
     created_at: string | null
   }
-  onDelete: (id: string) => void
+  onDelete?: (id: string) => void
+  onRequestDelete?: (id: string, title: string) => void
 }
 
 const statusLabels: Record<string, string> = {
@@ -34,13 +36,33 @@ const statusColors: Record<string, string> = {
   expired: 'bg-gray-100 text-gray-400 line-through',
 }
 
-export default function TripCard({ trip, onDelete }: TripCardProps) {
+export default function TripCard({ trip, onDelete, onRequestDelete }: TripCardProps) {
   const navigate = useNavigate()
+
+  const weatherLabel = (() => {
+    if (!trip.weather_info) return null
+    const cities: string[] = []
+    const lines = trip.weather_info.split('\n')
+    for (const line of lines) {
+      const m = line.match(/^##\s*🌤️\s*(?:出发地天气|目的地天气)?[（(]?([\u4e00-\u9fa5]{2,})[）)]?/)
+      if (m) cities.push(m[1])
+    }
+    if (cities.length === 0) {
+      // fallback: strip markdown from first line
+      return trip.weather_info.split('\n')[0].replace(/^##\s*🌤️\s*/, '').replace(/^##\s*/, '')
+    }
+    if (cities.length === 2) return `🌤️ ${cities[0]}（出发地） · ${cities[1]}（目的地）`
+    return `🌤️ ${cities[0]}`
+  })()
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (confirm(`确定删除「${trip.title}」？此操作不可撤销。`)) {
-      onDelete(trip.id)
+    if (onRequestDelete) {
+      onRequestDelete(trip.id, trip.title)
+    } else if (onDelete) {
+      if (confirm(`确定删除「${trip.title}」？此操作不可撤销。`)) {
+        onDelete(trip.id)
+      }
     }
   }
 
@@ -57,9 +79,9 @@ export default function TripCard({ trip, onDelete }: TripCardProps) {
               {trip.route_tag}
             </span>
           )}
-          {trip.weather_info && (
-            <span className="inline-block mt-1 ml-1 text-[10px] text-gray-400 truncate max-w-[200px]">
-              🌤️ {trip.weather_info.split('\n')[0]}
+          {weatherLabel && (
+            <span className="inline-block mt-1 ml-1 text-[10px] text-gray-400 truncate max-w-[220px]">
+              {weatherLabel}
             </span>
           )}
         </div>
@@ -78,11 +100,6 @@ export default function TripCard({ trip, onDelete }: TripCardProps) {
       </div>
 
       <div className="flex items-center gap-3 text-xs text-gray-500">
-        {trip.destination && (
-          <span className="flex items-center gap-1">
-            <MapPin size={12} /> {trip.destination}
-          </span>
-        )}
         {trip.start_date && (
           <span className="flex items-center gap-1">
             <Calendar size={12} /> {trip.start_date}{trip.end_date ? ` - ${trip.end_date}` : ''}
@@ -93,16 +110,24 @@ export default function TripCard({ trip, onDelete }: TripCardProps) {
         </span>
       </div>
 
-      {trip.budget_total && (
-        <div className="mt-2 text-sm text-primary-600 font-medium">
-          预算 ¥{trip.budget_total.toLocaleString()}
-        </div>
+      {trip.summary && (
+        <p className="text-[11px] text-gray-400 leading-relaxed mt-1.5 line-clamp-2">{trip.summary}</p>
       )}
-      {trip.created_at && (
-        <div className="mt-1 text-[10px] text-gray-400">
-          创建于 {new Date(trip.created_at).toLocaleDateString('zh-CN')}
+
+      <div className="flex items-end justify-between mt-2">
+        <div>
+          {trip.created_at && (
+            <div className="text-[10px] text-gray-400">
+              创建于 {new Date(trip.created_at).toLocaleDateString('zh-CN')}
+            </div>
+          )}
         </div>
-      )}
+        {trip.budget_total && (
+          <div className="text-sm text-primary-600 font-semibold">
+            ¥{trip.budget_total.toLocaleString()}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

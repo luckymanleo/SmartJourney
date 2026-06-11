@@ -1,0 +1,703 @@
+2026-06-09 09:50:38 | INFO  | root | Logging initialized: dir=/home/administrator/software/SmartJourney/backend/logs, level=INFO
+2026-06-09 09:50:38 | INFO  | app.redis_client | Redis lazy-connected: redis://172.25.64.1:6379/0
+2026-06-09 09:50:43 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 09:50:43 | INFO  | app.services.mcp_manager | MCP Manager: Remote FliggyTravel connected (7 tools)
+2026-06-09 09:50:43 | INFO  | app.services.trip_expiry | Trip expiration scheduler started (interval=1800s)
+2026-06-09 09:51:06 | INFO  | root | Logging initialized: dir=/home/administrator/software/SmartJourney/backend/logs, level=INFO
+2026-06-09 09:51:06 | INFO  | app.redis_client | Redis lazy-connected: redis://172.25.64.1:6379/0
+2026-06-09 09:51:08 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 09:51:08 | INFO  | app.services.mcp_manager | MCP Manager: Remote FliggyTravel connected (7 tools)
+2026-06-09 09:51:08 | INFO  | app.services.trip_expiry | Trip expiration scheduler started (interval=1800s)
+2026-06-09 10:05:30 | INFO  | root | Logging initialized: dir=/home/administrator/software/SmartJourney/backend/logs, level=INFO
+2026-06-09 10:05:31 | INFO  | app.redis_client | Redis lazy-connected: redis://172.25.64.1:6379/0
+2026-06-09 10:05:37 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:05:37 | INFO  | app.services.mcp_manager | MCP Manager: Remote FliggyTravel connected (7 tools)
+2026-06-09 10:05:37 | INFO  | app.services.trip_expiry | Trip expiration scheduler started (interval=1800s)
+2026-06-09 10:17:16 | INFO  | root | Logging initialized: dir=/home/administrator/software/SmartJourney/backend/logs, level=INFO
+2026-06-09 10:17:16 | INFO  | app.redis_client | Redis lazy-connected: redis://172.25.64.1:6379/0
+2026-06-09 10:17:21 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:17:21 | INFO  | app.services.mcp_manager | MCP Manager: Remote FliggyTravel connected (7 tools)
+2026-06-09 10:17:21 | INFO  | app.services.trip_expiry | Trip expiration scheduler started (interval=1800s)
+2026-06-09 10:45:09 | INFO  | root | Logging initialized: dir=/home/administrator/software/SmartJourney/backend/logs, level=INFO
+2026-06-09 10:45:09 | INFO  | app.redis_client | Redis lazy-connected: redis://172.25.64.1:6379/0
+2026-06-09 10:45:15 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:45:15 | INFO  | app.services.mcp_manager | MCP Manager: Remote FliggyTravel connected (7 tools)
+2026-06-09 10:45:15 | INFO  | app.services.trip_expiry | Trip expiration scheduler started (interval=1800s)
+2026-06-09 10:52:15 | INFO  | root | Logging initialized: dir=/home/administrator/software/SmartJourney/backend/logs, level=INFO
+2026-06-09 10:52:15 | INFO  | app.redis_client | Redis lazy-connected: redis://172.25.64.1:6379/0
+2026-06-09 10:52:18 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:52:18 | INFO  | app.services.mcp_manager | MCP Manager: Remote FliggyTravel connected (7 tools)
+2026-06-09 10:52:18 | INFO  | app.services.trip_expiry | Trip expiration scheduler started (interval=1800s)
+2026-06-09 10:54:55 | INFO  | app.services.agent_service | Plan start: user=be02f9fa-094c-4190-8d90-c89dc388d967, 深圳→天津, 2p, ¥2000.0
+2026-06-09 10:54:57 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:54:58 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:54:58 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:54:58 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:54:58 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:54:58 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:56:09 | INFO  | app.services.mcp_manager | MCP cache SET: search_flight (1 items, ttl=300s)
+2026-06-09 10:56:09 | INFO  | app.services.agent_service | MCP search_flight: 1 items, 74.2s, query=深圳到天津2026年6月10日机票
+2026-06-09 10:56:28 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 10:56:28 | INFO  | app.services.agent_service | MCP search_train: 0 items, 93.0s, query=深圳到天津2026年6月10日动车
+2026-06-09 10:56:28 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 10:56:28 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 10:56:28 | INFO  | app.services.agent_service | MCP search_train: 0 items, 93.0s, query=深圳到天津2026年6月10日高铁
+2026-06-09 10:56:28 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 10:56:28 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 10:56:28 | INFO  | app.services.agent_service | MCP search_train: 0 items, 93.1s, query=天津到深圳2026年6月12日高铁
+2026-06-09 10:56:28 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 10:56:28 | WARNING | app.services.remote_mcp | Remote MCP tool search_hotel failed: 
+2026-06-09 10:56:28 | INFO  | app.services.agent_service | MCP search_hotel: 0 items, 93.2s, query=天津酒店
+2026-06-09 10:56:28 | INFO  | app.services.agent_service | Retrying search_hotel (first attempt returned 0 items)
+2026-06-09 10:56:28 | WARNING | app.services.remote_mcp | Remote MCP tool search_food failed: 
+2026-06-09 10:56:28 | INFO  | app.services.agent_service | MCP search_food: 0 items, 93.4s, query=天津美食
+2026-06-09 10:56:28 | INFO  | app.services.agent_service | Retrying search_food (first attempt returned 0 items)
+2026-06-09 10:56:39 | INFO  | app.services.agent_service | MCP search_poi: 0 items, 104.2s, query=天津景点
+2026-06-09 10:56:39 | INFO  | app.services.agent_service | Retrying search_poi (first attempt returned 0 items)
+2026-06-09 10:56:58 | INFO  | app.services.agent_service | MCP search_train: 0 items, 123.0s, query=深圳到天津2026年6月10日火车票
+2026-06-09 10:56:58 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 10:56:58 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 123.0s, query=天津到深圳2026年6月12日机票
+2026-06-09 10:56:58 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 10:56:58 | INFO  | app.services.agent_service | MCP search_train: 0 items, 123.1s, query=天津到深圳2026年6月12日动车
+2026-06-09 10:56:58 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 10:56:58 | INFO  | app.services.agent_service | MCP search_train: 0 items, 123.2s, query=天津到深圳2026年6月12日火车票
+2026-06-09 10:56:58 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 10:57:01 | INFO  | root | Logging initialized: dir=/home/administrator/software/SmartJourney/backend/logs, level=INFO
+2026-06-09 10:57:01 | INFO  | app.redis_client | Redis lazy-connected: redis://172.25.64.1:6379/0
+2026-06-09 10:57:16 | WARNING | app.services.mcp_manager | MCP Manager: init failed ()
+2026-06-09 10:57:16 | INFO  | app.services.trip_expiry | Trip expiration scheduler started (interval=1800s)
+2026-06-09 10:57:24 | INFO  | root | Logging initialized: dir=/home/administrator/software/SmartJourney/backend/logs, level=INFO
+2026-06-09 10:57:24 | INFO  | app.redis_client | Redis lazy-connected: redis://172.25.64.1:6379/0
+2026-06-09 10:57:27 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:57:27 | INFO  | app.services.mcp_manager | MCP Manager: Remote FliggyTravel connected (7 tools)
+2026-06-09 10:57:27 | INFO  | app.services.trip_expiry | Trip expiration scheduler started (interval=1800s)
+2026-06-09 10:58:07 | INFO  | app.services.agent_service | Plan start: user=be02f9fa-094c-4190-8d90-c89dc388d967, 深圳→天津, 2p, ¥2000.0
+2026-06-09 10:58:07 | INFO  | app.services.mcp_manager | MCP cache HIT: search_flight (1 items, ttl=300s)
+2026-06-09 10:58:07 | INFO  | app.services.agent_service | MCP search_flight: 1 items, 0.0s, query=深圳到天津2026年6月10日机票
+2026-06-09 10:58:12 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:58:12 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:58:13 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:58:13 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:58:13 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:58:37 | INFO  | app.services.agent_service | MCP search_train: 0 items, 30.0s, query=天津到深圳2026年6月12日高铁
+2026-06-09 10:58:37 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 10:58:44 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (1 items, ttl=600s)
+2026-06-09 10:58:44 | INFO  | app.services.agent_service | MCP search_train: 1 items, 37.5s, query=深圳到天津2026年6月10日动车
+2026-06-09 10:58:45 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (2 items, ttl=600s)
+2026-06-09 10:58:45 | INFO  | app.services.agent_service | MCP search_train: 2 items, 37.5s, query=深圳到天津2026年6月10日火车票
+2026-06-09 10:59:07 | INFO  | app.services.agent_service | MCP search_train: 0 items, 60.0s, query=深圳到天津2026年6月10日高铁
+2026-06-09 10:59:07 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 10:59:14 | INFO  | app.services.agent_service | MCP search_train: 0 items, 67.5s, query=天津到深圳2026年6月12日火车票
+2026-06-09 10:59:14 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 10:59:15 | INFO  | app.services.agent_service | MCP search_hotel: 0 items, 67.5s, query=天津酒店
+2026-06-09 10:59:15 | INFO  | app.services.agent_service | Retrying search_hotel (first attempt returned 0 items)
+2026-06-09 10:59:37 | INFO  | app.services.agent_service | MCP search_poi: 0 items, 90.0s, query=天津景点
+2026-06-09 10:59:37 | INFO  | app.services.agent_service | Retrying search_poi (first attempt returned 0 items)
+2026-06-09 10:59:42 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 10:59:42 | INFO  | app.services.agent_service | MCP search_train: 0 items, 95.4s, query=天津到深圳2026年6月12日动车
+2026-06-09 10:59:42 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 10:59:43 | WARNING | app.services.remote_mcp | Remote MCP tool search_food failed: 
+2026-06-09 10:59:43 | INFO  | app.services.agent_service | MCP search_food: 0 items, 95.7s, query=天津美食
+2026-06-09 10:59:43 | INFO  | app.services.agent_service | Retrying search_food (first attempt returned 0 items)
+2026-06-09 10:59:43 | WARNING | app.services.remote_mcp | Remote MCP tool search_flight failed: 
+2026-06-09 10:59:43 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 96.1s, query=天津到深圳2026年6月12日机票
+2026-06-09 10:59:43 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 10:59:54 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:59:54 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:59:54 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:59:54 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:59:54 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 10:59:54 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 11:00:29 | INFO  | app.services.mcp_manager | MCP cache SET: search_food (10 items, ttl=1800s)
+2026-06-09 11:00:29 | INFO  | app.services.mcp_manager | MCP cache SET: search_hotel (12 items, ttl=1800s)
+2026-06-09 11:01:20 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (1 items, ttl=600s)
+2026-06-09 11:01:24 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 11:01:24 | WARNING | app.services.remote_mcp | Remote MCP tool search_flight failed: 
+2026-06-09 11:01:24 | WARNING | app.services.remote_mcp | Remote MCP tool search_poi failed: 
+2026-06-09 11:03:02 | INFO  | app.services.agent_service | Plan done: 1 routes, 295.4s
+2026-06-09 11:03:02 | ERROR | app.services.agent_service | Failed to save route None: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.StringDataRightTruncationError'>: value too long for type character varying(5)
+[SQL: INSERT INTO trip_items (id, trip_day_id, type, title, description, start_time, end_time, duration_minutes, location, lat, lng, price, currency, booking_url, booking_ref, source, status, extra_data, sort_order, created_at) VALUES ($1::UUID, $2::UUID, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::INTEGER, $9::VARCHAR, $10::FLOAT, $11::FLOAT, $12::NUMERIC(10, 2), $13::VARCHAR, $14::VARCHAR, $15::VARCHAR, $16::VARCHAR, $17::VARCHAR, $18::JSON, $19::INTEGER, $20::TIMESTAMP WITH TIME ZONE)]
+[parameters: ('b4b63295-2f4d-4440-ba61-c2cd0197779a', '555d4cf1-4ef1-45c0-8e5c-37586e81f1cf', 'train', 'Z187 硬座 深圳东→天津 (夕发朝至)', None, '17:50', '08:30(+1)', None, None, None, None, 520, 'CNY', 'https://a.feizhu.com/0sg0bV', None, 'fliggy', 'planned', 'null', 0, datetime.datetime(2026, 6, 9, 3, 3, 2, 977096))]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)
+2026-06-09 11:03:02 | INFO  | app.services.agent_service | Async save complete: 1 routes
+2026-06-09 11:07:48 | INFO  | root | Logging initialized: dir=/home/administrator/software/SmartJourney/backend/logs, level=INFO
+2026-06-09 11:07:49 | INFO  | app.redis_client | Redis lazy-connected: redis://172.25.64.1:6379/0
+2026-06-09 11:07:52 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 11:07:52 | INFO  | app.services.mcp_manager | MCP Manager: Remote FliggyTravel connected (7 tools)
+2026-06-09 11:07:52 | INFO  | app.services.trip_expiry | Trip expiration scheduler started (interval=1800s)
+2026-06-09 11:10:31 | INFO  | root | Logging initialized: dir=/home/administrator/software/SmartJourney/backend/logs, level=INFO
+2026-06-09 11:10:32 | INFO  | app.redis_client | Redis lazy-connected: redis://172.25.64.1:6379/0
+2026-06-09 11:10:35 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 11:10:35 | INFO  | app.services.mcp_manager | MCP Manager: Remote FliggyTravel connected (7 tools)
+2026-06-09 11:10:35 | INFO  | app.services.trip_expiry | Trip expiration scheduler started (interval=1800s)
+2026-06-09 11:12:02 | INFO  | app.services.agent_service | Plan start: user=be02f9fa-094c-4190-8d90-c89dc388d967, 深圳→天津, 2p, ¥2000.0
+2026-06-09 11:12:02 | INFO  | app.services.mcp_manager | MCP cache HIT: search_food (10 items, ttl=1800s)
+2026-06-09 11:12:02 | INFO  | app.services.agent_service | MCP search_food: 10 items, 0.0s, query=天津美食
+2026-06-09 11:12:02 | INFO  | app.services.mcp_manager | MCP cache HIT: search_hotel (12 items, ttl=1800s)
+2026-06-09 11:12:02 | INFO  | app.services.agent_service | MCP search_hotel: 12 items, 0.1s, query=天津酒店
+2026-06-09 11:12:04 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 11:12:05 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 11:12:05 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 11:12:23 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (1 items, ttl=600s)
+2026-06-09 11:12:23 | INFO  | app.services.agent_service | MCP search_train: 1 items, 21.6s, query=深圳到天津2026年6月10日动车
+2026-06-09 11:12:32 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 30.0s, query=深圳到天津2026年6月10日机票
+2026-06-09 11:12:32 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 11:12:32 | INFO  | app.services.agent_service | MCP search_train: 0 items, 30.0s, query=天津到深圳2026年6月12日高铁
+2026-06-09 11:12:32 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 11:12:32 | INFO  | app.services.agent_service | MCP search_poi: 0 items, 30.0s, query=深圳景点
+2026-06-09 11:12:32 | INFO  | app.services.agent_service | Retrying search_poi (first attempt returned 0 items)
+2026-06-09 11:12:53 | INFO  | app.services.agent_service | MCP search_train: 0 items, 51.6s, query=深圳到天津2026年6月10日火车票
+2026-06-09 11:12:53 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 11:13:02 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 60.0s, query=天津到深圳2026年6月12日机票
+2026-06-09 11:13:02 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 11:13:02 | INFO  | app.services.agent_service | MCP search_poi: 0 items, 60.0s, query=天津景点
+2026-06-09 11:13:02 | INFO  | app.services.agent_service | Retrying search_poi (first attempt returned 0 items)
+2026-06-09 11:13:02 | INFO  | app.services.agent_service | MCP search_food: 0 items, 60.0s, query=深圳美食
+2026-06-09 11:13:02 | INFO  | app.services.agent_service | Retrying search_food (first attempt returned 0 items)
+2026-06-09 11:13:23 | INFO  | app.services.agent_service | MCP search_train: 0 items, 81.6s, query=深圳到天津2026年6月10日高铁
+2026-06-09 11:13:23 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 11:13:35 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 11:13:35 | INFO  | app.services.agent_service | MCP search_train: 0 items, 93.0s, query=天津到深圳2026年6月12日火车票
+2026-06-09 11:13:35 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 11:13:35 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 11:13:35 | INFO  | app.services.agent_service | MCP search_train: 0 items, 93.1s, query=天津到深圳2026年6月12日动车
+2026-06-09 11:13:35 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 11:13:41 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 11:13:48 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 11:13:49 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 11:13:49 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 11:13:49 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 11:13:49 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 11:14:23 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (5 items, ttl=600s)
+2026-06-09 11:14:48 | INFO  | app.services.mcp_manager | MCP cache SET: search_poi (8 items, ttl=3600s)
+2026-06-09 11:15:18 | WARNING | app.services.remote_mcp | Remote MCP tool search_food failed: 
+2026-06-09 11:15:19 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 11:15:19 | WARNING | app.services.remote_mcp | Remote MCP tool search_flight failed: 
+2026-06-09 11:15:19 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 11:17:28 | INFO  | app.services.agent_service | Plan done: 1 routes, 326.3s
+2026-06-09 11:17:28 | INFO  | app.services.agent_service | Trip saved: 78d43231-f680-4076-97c1-104f0eb27ca6 with 15 items
+2026-06-09 11:17:28 | INFO  | app.services.agent_service | Async save complete: 1 routes
+2026-06-09 14:45:32 | INFO  | root | Logging initialized: dir=/home/administrator/software/SmartJourney/backend/logs, level=INFO
+2026-06-09 14:45:32 | INFO  | app.redis_client | Redis lazy-connected: redis://172.25.64.1:6379/0
+2026-06-09 14:45:40 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 14:45:40 | INFO  | app.services.mcp_manager | MCP Manager: Remote FliggyTravel connected (7 tools)
+2026-06-09 14:45:40 | INFO  | app.services.trip_expiry | Trip expiration scheduler started (interval=1800s)
+2026-06-09 14:58:21 | INFO  | root | Logging initialized: dir=/home/administrator/software/SmartJourney/backend/logs, level=INFO
+2026-06-09 14:58:21 | INFO  | app.redis_client | Redis lazy-connected: redis://172.25.64.1:6379/0
+2026-06-09 14:58:29 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 14:58:29 | INFO  | app.services.mcp_manager | MCP Manager: Remote FliggyTravel connected (7 tools)
+2026-06-09 14:58:29 | INFO  | app.services.trip_expiry | Trip expiration scheduler started (interval=1800s)
+2026-06-09 15:06:30 | INFO  | app.services.agent_service | Plan start: user=be02f9fa-094c-4190-8d90-c89dc388d967, 深圳→重庆, 2p, ¥2000.0
+2026-06-09 15:06:34 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:06:34 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:06:34 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:06:34 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:06:34 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:06:51 | INFO  | app.services.agent_service | Plan start: user=be02f9fa-094c-4190-8d90-c89dc388d967, 深圳→重庆, 2p, ¥5000.0
+2026-06-09 15:07:00 | INFO  | app.services.agent_service | MCP search_train: 0 items, 30.0s, query=重庆到深圳2026年6月12日动车
+2026-06-09 15:07:00 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 15:07:01 | INFO  | app.services.mcp_manager | MCP cache SET: search_poi (10 items, ttl=3600s)
+2026-06-09 15:07:01 | INFO  | app.services.agent_service | MCP search_poi: 10 items, 30.8s, query=深圳景点
+2026-06-09 15:07:30 | INFO  | app.services.agent_service | MCP search_train: 0 items, 60.0s, query=深圳到重庆2026年6月10日高铁
+2026-06-09 15:07:30 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 15:07:31 | INFO  | app.services.agent_service | MCP search_poi: 0 items, 60.8s, query=重庆景点
+2026-06-09 15:07:31 | INFO  | app.services.agent_service | Retrying search_poi (first attempt returned 0 items)
+2026-06-09 15:08:00 | INFO  | app.services.agent_service | MCP search_food: 0 items, 90.0s, query=深圳美食
+2026-06-09 15:08:00 | INFO  | app.services.agent_service | Retrying search_food (first attempt returned 0 items)
+2026-06-09 15:08:01 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (4 items, ttl=600s)
+2026-06-09 15:08:01 | INFO  | app.services.agent_service | MCP search_train: 4 items, 90.8s, query=深圳到重庆2026年6月10日动车
+2026-06-09 15:08:01 | INFO  | app.services.agent_service | MCP search_train: 0 items, 90.9s, query=深圳到重庆2026年6月10日火车票
+2026-06-09 15:08:01 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 15:08:01 | INFO  | app.services.mcp_manager | MCP cache SET: search_food (10 items, ttl=1800s)
+2026-06-09 15:08:01 | INFO  | app.services.agent_service | MCP search_food: 10 items, 90.9s, query=重庆美食
+2026-06-09 15:08:01 | INFO  | app.services.mcp_manager | MCP cache SET: search_flight (6 items, ttl=300s)
+2026-06-09 15:08:01 | INFO  | app.services.agent_service | MCP search_flight: 6 items, 90.9s, query=重庆到深圳2026年6月12日机票
+2026-06-09 15:08:01 | INFO  | app.services.mcp_manager | MCP cache SET: search_flight (5 items, ttl=300s)
+2026-06-09 15:08:01 | INFO  | app.services.agent_service | MCP search_flight: 5 items, 91.2s, query=深圳到重庆2026年6月10日机票
+2026-06-09 15:08:04 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:08:04 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:08:04 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:08:05 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:08:05 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:08:05 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:09:15 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (5 items, ttl=600s)
+2026-06-09 15:09:15 | INFO  | app.services.agent_service | MCP search_train: 5 items, 143.9s, query=重庆到深圳2026年6月12日动车
+2026-06-09 15:09:34 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 15:09:34 | INFO  | app.services.agent_service | MCP search_train: 0 items, 183.5s, query=重庆到深圳2026年6月12日火车票
+2026-06-09 15:09:34 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 15:09:34 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 15:09:34 | INFO  | app.services.agent_service | MCP search_train: 0 items, 184.0s, query=重庆到深圳2026年6月12日高铁
+2026-06-09 15:09:34 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 15:09:35 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 15:09:35 | INFO  | app.services.agent_service | MCP search_train: 0 items, 164.3s, query=深圳到重庆2026年6月10日火车票
+2026-06-09 15:09:35 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 15:09:35 | WARNING | app.services.remote_mcp | Remote MCP tool search_food failed: 
+2026-06-09 15:09:35 | INFO  | app.services.agent_service | MCP search_food: 0 items, 164.3s, query=深圳美食
+2026-06-09 15:09:35 | INFO  | app.services.agent_service | Retrying search_food (first attempt returned 0 items)
+2026-06-09 15:09:35 | WARNING | app.services.remote_mcp | Remote MCP tool search_hotel failed: 
+2026-06-09 15:09:35 | INFO  | app.services.agent_service | MCP search_hotel: 0 items, 184.7s, query=重庆酒店
+2026-06-09 15:09:35 | INFO  | app.services.agent_service | Retrying search_hotel (first attempt returned 0 items)
+2026-06-09 15:09:42 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:09:42 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:09:43 | INFO  | app.services.mcp_manager | MCP cache SET: search_food (10 items, ttl=1800s)
+2026-06-09 15:09:43 | INFO  | app.services.agent_service | MCP search_food: 10 items, 172.8s, query=重庆美食
+2026-06-09 15:09:45 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 173.9s, query=重庆到深圳2026年6月12日机票
+2026-06-09 15:09:45 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 15:09:46 | INFO  | app.services.mcp_manager | MCP cache HIT: search_flight (6 items, ttl=300s)
+2026-06-09 15:10:01 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:10:01 | INFO  | app.services.mcp_manager | MCP cache SET: search_poi (12 items, ttl=3600s)
+2026-06-09 15:10:01 | INFO  | app.services.agent_service | MCP search_poi: 12 items, 190.7s, query=重庆景点
+2026-06-09 15:10:01 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:10:04 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 193.1s, query=深圳到重庆2026年6月10日机票
+2026-06-09 15:10:04 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 15:10:04 | INFO  | app.services.agent_service | MCP search_poi: 0 items, 193.6s, query=深圳景点
+2026-06-09 15:10:04 | INFO  | app.services.agent_service | Retrying search_poi (first attempt returned 0 items)
+2026-06-09 15:10:05 | INFO  | app.services.mcp_manager | MCP cache HIT: search_flight (5 items, ttl=300s)
+2026-06-09 15:10:05 | INFO  | app.services.agent_service | MCP search_hotel: 0 items, 194.3s, query=重庆酒店
+2026-06-09 15:10:05 | INFO  | app.services.agent_service | Retrying search_hotel (first attempt returned 0 items)
+2026-06-09 15:10:05 | INFO  | app.services.mcp_manager | MCP cache HIT: search_poi (10 items, ttl=3600s)
+2026-06-09 15:10:31 | INFO  | app.services.agent_service | MCP search_train: 0 items, 220.7s, query=深圳到重庆2026年6月10日动车
+2026-06-09 15:10:31 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 15:10:32 | INFO  | app.services.mcp_manager | MCP cache HIT: search_train (4 items, ttl=600s)
+2026-06-09 15:10:34 | INFO  | app.services.agent_service | MCP search_train: 0 items, 223.2s, query=深圳到重庆2026年6月10日高铁
+2026-06-09 15:10:34 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 15:10:46 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:10:46 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:10:46 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:10:46 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:10:46 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (5 items, ttl=600s)
+2026-06-09 15:10:46 | INFO  | app.services.agent_service | MCP search_train: 5 items, 235.6s, query=重庆到深圳2026年6月12日高铁
+2026-06-09 15:10:46 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (10 items, ttl=600s)
+2026-06-09 15:10:46 | INFO  | app.services.agent_service | MCP search_train: 10 items, 235.7s, query=重庆到深圳2026年6月12日火车票
+2026-06-09 15:11:54 | INFO  | app.services.mcp_manager | MCP cache SET: search_poi (6 items, ttl=3600s)
+2026-06-09 15:12:12 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:12:12 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:12:12 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (5 items, ttl=600s)
+2026-06-09 15:12:12 | INFO  | app.services.mcp_manager | MCP cache SET: search_food (10 items, ttl=1800s)
+2026-06-09 15:12:12 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (10 items, ttl=600s)
+2026-06-09 15:12:51 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (4 items, ttl=600s)
+2026-06-09 15:12:51 | INFO  | app.services.mcp_manager | MCP cache SET: search_hotel (6 items, ttl=1800s)
+2026-06-09 15:14:12 | INFO  | app.services.agent_service | Plan done: 1 routes, 441.3s
+2026-06-09 15:14:12 | INFO  | app.services.agent_service | Trip saved: f2b9b095-fd34-4296-9325-f7343bd9920c with 18 items
+2026-06-09 15:14:12 | INFO  | app.services.agent_service | Async save complete: 1 routes
+2026-06-09 15:14:44 | INFO  | app.services.agent_service | Plan done: 1 routes, 493.5s
+2026-06-09 15:14:44 | INFO  | app.services.agent_service | Trip saved: 71e70053-c6e6-4aab-8936-160a0f2cb1dd with 23 items
+2026-06-09 15:14:44 | INFO  | app.services.agent_service | Async save complete: 1 routes
+2026-06-09 15:20:40 | INFO  | app.services.agent_service | Plan start: user=be02f9fa-094c-4190-8d90-c89dc388d967, 深圳→重庆, 2p, ¥2000.0
+2026-06-09 15:20:40 | INFO  | app.services.mcp_manager | MCP cache HIT: search_train (4 items, ttl=600s)
+2026-06-09 15:20:40 | INFO  | app.services.agent_service | MCP search_train: 4 items, 0.0s, query=深圳到重庆2026年6月10日高铁
+2026-06-09 15:20:40 | INFO  | app.services.mcp_manager | MCP cache HIT: search_train (10 items, ttl=600s)
+2026-06-09 15:20:40 | INFO  | app.services.agent_service | MCP search_train: 10 items, 0.0s, query=重庆到深圳2026年6月12日火车票
+2026-06-09 15:20:40 | INFO  | app.services.mcp_manager | MCP cache HIT: search_food (10 items, ttl=1800s)
+2026-06-09 15:20:40 | INFO  | app.services.agent_service | MCP search_food: 10 items, 0.0s, query=重庆美食
+2026-06-09 15:20:40 | INFO  | app.services.mcp_manager | MCP cache HIT: search_food (10 items, ttl=1800s)
+2026-06-09 15:20:40 | INFO  | app.services.agent_service | MCP search_food: 10 items, 0.0s, query=深圳美食
+2026-06-09 15:20:40 | INFO  | app.services.mcp_manager | MCP cache HIT: search_train (5 items, ttl=600s)
+2026-06-09 15:20:40 | INFO  | app.services.agent_service | MCP search_train: 5 items, 0.0s, query=深圳到重庆2026年6月10日火车票
+2026-06-09 15:20:40 | INFO  | app.services.mcp_manager | MCP cache HIT: search_train (5 items, ttl=600s)
+2026-06-09 15:20:40 | INFO  | app.services.agent_service | MCP search_train: 5 items, 0.0s, query=重庆到深圳2026年6月12日高铁
+2026-06-09 15:20:40 | INFO  | app.services.mcp_manager | MCP cache HIT: search_poi (10 items, ttl=3600s)
+2026-06-09 15:20:40 | INFO  | app.services.agent_service | MCP search_poi: 10 items, 0.0s, query=深圳景点
+2026-06-09 15:20:40 | INFO  | app.services.mcp_manager | MCP cache HIT: search_poi (6 items, ttl=3600s)
+2026-06-09 15:20:40 | INFO  | app.services.agent_service | MCP search_poi: 6 items, 0.0s, query=重庆景点
+2026-06-09 15:20:40 | INFO  | app.services.mcp_manager | MCP cache HIT: search_hotel (6 items, ttl=1800s)
+2026-06-09 15:20:40 | INFO  | app.services.agent_service | MCP search_hotel: 6 items, 0.0s, query=重庆酒店
+2026-06-09 15:20:43 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:20:43 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:20:44 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:20:44 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:21:39 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (4 items, ttl=600s)
+2026-06-09 15:21:39 | INFO  | app.services.agent_service | MCP search_train: 4 items, 59.3s, query=深圳到重庆2026年6月10日动车
+2026-06-09 15:22:01 | INFO  | app.services.mcp_manager | MCP cache SET: search_flight (5 items, ttl=300s)
+2026-06-09 15:22:01 | INFO  | app.services.agent_service | MCP search_flight: 5 items, 80.7s, query=深圳到重庆2026年6月10日机票
+2026-06-09 15:22:14 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 15:22:14 | INFO  | app.services.agent_service | MCP search_train: 0 items, 93.7s, query=重庆到深圳2026年6月12日动车
+2026-06-09 15:22:14 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 15:22:14 | WARNING | app.services.remote_mcp | Remote MCP tool search_flight failed: 
+2026-06-09 15:22:14 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 93.7s, query=重庆到深圳2026年6月12日机票
+2026-06-09 15:22:14 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 15:24:31 | INFO  | app.services.agent_service | Plan done: 1 routes, 231.1s
+2026-06-09 15:24:31 | INFO  | app.services.agent_service | Trip saved: 321c9beb-b98f-4ce4-97c9-e5e6231558ff with 23 items
+2026-06-09 15:24:31 | INFO  | app.services.agent_service | Async save complete: 1 routes
+2026-06-09 15:29:37 | INFO  | root | Logging initialized: dir=/home/administrator/software/SmartJourney/backend/logs, level=INFO
+2026-06-09 15:29:37 | INFO  | app.redis_client | Redis lazy-connected: redis://172.25.64.1:6379/0
+2026-06-09 15:29:41 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:29:41 | INFO  | app.services.mcp_manager | MCP Manager: Remote FliggyTravel connected (7 tools)
+2026-06-09 15:29:41 | INFO  | app.services.trip_expiry | Trip expiration scheduler started (interval=1800s)
+2026-06-09 15:30:13 | INFO  | app.services.agent_service | Plan start: user=be02f9fa-094c-4190-8d90-c89dc388d967, 深圳→重庆, 2p, ¥2000.0
+2026-06-09 15:30:13 | INFO  | app.services.mcp_manager | MCP cache HIT: search_hotel (6 items, ttl=1800s)
+2026-06-09 15:30:13 | INFO  | app.services.agent_service | MCP search_hotel: 6 items, 0.0s, query=重庆酒店
+2026-06-09 15:30:13 | INFO  | app.services.mcp_manager | MCP cache HIT: search_food (10 items, ttl=1800s)
+2026-06-09 15:30:13 | INFO  | app.services.agent_service | MCP search_food: 10 items, 0.0s, query=重庆美食
+2026-06-09 15:30:13 | INFO  | app.services.mcp_manager | MCP cache HIT: search_train (4 items, ttl=600s)
+2026-06-09 15:30:13 | INFO  | app.services.agent_service | MCP search_train: 4 items, 0.0s, query=深圳到重庆2026年6月10日动车
+2026-06-09 15:30:13 | INFO  | app.services.mcp_manager | MCP cache HIT: search_poi (6 items, ttl=3600s)
+2026-06-09 15:30:13 | INFO  | app.services.agent_service | MCP search_poi: 6 items, 0.0s, query=重庆景点
+2026-06-09 15:30:13 | INFO  | app.services.mcp_manager | MCP cache HIT: search_poi (10 items, ttl=3600s)
+2026-06-09 15:30:13 | INFO  | app.services.agent_service | MCP search_poi: 10 items, 0.0s, query=深圳景点
+2026-06-09 15:30:13 | INFO  | app.services.mcp_manager | MCP cache HIT: search_food (10 items, ttl=1800s)
+2026-06-09 15:30:13 | INFO  | app.services.agent_service | MCP search_food: 10 items, 0.0s, query=深圳美食
+2026-06-09 15:30:17 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:30:17 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:30:17 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:30:17 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:30:18 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:30:43 | INFO  | app.services.agent_service | MCP search_train: 0 items, 30.0s, query=深圳到重庆2026年6月10日高铁
+2026-06-09 15:30:43 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 15:31:07 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (5 items, ttl=600s)
+2026-06-09 15:31:07 | INFO  | app.services.agent_service | MCP search_train: 5 items, 53.2s, query=深圳到重庆2026年6月10日火车票
+2026-06-09 15:31:13 | INFO  | app.services.agent_service | MCP search_train: 0 items, 60.0s, query=重庆到深圳2026年6月12日火车票
+2026-06-09 15:31:13 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 15:31:47 | WARNING | app.services.remote_mcp | Remote MCP tool search_flight failed: 
+2026-06-09 15:31:47 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 93.5s, query=重庆到深圳2026年6月12日机票
+2026-06-09 15:31:47 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 15:31:47 | WARNING | app.services.remote_mcp | Remote MCP tool search_flight failed: 
+2026-06-09 15:31:47 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 93.6s, query=深圳到重庆2026年6月10日机票
+2026-06-09 15:31:47 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 15:31:47 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 15:31:47 | INFO  | app.services.agent_service | MCP search_train: 0 items, 93.7s, query=重庆到深圳2026年6月12日高铁
+2026-06-09 15:31:47 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 15:31:48 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 15:31:48 | INFO  | app.services.agent_service | MCP search_train: 0 items, 94.6s, query=重庆到深圳2026年6月12日动车
+2026-06-09 15:31:48 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 15:33:43 | INFO  | app.services.agent_service | Plan done: 1 routes, 209.8s
+2026-06-09 15:33:43 | INFO  | app.services.agent_service | Trip saved: f511cc54-5a61-49b6-8117-832b59be52ff with 13 items
+2026-06-09 15:33:43 | INFO  | app.services.agent_service | Async save complete: 1 routes
+2026-06-09 15:53:13 | INFO  | root | Logging initialized: dir=/home/administrator/software/SmartJourney/backend/logs, level=INFO
+2026-06-09 15:53:13 | INFO  | app.redis_client | Redis lazy-connected: redis://172.25.64.1:6379/0
+2026-06-09 15:53:21 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:53:21 | INFO  | app.services.mcp_manager | MCP Manager: Remote FliggyTravel connected (7 tools)
+2026-06-09 15:53:21 | INFO  | app.services.trip_expiry | Trip expiration scheduler started (interval=1800s)
+2026-06-09 15:54:07 | INFO  | app.services.agent_service | Plan start: user=be02f9fa-094c-4190-8d90-c89dc388d967, 深圳→重庆, 2p, ¥2000.0
+2026-06-09 15:54:07 | INFO  | app.services.mcp_manager | MCP cache HIT: search_poi (6 items, ttl=3600s)
+2026-06-09 15:54:07 | INFO  | app.services.agent_service | MCP search_poi: 6 items, 0.0s, query=重庆景点
+2026-06-09 15:54:07 | INFO  | app.services.mcp_manager | MCP cache HIT: search_poi (10 items, ttl=3600s)
+2026-06-09 15:54:07 | INFO  | app.services.agent_service | MCP search_poi: 10 items, 0.0s, query=深圳景点
+2026-06-09 15:54:10 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:54:11 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:54:11 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:54:31 | INFO  | app.services.mcp_manager | MCP cache SET: search_food (10 items, ttl=1800s)
+2026-06-09 15:54:31 | INFO  | app.services.agent_service | MCP search_food: 10 items, 23.4s, query=重庆美食
+2026-06-09 15:54:37 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 30.0s, query=深圳到重庆2026年6月10日机票
+2026-06-09 15:54:37 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 15:54:37 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 30.0s, query=重庆到深圳2026年6月12日机票
+2026-06-09 15:54:37 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 15:54:37 | INFO  | app.services.agent_service | MCP search_train: 0 items, 30.0s, query=深圳到重庆2026年6月10日火车票
+2026-06-09 15:54:37 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 15:54:46 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:54:46 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:54:46 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:54:46 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:54:46 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (5 items, ttl=600s)
+2026-06-09 15:54:46 | INFO  | app.services.agent_service | MCP search_train: 5 items, 38.7s, query=重庆到深圳2026年6月12日高铁
+2026-06-09 15:54:46 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (4 items, ttl=600s)
+2026-06-09 15:54:46 | INFO  | app.services.agent_service | MCP search_train: 4 items, 38.7s, query=深圳到重庆2026年6月10日动车
+2026-06-09 15:55:16 | INFO  | app.services.agent_service | MCP search_hotel: 0 items, 68.7s, query=重庆酒店
+2026-06-09 15:55:16 | INFO  | app.services.agent_service | Retrying search_hotel (first attempt returned 0 items)
+2026-06-09 15:55:20 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (4 items, ttl=600s)
+2026-06-09 15:55:20 | INFO  | app.services.agent_service | MCP search_train: 4 items, 72.3s, query=深圳到重庆2026年6月10日高铁
+2026-06-09 15:55:39 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:55:39 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:55:39 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (4 items, ttl=600s)
+2026-06-09 15:55:39 | INFO  | app.services.agent_service | MCP search_train: 4 items, 91.3s, query=重庆到深圳2026年6月12日动车
+2026-06-09 15:55:39 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 15:55:39 | INFO  | app.services.mcp_manager | MCP cache SET: search_food (10 items, ttl=1800s)
+2026-06-09 15:55:39 | INFO  | app.services.agent_service | MCP search_food: 10 items, 91.4s, query=深圳美食
+2026-06-09 15:55:39 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (10 items, ttl=600s)
+2026-06-09 15:55:39 | INFO  | app.services.agent_service | MCP search_train: 10 items, 91.4s, query=重庆到深圳2026年6月12日火车票
+2026-06-09 15:56:48 | INFO  | app.services.mcp_manager | MCP cache SET: search_flight (3 items, ttl=300s)
+2026-06-09 15:56:59 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (9 items, ttl=600s)
+2026-06-09 15:56:59 | INFO  | app.services.mcp_manager | MCP cache SET: search_hotel (5 items, ttl=1800s)
+2026-06-09 15:58:38 | INFO  | app.services.agent_service | Plan done: 1 routes, 270.5s
+2026-06-09 15:58:38 | INFO  | app.services.agent_service | Trip saved: 70f4ee00-bf16-46b1-9ef8-295aa483aeaf with 19 items
+2026-06-09 15:58:38 | INFO  | app.services.agent_service | Async save complete: 1 routes
+2026-06-09 16:03:57 | INFO  | root | Logging initialized: dir=/home/administrator/software/SmartJourney/backend/logs, level=INFO
+2026-06-09 16:03:57 | INFO  | app.redis_client | Redis lazy-connected: redis://172.25.64.1:6379/0
+2026-06-09 16:04:02 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:04:02 | INFO  | app.services.mcp_manager | MCP Manager: Remote FliggyTravel connected (7 tools)
+2026-06-09 16:04:02 | INFO  | app.services.trip_expiry | Trip expiration scheduler started (interval=1800s)
+2026-06-09 16:18:22 | INFO  | app.services.agent_service | Plan start: user=be02f9fa-094c-4190-8d90-c89dc388d967, 深圳→天津, 2p, ¥2000.0
+2026-06-09 16:18:22 | INFO  | app.services.mcp_manager | MCP cache HIT: search_food (10 items, ttl=1800s)
+2026-06-09 16:18:22 | INFO  | app.services.agent_service | MCP search_food: 10 items, 0.0s, query=深圳美食
+2026-06-09 16:18:25 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:18:25 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:18:25 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:18:26 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:18:26 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:18:26 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:18:59 | INFO  | app.services.mcp_manager | MCP cache SET: search_flight (5 items, ttl=300s)
+2026-06-09 16:18:59 | INFO  | app.services.agent_service | MCP search_flight: 5 items, 37.5s, query=深圳到天津2026年6月10日机票
+2026-06-09 16:19:29 | INFO  | app.services.agent_service | MCP search_train: 0 items, 67.5s, query=深圳到天津2026年6月10日动车
+2026-06-09 16:19:29 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 16:19:55 | WARNING | app.services.remote_mcp | Remote MCP tool search_food failed: 
+2026-06-09 16:19:55 | INFO  | app.services.agent_service | MCP search_food: 0 items, 93.5s, query=天津美食
+2026-06-09 16:19:55 | INFO  | app.services.agent_service | Retrying search_food (first attempt returned 0 items)
+2026-06-09 16:19:55 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 16:19:55 | INFO  | app.services.agent_service | MCP search_train: 0 items, 93.6s, query=深圳到天津2026年6月10日火车票
+2026-06-09 16:19:55 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 16:19:56 | WARNING | app.services.remote_mcp | Remote MCP tool search_flight failed: 
+2026-06-09 16:19:56 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 93.6s, query=天津到深圳2026年6月12日机票
+2026-06-09 16:19:56 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 16:19:56 | WARNING | app.services.remote_mcp | Remote MCP tool search_poi failed: 
+2026-06-09 16:19:56 | INFO  | app.services.agent_service | MCP search_poi: 0 items, 93.6s, query=深圳景点
+2026-06-09 16:19:56 | INFO  | app.services.agent_service | Retrying search_poi (first attempt returned 0 items)
+2026-06-09 16:19:56 | WARNING | app.services.remote_mcp | Remote MCP tool search_poi failed: 
+2026-06-09 16:19:56 | INFO  | app.services.agent_service | MCP search_poi: 0 items, 93.6s, query=天津景点
+2026-06-09 16:19:56 | INFO  | app.services.agent_service | Retrying search_poi (first attempt returned 0 items)
+2026-06-09 16:19:59 | INFO  | app.services.agent_service | MCP search_train: 0 items, 97.5s, query=天津到深圳2026年6月12日高铁
+2026-06-09 16:19:59 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 16:20:25 | INFO  | app.services.agent_service | MCP search_train: 0 items, 123.5s, query=深圳到天津2026年6月10日高铁
+2026-06-09 16:20:25 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 16:20:25 | INFO  | app.services.agent_service | MCP search_train: 0 items, 123.6s, query=天津到深圳2026年6月12日动车
+2026-06-09 16:20:25 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 16:20:26 | INFO  | app.services.agent_service | MCP search_hotel: 0 items, 123.6s, query=天津酒店
+2026-06-09 16:20:26 | INFO  | app.services.agent_service | Retrying search_hotel (first attempt returned 0 items)
+2026-06-09 16:20:26 | INFO  | app.services.agent_service | MCP search_train: 0 items, 123.6s, query=天津到深圳2026年6月12日火车票
+2026-06-09 16:20:26 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 16:20:59 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:20:59 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:20:59 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:21:35 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (7 items, ttl=600s)
+2026-06-09 16:22:29 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 16:22:29 | WARNING | app.services.remote_mcp | Remote MCP tool search_hotel failed: 
+2026-06-09 16:23:24 | INFO  | app.services.agent_service | Plan done: 1 routes, 302.2s
+2026-06-09 16:23:24 | INFO  | app.services.agent_service | Trip saved: 385eb0ee-ad42-4b59-8952-52c4e1abdab9 with 14 items
+2026-06-09 16:23:24 | INFO  | app.services.agent_service | Async save complete: 1 routes
+2026-06-09 16:26:34 | INFO  | app.services.agent_service | Plan start: user=be02f9fa-094c-4190-8d90-c89dc388d967, 深圳→重庆, 2p, ¥2000.0
+2026-06-09 16:26:34 | INFO  | app.services.mcp_manager | MCP cache HIT: search_hotel (5 items, ttl=1800s)
+2026-06-09 16:26:34 | INFO  | app.services.agent_service | MCP search_hotel: 5 items, 0.0s, query=重庆酒店
+2026-06-09 16:26:35 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:26:35 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:26:35 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:26:35 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:26:35 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:26:35 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:27:30 | INFO  | app.services.mcp_manager | MCP cache SET: search_poi (8 items, ttl=3600s)
+2026-06-09 16:27:30 | INFO  | app.services.agent_service | MCP search_poi: 8 items, 55.9s, query=重庆景点
+2026-06-09 16:28:00 | INFO  | app.services.agent_service | MCP search_train: 0 items, 85.9s, query=重庆到深圳2026年6月12日火车票
+2026-06-09 16:28:00 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 16:28:05 | WARNING | app.services.remote_mcp | Remote MCP tool search_flight failed: 
+2026-06-09 16:28:05 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 90.6s, query=深圳到重庆2026年6月10日机票
+2026-06-09 16:28:05 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 16:28:05 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 16:28:05 | INFO  | app.services.agent_service | MCP search_train: 0 items, 90.6s, query=重庆到深圳2026年6月12日动车
+2026-06-09 16:28:05 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 16:28:05 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 16:28:05 | INFO  | app.services.agent_service | MCP search_train: 0 items, 90.7s, query=深圳到重庆2026年6月10日动车
+2026-06-09 16:28:05 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 16:28:05 | WARNING | app.services.remote_mcp | Remote MCP tool search_food failed: 
+2026-06-09 16:28:05 | INFO  | app.services.agent_service | MCP search_food: 0 items, 90.7s, query=重庆美食
+2026-06-09 16:28:05 | INFO  | app.services.agent_service | Retrying search_food (first attempt returned 0 items)
+2026-06-09 16:28:05 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 16:28:05 | INFO  | app.services.agent_service | MCP search_train: 0 items, 90.7s, query=深圳到重庆2026年6月10日火车票
+2026-06-09 16:28:05 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 16:28:30 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 115.9s, query=重庆到深圳2026年6月12日机票
+2026-06-09 16:28:30 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 16:28:35 | INFO  | app.services.agent_service | MCP search_poi: 0 items, 120.6s, query=深圳景点
+2026-06-09 16:28:35 | INFO  | app.services.agent_service | Retrying search_poi (first attempt returned 0 items)
+2026-06-09 16:28:35 | INFO  | app.services.agent_service | MCP search_food: 0 items, 120.6s, query=深圳美食
+2026-06-09 16:28:35 | INFO  | app.services.agent_service | Retrying search_food (first attempt returned 0 items)
+2026-06-09 16:28:35 | INFO  | app.services.agent_service | MCP search_train: 0 items, 120.7s, query=深圳到重庆2026年6月10日高铁
+2026-06-09 16:28:35 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 16:28:35 | INFO  | app.services.agent_service | MCP search_train: 0 items, 120.7s, query=重庆到深圳2026年6月12日高铁
+2026-06-09 16:28:35 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 16:29:06 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:29:06 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:29:08 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:29:19 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (4 items, ttl=600s)
+2026-06-09 16:29:20 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:29:20 | INFO  | app.services.mcp_manager | MCP cache SET: search_food (10 items, ttl=1800s)
+2026-06-09 16:29:24 | INFO  | app.services.mcp_manager | MCP cache SET: search_poi (10 items, ttl=3600s)
+2026-06-09 16:29:45 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (5 items, ttl=600s)
+2026-06-09 16:31:10 | INFO  | app.services.agent_service | Plan done: 1 routes, 275.6s
+2026-06-09 16:31:10 | INFO  | app.services.agent_service | Trip saved: d7203686-b8bc-48d9-90dd-c9c27542666d with 16 items
+2026-06-09 16:31:10 | INFO  | app.services.agent_service | Async save complete: 1 routes
+2026-06-09 16:35:38 | INFO  | root | Logging initialized: dir=/home/administrator/software/SmartJourney/backend/logs, level=INFO
+2026-06-09 16:35:39 | INFO  | app.redis_client | Redis lazy-connected: redis://172.25.64.1:6379/0
+2026-06-09 16:35:39 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:35:39 | INFO  | app.services.mcp_manager | MCP Manager: Remote FliggyTravel connected (7 tools)
+2026-06-09 16:35:39 | INFO  | app.services.trip_expiry | Trip expiration scheduler started (interval=1800s)
+2026-06-09 16:36:38 | INFO  | app.services.agent_service | Plan start: user=be02f9fa-094c-4190-8d90-c89dc388d967, 深圳→天津, 2p, ¥2000.0
+2026-06-09 16:36:38 | INFO  | app.services.mcp_manager | MCP cache HIT: search_food (10 items, ttl=1800s)
+2026-06-09 16:36:38 | INFO  | app.services.agent_service | MCP search_food: 10 items, 0.0s, query=深圳美食
+2026-06-09 16:36:38 | INFO  | app.services.mcp_manager | MCP cache HIT: search_poi (10 items, ttl=3600s)
+2026-06-09 16:36:38 | INFO  | app.services.agent_service | MCP search_poi: 10 items, 0.0s, query=深圳景点
+2026-06-09 16:36:39 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:36:39 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:36:39 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:36:39 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:36:39 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:36:39 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:37:59 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (1 items, ttl=600s)
+2026-06-09 16:37:59 | INFO  | app.services.agent_service | MCP search_train: 1 items, 80.9s, query=深圳到天津2026年6月10日动车
+2026-06-09 16:38:09 | WARNING | app.services.remote_mcp | Remote MCP tool search_flight failed: 
+2026-06-09 16:38:09 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 90.7s, query=深圳到天津2026年6月10日机票
+2026-06-09 16:38:09 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 16:38:09 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 16:38:09 | INFO  | app.services.agent_service | MCP search_train: 0 items, 90.8s, query=天津到深圳2026年6月12日动车
+2026-06-09 16:38:09 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 16:38:09 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 16:38:09 | INFO  | app.services.agent_service | MCP search_train: 0 items, 90.8s, query=深圳到天津2026年6月10日高铁
+2026-06-09 16:38:09 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 16:38:09 | WARNING | app.services.remote_mcp | Remote MCP tool search_food failed: 
+2026-06-09 16:38:09 | INFO  | app.services.agent_service | MCP search_food: 0 items, 90.8s, query=天津美食
+2026-06-09 16:38:09 | INFO  | app.services.agent_service | Retrying search_food (first attempt returned 0 items)
+2026-06-09 16:38:09 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 16:38:09 | INFO  | app.services.agent_service | MCP search_train: 0 items, 90.8s, query=深圳到天津2026年6月10日火车票
+2026-06-09 16:38:09 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 16:38:29 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 110.9s, query=天津到深圳2026年6月12日机票
+2026-06-09 16:38:29 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 16:38:39 | INFO  | app.services.agent_service | MCP search_train: 0 items, 120.7s, query=天津到深圳2026年6月12日火车票
+2026-06-09 16:38:39 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 16:38:39 | INFO  | app.services.agent_service | MCP search_train: 0 items, 120.8s, query=天津到深圳2026年6月12日高铁
+2026-06-09 16:38:39 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 16:38:39 | INFO  | app.services.agent_service | MCP search_poi: 0 items, 120.8s, query=天津景点
+2026-06-09 16:38:39 | INFO  | app.services.agent_service | Retrying search_poi (first attempt returned 0 items)
+2026-06-09 16:38:39 | INFO  | app.services.agent_service | MCP search_hotel: 0 items, 120.8s, query=天津酒店
+2026-06-09 16:38:39 | INFO  | app.services.agent_service | Retrying search_hotel (first attempt returned 0 items)
+2026-06-09 16:39:10 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 16:39:51 | INFO  | app.services.mcp_manager | MCP cache SET: search_hotel (10 items, ttl=1800s)
+2026-06-09 16:41:45 | INFO  | app.services.agent_service | Plan done: 1 routes, 306.3s
+2026-06-09 16:41:45 | INFO  | app.services.agent_service | Trip saved: 779dde66-10b1-4b9e-b36b-c5d3138f664c with 15 items
+2026-06-09 16:41:45 | INFO  | app.services.agent_service | Async save complete: 1 routes
+2026-06-09 17:01:01 | INFO  | app.services.agent_service | Plan start: user=be02f9fa-094c-4190-8d90-c89dc388d967, 深圳→武夷山, 2p, ¥1500.0
+2026-06-09 17:01:01 | INFO  | app.services.mcp_manager | MCP cache HIT: search_poi (10 items, ttl=3600s)
+2026-06-09 17:01:01 | INFO  | app.services.agent_service | MCP search_poi: 10 items, 0.0s, query=深圳景点
+2026-06-09 17:01:05 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:01:05 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:01:05 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:01:05 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:01:05 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:01:05 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:01:51 | INFO  | app.services.mcp_manager | MCP cache SET: search_poi (5 items, ttl=3600s)
+2026-06-09 17:01:51 | INFO  | app.services.agent_service | MCP search_poi: 5 items, 49.5s, query=武夷山景点
+2026-06-09 17:02:08 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (1 items, ttl=600s)
+2026-06-09 17:02:08 | INFO  | app.services.agent_service | MCP search_train: 1 items, 66.8s, query=深圳到武夷山2026年6月10日动车
+2026-06-09 17:02:21 | INFO  | app.services.agent_service | MCP search_train: 0 items, 79.5s, query=武夷山到深圳2026年6月12日火车票
+2026-06-09 17:02:21 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 17:02:35 | WARNING | app.services.remote_mcp | Remote MCP tool search_flight failed: 
+2026-06-09 17:02:35 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 93.6s, query=深圳到武夷山2026年6月10日机票
+2026-06-09 17:02:35 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 17:02:35 | WARNING | app.services.remote_mcp | Remote MCP tool search_flight failed: 
+2026-06-09 17:02:35 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 93.7s, query=武夷山到深圳2026年6月12日机票
+2026-06-09 17:02:35 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 17:02:35 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 17:02:35 | INFO  | app.services.agent_service | MCP search_train: 0 items, 93.7s, query=深圳到武夷山2026年6月10日火车票
+2026-06-09 17:02:35 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 17:02:35 | WARNING | app.services.remote_mcp | Remote MCP tool search_food failed: 
+2026-06-09 17:02:35 | INFO  | app.services.agent_service | MCP search_food: 0 items, 93.8s, query=武夷山美食
+2026-06-09 17:02:35 | INFO  | app.services.agent_service | Retrying search_food (first attempt returned 0 items)
+2026-06-09 17:02:38 | INFO  | app.services.agent_service | MCP search_train: 0 items, 96.8s, query=武夷山到深圳2026年6月12日高铁
+2026-06-09 17:02:38 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 17:02:51 | INFO  | app.services.agent_service | MCP search_food: 0 items, 109.5s, query=深圳美食
+2026-06-09 17:02:51 | INFO  | app.services.agent_service | Retrying search_food (first attempt returned 0 items)
+2026-06-09 17:03:05 | INFO  | app.services.agent_service | MCP search_train: 0 items, 123.6s, query=武夷山到深圳2026年6月12日动车
+2026-06-09 17:03:05 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 17:03:05 | INFO  | app.services.agent_service | MCP search_train: 0 items, 123.7s, query=深圳到武夷山2026年6月10日高铁
+2026-06-09 17:03:05 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 17:03:05 | INFO  | app.services.agent_service | MCP search_hotel: 0 items, 123.7s, query=武夷山酒店
+2026-06-09 17:03:05 | INFO  | app.services.agent_service | Retrying search_hotel (first attempt returned 0 items)
+2026-06-09 17:03:23 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:03:36 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:04:21 | INFO  | app.services.mcp_manager | MCP cache SET: search_hotel (7 items, ttl=1800s)
+2026-06-09 17:04:53 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 17:07:10 | INFO  | app.services.agent_service | Plan done: 1 routes, 368.6s
+2026-06-09 17:07:10 | INFO  | app.services.agent_service | Trip saved: 13a04a87-a994-4a13-9dfb-b37e1b99b269 with 16 items
+2026-06-09 17:07:10 | INFO  | app.services.agent_service | Async save complete: 1 routes
+2026-06-09 17:13:05 | INFO  | root | Logging initialized: dir=/home/administrator/software/SmartJourney/backend/logs, level=INFO
+2026-06-09 17:13:05 | INFO  | app.redis_client | Redis lazy-connected: redis://172.25.64.1:6379/0
+2026-06-09 17:13:06 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:13:06 | INFO  | app.services.mcp_manager | MCP Manager: Remote FliggyTravel connected (7 tools)
+2026-06-09 17:13:06 | INFO  | app.services.trip_expiry | Trip expiration scheduler started (interval=1800s)
+2026-06-09 17:15:52 | INFO  | app.services.agent_service | Plan start: user=be02f9fa-094c-4190-8d90-c89dc388d967, 深圳→武夷山, 2p, ¥1500.0
+2026-06-09 17:15:52 | INFO  | app.services.mcp_manager | MCP cache HIT: search_hotel (7 items, ttl=1800s)
+2026-06-09 17:15:52 | INFO  | app.services.agent_service | MCP search_hotel: 7 items, 0.0s, query=武夷山酒店
+2026-06-09 17:15:52 | INFO  | app.services.mcp_manager | MCP cache HIT: search_poi (10 items, ttl=3600s)
+2026-06-09 17:15:52 | INFO  | app.services.agent_service | MCP search_poi: 10 items, 0.0s, query=深圳景点
+2026-06-09 17:15:52 | INFO  | app.services.mcp_manager | MCP cache HIT: search_poi (5 items, ttl=3600s)
+2026-06-09 17:15:52 | INFO  | app.services.agent_service | MCP search_poi: 5 items, 0.0s, query=武夷山景点
+2026-06-09 17:15:53 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:15:53 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:15:53 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:15:53 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:15:53 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:15:53 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:16:43 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (7 items, ttl=600s)
+2026-06-09 17:16:43 | INFO  | app.services.agent_service | MCP search_train: 7 items, 50.2s, query=深圳到武夷山2026年6月10日高铁
+2026-06-09 17:17:13 | INFO  | app.services.agent_service | MCP search_food: 0 items, 80.2s, query=深圳美食
+2026-06-09 17:17:13 | INFO  | app.services.agent_service | Retrying search_food (first attempt returned 0 items)
+2026-06-09 17:17:23 | WARNING | app.services.remote_mcp | Remote MCP tool search_flight failed: 
+2026-06-09 17:17:23 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 90.7s, query=武夷山到深圳2026年6月22日机票
+2026-06-09 17:17:23 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 17:17:23 | WARNING | app.services.remote_mcp | Remote MCP tool search_flight failed: 
+2026-06-09 17:17:23 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 90.7s, query=深圳到武夷山2026年6月10日机票
+2026-06-09 17:17:23 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 17:17:23 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 17:17:23 | INFO  | app.services.agent_service | MCP search_train: 0 items, 90.7s, query=深圳到武夷山2026年6月10日动车
+2026-06-09 17:17:23 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 17:17:23 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 17:17:23 | INFO  | app.services.agent_service | MCP search_train: 0 items, 90.8s, query=深圳到武夷山2026年6月10日火车票
+2026-06-09 17:17:23 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 17:17:23 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 17:17:23 | INFO  | app.services.agent_service | MCP search_train: 0 items, 90.8s, query=武夷山到深圳2026年6月22日动车
+2026-06-09 17:17:23 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 17:17:43 | INFO  | app.services.agent_service | MCP search_train: 0 items, 110.2s, query=武夷山到深圳2026年6月22日高铁
+2026-06-09 17:17:43 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 17:17:53 | INFO  | app.services.agent_service | MCP search_food: 0 items, 120.7s, query=武夷山美食
+2026-06-09 17:17:53 | INFO  | app.services.agent_service | Retrying search_food (first attempt returned 0 items)
+2026-06-09 17:17:53 | INFO  | app.services.agent_service | MCP search_train: 0 items, 120.7s, query=武夷山到深圳2026年6月22日火车票
+2026-06-09 17:17:53 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 17:20:03 | INFO  | app.services.agent_service | Plan done: 1 routes, 250.8s
+2026-06-09 17:20:03 | INFO  | app.services.agent_service | Trip saved: c7201fea-e8ad-4f5a-ac8b-22c12b92614a with 36 items
+2026-06-09 17:20:03 | INFO  | app.services.agent_service | Async save complete: 1 routes
+2026-06-09 17:23:03 | INFO  | app.services.agent_service | Plan start: user=be02f9fa-094c-4190-8d90-c89dc388d967, 深圳→武夷山, 2p, ¥1500.0
+2026-06-09 17:23:03 | INFO  | app.services.mcp_manager | MCP cache HIT: search_hotel (7 items, ttl=1800s)
+2026-06-09 17:23:03 | INFO  | app.services.agent_service | MCP search_hotel: 7 items, 0.0s, query=武夷山酒店
+2026-06-09 17:23:03 | INFO  | app.services.mcp_manager | MCP cache HIT: search_poi (10 items, ttl=3600s)
+2026-06-09 17:23:03 | INFO  | app.services.agent_service | MCP search_poi: 10 items, 0.0s, query=深圳景点
+2026-06-09 17:23:03 | INFO  | app.services.mcp_manager | MCP cache HIT: search_train (7 items, ttl=600s)
+2026-06-09 17:23:03 | INFO  | app.services.agent_service | MCP search_train: 7 items, 0.0s, query=深圳到武夷山2026年6月10日高铁
+2026-06-09 17:23:03 | INFO  | app.services.mcp_manager | MCP cache HIT: search_poi (5 items, ttl=3600s)
+2026-06-09 17:23:03 | INFO  | app.services.agent_service | MCP search_poi: 5 items, 0.0s, query=武夷山景点
+2026-06-09 17:23:04 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:23:04 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:23:04 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:23:04 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:23:04 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:23:04 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:23:35 | INFO  | app.services.mcp_manager | MCP cache SET: search_train (5 items, ttl=600s)
+2026-06-09 17:23:35 | INFO  | app.services.agent_service | MCP search_train: 5 items, 31.7s, query=武夷山到深圳2026年6月12日火车票
+2026-06-09 17:24:04 | INFO  | app.services.mcp_manager | MCP cache SET: search_flight (1 items, ttl=300s)
+2026-06-09 17:24:04 | INFO  | app.services.agent_service | MCP search_flight: 1 items, 60.5s, query=深圳到武夷山2026年6月10日机票
+2026-06-09 17:24:05 | INFO  | app.services.agent_service | MCP search_flight: 0 items, 61.7s, query=武夷山到深圳2026年6月12日机票
+2026-06-09 17:24:05 | INFO  | app.services.agent_service | Retrying search_flight (first attempt returned 0 items)
+2026-06-09 17:24:31 | INFO  | app.services.mcp_manager | MCP cache SET: search_food (10 items, ttl=1800s)
+2026-06-09 17:24:31 | INFO  | app.services.agent_service | MCP search_food: 10 items, 87.6s, query=武夷山美食
+2026-06-09 17:24:34 | INFO  | app.services.agent_service | MCP search_food: 0 items, 90.5s, query=深圳美食
+2026-06-09 17:24:34 | INFO  | app.services.agent_service | Retrying search_food (first attempt returned 0 items)
+2026-06-09 17:24:34 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 17:24:34 | INFO  | app.services.agent_service | MCP search_train: 0 items, 90.9s, query=武夷山到深圳2026年6月12日动车
+2026-06-09 17:24:34 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 17:24:34 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 17:24:34 | INFO  | app.services.agent_service | MCP search_train: 0 items, 90.9s, query=深圳到武夷山2026年6月10日动车
+2026-06-09 17:24:34 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 17:24:34 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 17:24:34 | INFO  | app.services.agent_service | MCP search_train: 0 items, 90.9s, query=深圳到武夷山2026年6月10日火车票
+2026-06-09 17:24:34 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 17:24:35 | INFO  | app.services.agent_service | MCP search_train: 0 items, 91.7s, query=武夷山到深圳2026年6月12日高铁
+2026-06-09 17:24:35 | INFO  | app.services.agent_service | Retrying search_train (first attempt returned 0 items)
+2026-06-09 17:24:52 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:24:52 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:24:52 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:24:52 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:24:52 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:24:52 | INFO  | app.services.remote_mcp | Remote MCP connected: 7 tools — ['travel_plan', 'search_train', 'search_flight', 'search_hotel', 'search_poi', 'search_food', 'search_transport']
+2026-06-09 17:26:22 | WARNING | app.services.remote_mcp | Remote MCP tool search_flight failed: 
+2026-06-09 17:26:22 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 17:26:22 | WARNING | app.services.remote_mcp | Remote MCP tool search_food failed: 
+2026-06-09 17:26:22 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 17:26:22 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 17:26:22 | WARNING | app.services.remote_mcp | Remote MCP tool search_train failed: 
+2026-06-09 17:27:57 | INFO  | app.services.agent_service | Plan done: 1 routes, 293.7s
+2026-06-09 17:27:57 | INFO  | app.services.agent_service | Trip saved: a9c4471c-be9e-4e98-9ae3-4b6243e909aa with 12 items
+2026-06-09 17:27:57 | INFO  | app.services.agent_service | Async save complete: 1 routes
