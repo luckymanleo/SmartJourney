@@ -22,7 +22,7 @@ from sse_starlette.sse import ServerSentEvent
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
-from app.config_loader import feature
+from app.config_loader import feature, city_search_aliases
 from app.services import mcp_manager
 from app.database import async_session_factory
 from app.services.route_strategies import ROUTE_STRATEGIES
@@ -49,6 +49,7 @@ SYSTEM_PROMPT = """你是 SmartJourney（智旅）的智能旅行规划师。基
 - 总预算允许 ±30% 浮动（严格预算则填此范围），宽松预算可浮动 ±50%。预算不足时优先压缩住宿和餐饮，保证交通和门票
 - items 中每个对象的 price 和 booking_url 必须直接复制搜索结果的对应字段值，一字不改。price 为数值（元）
 - 每天 items 数组必须按 start_time 从早到晚排序（09:00 在前，19:00 在后），禁止时间倒序
+- **每个 item 必须包含 start_time 和 end_time，格式 HH:MM（如 08:00），禁止省略或留空。即使搜索结果中无具体时间，也必须根据常识估算合理时间（如航班 2h、高铁 4h、景点 2-3h、餐饮 1h）**
 - items 中每个对象的 price 和 booking_url 必须从搜索结果中逐一提取。price 为数值（元），搜索结果中未找到价格时方可填 0
 - **如有特殊要求（花粉过敏、素食、行动不便等），必须严格遵守：避开相关场所（花卉公园/植物园→花粉过敏），选择适配的替代方案，并在 tips 中提示用户**
 
@@ -239,37 +240,51 @@ class AgentService:
         queries, is_cross_city = self._build_all_queries(origin, destination, start_date, end_date)
         yield self._sse_event("step", {
             "step": "searching",
-            "text": f"正在并行搜索 {len(queries)} 个数据源..."
+            "text": f"正在分批搜索 {len(queries)} 个数据源..."
         })
 
-        # 3. 并行执行所有查询（Semaphore(6) 控制并发，空结果自动重试1次）
-        async def _run_one(name, q):
+        # 3. 分批并发执行（避免 MCP 免费层限流，酒店/景点先出结果）
+        BATCH_DELAY = 5.0  # 批次间冷却秒数（MCP 免费层限流复位）
+
+        async def _run_one(name, q, retries=None):
             t0 = time.time()
             try:
-                result = await mcp_manager.call_tool(name, q)
+                result = await mcp_manager.call_tool(name, q, max_retries=retries)
                 elapsed = time.time() - t0
                 items = result.get("items", [])
                 logger.info(f"MCP {name}: {len(items)} items, {elapsed:.1f}s, query={q[:50]}")
-                # 空结果重试一次（MCP 服务器间歇性不稳定）
-                items = result.get("items", [])
-                if not items and not result.get("error"):
-                    logger.info(f"Retrying {name} (first attempt returned 0 items)")
-                    await asyncio.sleep(1)
-                    result = await mcp_manager.call_tool(name, q)
-                return (name, q, result, None)
+                return (name, q, result, None, round(elapsed, 1))
             except Exception as e:
-                return (name, q, {"items": [], "note": str(e)[:80]}, str(e))
+                return (name, q, {"items": [], "note": str(e)[:80]}, str(e), 0)
 
-        # 工具调用事件
+        # 工具调用事件 — 先推送给前端
         for name, mcp_query in queries:
             yield self._sse_event("tool_call", {
                 "name": name,
                 "args": {"query": mcp_query},
             })
 
-        results = await asyncio.gather(*[
-            _run_one(name, q) for name, q in queries
-        ])
+        results = []
+
+        # 批次 1: 酒店 + 景点 + 美食（可靠，优先展示，重试 1 次）
+        batch1 = [(n, q) for n, q in queries if n in ("search_hotel", "search_poi", "search_food")]
+        if batch1:
+            b1 = await asyncio.gather(*[_run_one(n, q, retries=1) for n, q in batch1])
+            results.extend(b1)
+
+        # 批次 2: 机票（限流敏感，不重试）
+        batch2 = [(n, q) for n, q in queries if n == "search_flight"]
+        if batch2:
+            await asyncio.sleep(BATCH_DELAY)
+            b2 = await asyncio.gather(*[_run_one(n, q, retries=0) for n, q in batch2])
+            results.extend(b2)
+
+        # 批次 3: 火车（限流敏感，不重试）
+        batch3 = [(n, q) for n, q in queries if n == "search_train"]
+        if batch3:
+            await asyncio.sleep(BATCH_DELAY)
+            b3 = await asyncio.gather(*[_run_one(n, q, retries=0) for n, q in batch3])
+            results.extend(b3)
 
         # 4. 天气查询 — 出发地 + 目的地异步并行
         weather_summary = ""
@@ -310,21 +325,40 @@ class AgentService:
             })
 
         # 5. 汇总结果：tool_result 逐个推送前端，train 合并后给 LLM
-        yield self._sse_event("step", {"step": "generating", "text": "正在汇总搜索结果生成行程..."})
+        yield self._sse_event("step", {"step": "generating", "text": "正在汇总搜索结果..."})
 
         compact_results = []
         train_dep_items = []   # 去程火车
         train_ret_items = []   # 返程火车
         train_dep_count = train_ret_count = 0
 
-        for name, mcp_query, result, error in results:
+        # 获取城市所有可能的火车站名（用于方向检测）
+        aliases = city_search_aliases()
+        def _train_names(city: str | None) -> list[str]:
+            if not city:
+                return []
+            a = aliases.get(city, {})
+            v = a.get("train", city)
+            return v if isinstance(v, list) else [v]
+
+        dest_train_names = _train_names(destination)
+        origin_train_names = _train_names(origin)
+
+        for name, mcp_query, result, error, elapsed in results:
             summary = self._summarize_result(name, result)
-            yield self._sse_event("tool_result", {"name": name, "summary": summary})
+            sse_data = {"name": name, "summary": summary}
+            if elapsed:
+                sse_data["elapsed"] = elapsed
+            yield self._sse_event("tool_result", sse_data)
 
             if name == "search_train":
-                # 按方向合并火车结果
+                # 按方向合并火车结果（用所有可能站名判断方向）
                 items = result.get("items", [])
-                if "返" in mcp_query or destination in mcp_query.split("到")[0]:
+                first_part = mcp_query.split("到")[0] if "到" in mcp_query else ""
+                is_return = "返" in mcp_query \
+                    or (destination and destination in first_part) \
+                    or any(s in first_part for s in dest_train_names)
+                if is_return:
                     train_ret_items.extend(items)
                     train_ret_count += 1
                 else:
@@ -334,13 +368,22 @@ class AgentService:
                 compact = self._compact_tool_result(name, result)
                 compact_results.append(f"[{name}] {compact}")
 
-        # 合并后的火车结果
-        if train_dep_count:
+        # 火车结果：双向合并，单向逐条显示
+        if train_dep_count and train_ret_count:
             merged_dep = {"items": train_dep_items, "note": f"合并自 {train_dep_count} 次查询"}
             compact_results.append(f"[search_train 去程] {self._compact_tool_result('search_train', merged_dep)}")
-        if train_ret_count:
             merged_ret = {"items": train_ret_items, "note": f"合并自 {train_ret_count} 次查询"}
             compact_results.append(f"[search_train 返程] {self._compact_tool_result('search_train', merged_ret)}")
+        else:
+            # 单向：逐条显示，不合并
+            label = "去程" if train_dep_count else "返程"
+            items = train_dep_items or train_ret_items
+            for item in items:
+                compact = self._compact_tool_result('search_train', {"items": [item]})
+                compact_results.append(f"[search_train {label}] {compact}")
+
+        # 搜索阶段完成
+        yield self._sse_event("step", {"step": "search_done", "text": "搜索已完成，正在生成行程方案..."})
 
         # 6. 构建 LLM prompt（一次性，不通过 tool_calls）
         search_context = "\n\n".join(compact_results)
@@ -416,9 +459,15 @@ class AgentService:
                     trip_jsons.append(r)
                     yield self._sse_event("trip_data", r)
         else:
-            resp = await self._call_llm(messages, None)
-            if resp:
-                content = resp.get("choices", [{}])[0].get("message", {}).get("content", "")
+            # 流式 LLM 生成 → chunk 打字机效果
+            content = ""
+            yield self._sse_event("step", {"step": "llm_stream", "text": "AI 正在规划行程..."})
+            async for item in self._call_llm_stream(messages):
+                if isinstance(item, tuple) and item[0] == "__FULL__":
+                    content = item[1]
+                elif isinstance(item, str):
+                    yield self._sse_event("chunk", {"text": item})
+            if content:
                 trip_json = self._extract_json(content)
                 if trip_json:
                     if not trip_json.get("days"):
@@ -427,7 +476,7 @@ class AgentService:
                         trip_json["trip_id"] = str(uuid.uuid4())
                     trip_jsons.append(trip_json)
                     yield self._sse_event("trip_data", trip_json)
-                elif content:
+                else:
                     yield self._sse_event("chunk", {"text": content[:500]})
 
         if not trip_jsons:
@@ -443,7 +492,12 @@ class AgentService:
             "route_count": route_count,
         })
 
-        # 8. 异步保存（不阻塞 SSE 流）
+        # 8. 实时地图预览：逐 POI geocode + SSE 推送坐标
+        for tj in trip_jsons:
+            async for ev in self._emit_poi_coordinates(tj, destination or ""):
+                yield ev
+
+        # 异步保存（不阻塞 SSE 流）
         if trip_jsons and save_as_trip:
             async def _save_all():
                 try:
@@ -460,6 +514,55 @@ class AgentService:
             asyncio.create_task(_save_all())
 
     # ==================== 私有方法 ====================
+
+    async def _emit_poi_coordinates(self, trip_json: dict, city: str):
+        """逐 POI geocode → SSE poi_coord 事件，供前端实时地图打点"""
+        from app.services.map_service import geocode
+        titles: list[tuple[str, str, int, int]] = []  # (title, type, day, idx)
+        for day_data in trip_json.get("days", []):
+            day_num = day_data.get("day_number", 1)
+            for idx, item in enumerate(day_data.get("items", [])):
+                title = item.get("title", "").strip()
+                if title:
+                    titles.append((title, item.get("type", ""), day_num, idx))
+
+        if not titles:
+            return
+
+        sem = asyncio.Semaphore(5)  # 高德 geocode API 并发限制
+        count = 0
+
+        async def _geo_one(title: str, typ: str, day: int, idx: int):
+            nonlocal count
+            async with sem:
+                try:
+                    result = await geocode(title, city)
+                    if result and "lng" in result and "lat" in result:
+                        return {
+                            "title": title, "day": day, "idx": idx,
+                            "lng": result["lng"], "lat": result["lat"],
+                        }
+                    # 交通类兜底：用城市名+机场/站再搜一次
+                    if typ in ("flight", "train", "transport") and city:
+                        suffix = "机场" if typ == "flight" else "站"
+                        result = await geocode(f"{city}{suffix}", city)
+                        if result and "lng" in result and "lat" in result:
+                            return {
+                                "title": title, "day": day, "idx": idx,
+                                "lng": result["lng"], "lat": result["lat"],
+                            }
+                except Exception as e:
+                    logger.debug(f"Live geocode failed: {title[:30]} — {e}")
+                return None
+
+        tasks = [_geo_one(t, tp, d, i) for t, tp, d, i in titles]
+        for coro in asyncio.as_completed(tasks):
+            coord = await coro
+            if coord:
+                count += 1
+                yield self._sse_event("poi_coord", coord)
+
+        logger.info(f"Live geocode: {count}/{len(titles)} POIs geocoded")
 
     def _build_user_message(self, query, origin, destination, start_date, end_date,
                             traveler_count, budget_total, preferences, special_notes=None) -> str:
@@ -511,19 +614,35 @@ class AgentService:
         is_cross_city = bool(origin and destination and origin != destination)
 
         if is_cross_city:
+            # 应用城市→站名/机场名映射（小城市站名不一致时）
+            aliases = city_search_aliases()
+            a_origin = aliases.get(origin, {})
+            a_dest = aliases.get(destination, {})
+            flight_from = a_origin.get("flight", origin)
+            flight_to = a_dest.get("flight", destination)
+            # train 支持单站(字符串)或多站(数组)
+            _from = a_origin.get("train", origin)
+            _to = a_dest.get("train", destination)
+            train_from_list = _from if isinstance(_from, list) else [_from]
+            train_to_list = _to if isinstance(_to, list) else [_to]
+
             # 去程机票
-            queries.append(("search_flight", f"{origin}到{destination}{dep_date}机票"))
+            queries.append(("search_flight", f"{flight_from}到{flight_to}{dep_date}机票"))
             # 返程机票
             if ret_date:
-                queries.append(("search_flight", f"{destination}到{origin}{ret_date}机票"))
+                queries.append(("search_flight", f"{flight_to}到{flight_from}{ret_date}机票"))
 
-            # 去程火车 — 按类型拆分（高铁/动车/普速各一次，结果更全）
+            # 去程火车（站名 × 类型）
             for ttype in ["高铁", "动车", "火车票"]:
-                queries.append(("search_train", f"{origin}到{destination}{dep_date}{ttype}"))
+                for tf in train_from_list:
+                    for tt in train_to_list:
+                        queries.append(("search_train", f"{tf}到{tt}{dep_date}{ttype}"))
             # 返程火车
             if ret_date:
                 for ttype in ["高铁", "动车", "火车票"]:
-                    queries.append(("search_train", f"{destination}到{origin}{ret_date}{ttype}"))
+                    for tf in train_from_list:
+                        for tt in train_to_list:
+                            queries.append(("search_train", f"{tt}到{tf}{ret_date}{ttype}"))
         else:
             # 同城旅行：搜索市内交通
             city = destination or origin
@@ -555,9 +674,8 @@ class AgentService:
                 body["tools"] = tools
                 body["tool_choice"] = "auto"
             else:
-                body["tool_choice"] = "none"  # 显式禁止工具调用，确保输出文本
+                body["tool_choice"] = "none"
 
-            # 每次调用使用独立 client，避免 event loop 污染
             async with httpx.AsyncClient(timeout=httpx.Timeout(120.0)) as client:
                 resp = await client.post(
                     f"{settings.llm_base_url}/chat/completions",
@@ -574,6 +692,49 @@ class AgentService:
         except Exception as e:
             logger.error(f"LLM call failed ({type(e).__name__}): {e}")
             return None
+
+    async def _call_llm_stream(self, messages: list):
+        """调用 LLM API（流式），逐个 yield text chunk"""
+        try:
+            body = {
+                "model": settings.llm_model,
+                "messages": messages,
+                "temperature": 0.7,
+                "max_tokens": 8192,
+                "stream": True,
+                "tool_choice": "none",
+            }
+            async with httpx.AsyncClient(timeout=httpx.Timeout(180.0)) as client:
+                async with client.stream(
+                    "POST",
+                    f"{settings.llm_base_url}/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {settings.llm_api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json=body,
+                ) as resp:
+                    if resp.status_code != 200:
+                        logger.error(f"LLM stream error {resp.status_code}")
+                        return
+                    full_text = ""
+                    async for line in resp.aiter_lines():
+                        if line.startswith("data: "):
+                            data = line[6:].strip()
+                            if data == "[DONE]":
+                                break
+                            try:
+                                chunk = json.loads(data)
+                                delta = chunk.get("choices", [{}])[0].get("delta", {})
+                                text = delta.get("content", "")
+                                if text:
+                                    full_text += text
+                                    yield text
+                            except (json.JSONDecodeError, KeyError):
+                                pass
+                    yield ("__FULL__", full_text)
+        except Exception as e:
+            logger.error(f"LLM stream failed ({type(e).__name__}): {e}")
 
     @staticmethod
     def _format_weather_for_prompt(weather_data: dict, start_date, end_date=None) -> str:

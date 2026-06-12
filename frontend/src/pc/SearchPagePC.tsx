@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useSearchStore, SearchHistoryItem } from '../stores/searchStore'
-import { Clock, X, Trash2, AlertTriangle, RefreshCw } from 'lucide-react'
+import { Clock, X, Trash2, AlertTriangle, RefreshCw, MapPin, List } from 'lucide-react'
 import { renderSearchCard } from '../components/SearchCards'
 import { SearchSkeleton } from '../components/SearchSkeleton'
 import CityCascader from './CityCascaderPC'
@@ -31,6 +31,11 @@ export default function SearchPagePC() {
   const [date, setDate] = useState(searchParams.get('date') || '')
   const [keyword, setKeyword] = useState('')
   const [hasSearched, setHasSearched] = useState(false)
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
+  const [mapCoords, setMapCoords] = useState<Array<{lng: number; lat: number; title: string}>>([])
+  const [geocoding, setGeocoding] = useState(false)
+  const mapContainerRef = useRef<HTMLDivElement>(null)
+  const mapRef = useRef<any>(null)
   const [fromOpen, setFromOpen] = useState(false)
   const [toOpen, setToOpen] = useState(false)
   const [cityOpen, setCityOpen] = useState(false)
@@ -58,6 +63,70 @@ export default function SearchPagePC() {
     setKeyword(''); setHasSearched(false)
     useSearchStore.setState({ results: [], error: null })
   }, [type])
+
+  // Batch geocode results when switching to map view
+  useEffect(() => {
+    if (viewMode !== 'map' || results.length === 0) return
+    setGeocoding(true)
+    const isPC = window.location.pathname.startsWith('/pc.html')
+    const token = localStorage.getItem(isPC ? 'sj_pc_token' : 'sj_token') || ''
+    const titles = results.map((r: any) => r.title).filter(Boolean)
+    if (titles.length === 0) { setGeocoding(false); return }
+    fetch('/api/v1/map/geocode/batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ addresses: titles, city: city || '' }),
+    })
+      .then(r => r.json())
+      .then(d => {
+        const coords = (d.data?.results || [])
+          .filter((r: any) => r.lng && r.lat)
+          .map((r: any) => ({ lng: r.lng, lat: r.lat, title: r.address }))
+        setMapCoords(coords)
+      })
+      .catch(() => {})
+      .finally(() => setGeocoding(false))
+  }, [viewMode, results.length])
+
+  // Render map
+  useEffect(() => {
+    if (viewMode !== 'map' || mapCoords.length === 0 || !mapContainerRef.current) return
+    const A = (window as any).AMap
+    if (!A) {
+      const isPC = window.location.pathname.startsWith('/pc.html')
+      const token = localStorage.getItem(isPC ? 'sj_pc_token' : 'sj_token') || ''
+      fetch('/api/v1/map/config', { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.json())
+        .then(cfg => {
+          if (cfg.code === 0 && cfg.data?.js_key) {
+            const s = document.createElement('script')
+            s.src = `https://webapi.amap.com/maps?v=2.0&key=${cfg.data.js_key}`
+            s.async = true; s.onload = renderMap; document.head.appendChild(s)
+          }
+        }).catch(() => {})
+      return
+    }
+    renderMap()
+    function renderMap() {
+      const Am = (window as any).AMap; if (!Am || !mapContainerRef.current) return
+      if (mapRef.current) { mapRef.current.destroy(); mapRef.current = null }
+      const markers: any[] = []
+      mapCoords.forEach(c => {
+        const m = new Am.Marker({
+          position: [c.lng, c.lat],
+          label: { content: `<div style="font-size:10px;background:#f97316;color:#fff;padding:1px 6px;border-radius:8px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.title}</div>`, direction: 'top', offset: [0, -18] },
+        })
+        markers.push(m)
+      })
+      const centerLng = mapCoords.reduce((s, c) => s + c.lng, 0) / mapCoords.length
+      const centerLat = mapCoords.reduce((s, c) => s + c.lat, 0) / mapCoords.length
+      const map = new Am.Map(mapContainerRef.current, { zoom: 12, center: [centerLng, centerLat], resizeEnable: true })
+      markers.forEach(m => m.setMap(map))
+      map.setFitView(markers, false, [30, 30, 30, 30])
+      mapRef.current = map
+    }
+    return () => { if (mapRef.current) { mapRef.current.destroy(); mapRef.current = null } }
+  }, [viewMode, mapCoords])
 
   const handleSearch = () => {
     const params: Record<string, any> = {}
@@ -143,14 +212,38 @@ export default function SearchPagePC() {
         </div>
       </div>
 
-      {loading && (
+      {/* View toggle */}
+      {hasSearched && results.length > 0 && (
+        <div className="flex bg-gray-100 rounded-lg p-0.5 mb-4 w-fit">
+          <button onClick={() => setViewMode('list')}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'list' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-400'}`}>
+            <List size={14} className="inline mr-1" />列表
+          </button>
+          <button onClick={() => setViewMode('map')}
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'map' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-400'}`}>
+            <MapPin size={14} className="inline mr-1" />地图
+          </button>
+        </div>
+      )}
+
+      {/* Map view */}
+      {viewMode === 'map' && hasSearched && (
+        <div className="relative rounded-xl overflow-hidden border border-gray-200 mb-4" style={{ height: 'clamp(300px, 55vh, 700px)' }}>
+          {geocoding && (
+            <div className="absolute inset-0 bg-gray-50 flex items-center justify-center z-10 text-gray-400 text-sm">定位中...</div>
+          )}
+          <div ref={mapContainerRef} className="w-full h-full" />
+        </div>
+      )}
+
+      {viewMode !== 'map' && loading && (
         <div>
           <div className="text-sm text-gray-400 mb-3">正在搜索，请稍候...</div>
           <SearchSkeleton count={6} />
         </div>
       )}
 
-      {!loading && error && (
+      {viewMode !== 'map' && !loading && error && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-4 max-w-md">
           <div className="flex items-start gap-3">
             <AlertTriangle size={22} className="text-amber-500 flex-shrink-0 mt-0.5" />
@@ -166,11 +259,11 @@ export default function SearchPagePC() {
         </div>
       )}
 
-      {!loading && !error && hasSearched && results.length === 0 && (
+      {viewMode !== 'map' && !loading && !error && hasSearched && results.length === 0 && (
         <div className="text-center py-16"><div className="text-5xl mb-4">🔍</div><div className="text-gray-500 mb-2">未找到相关结果</div><div className="text-xs text-gray-400">尝试更换关键词或城市</div></div>
       )}
 
-      {!loading && !error && !hasSearched && (
+      {viewMode !== 'map' && !loading && !error && !hasSearched && (
         <div>
           {typeHistory.length > 0 ? (
             <div>
@@ -198,7 +291,7 @@ export default function SearchPagePC() {
         </div>
       )}
 
-      {!loading && results.length > 0 && (
+      {viewMode !== 'map' && !loading && results.length > 0 && (
         <div>
           <div className="text-sm text-gray-500 mb-3">共 {results.length} 条结果</div>
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">

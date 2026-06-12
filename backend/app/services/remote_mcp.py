@@ -6,6 +6,8 @@ import json
 import logging
 import httpx
 
+from app.config_loader import feature
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,7 +22,8 @@ class RemoteMCPClient:
 
     async def _get_client(self) -> httpx.AsyncClient:
         if not self._client:
-            self._client = httpx.AsyncClient(timeout=httpx.Timeout(90))
+            t = feature("mcp_tool_timeout_seconds", 180)
+            self._client = httpx.AsyncClient(timeout=httpx.Timeout(t, connect=30))
         return self._client
 
     async def connect(self) -> bool:

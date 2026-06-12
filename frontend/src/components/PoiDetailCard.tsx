@@ -26,6 +26,8 @@ interface Props {
     location?: string | null
     photos?: string[] | null
     amap_poi_id?: string | null
+    day_number?: number
+    item_index?: number
   } | null
   nextPoi?: { title: string; lng: number; lat: number } | null
   distance?: string
@@ -66,8 +68,8 @@ export default function PoiDetailCard({ poi, nextPoi, distance, onClose, compact
     const tokenKey = isPC ? 'sj_pc_token' : 'sj_token'
     const token = localStorage.getItem(tokenKey) || ''
 
-    if (['train', 'flight', 'transport', 'bus'].includes(poi.type)) {
-      const kw = poi.type === 'flight' ? '机场' : poi.type === 'train' ? '火车站' : '站'
+    if (['train', 'flight', 'transport', 'bus', 'hotel'].includes(poi.type)) {
+      const kw = poi.type === 'flight' ? '机场' : poi.type === 'train' ? '火车站' : poi.type === 'hotel' ? '酒店' : '站'
       fetch(`/api/v1/map/poi/around?lng=${poi.lng}&lat=${poi.lat}&keywords=${kw}&radius=3000&offset=1`, {
         headers: { Authorization: `Bearer ${token}` },
         signal,
@@ -132,6 +134,7 @@ export default function PoiDetailCard({ poi, nextPoi, distance, onClose, compact
     window.open(url, '_blank')
   }
 
+  // Use detail if loaded (key prop + useEffect reset guarantee it matches current POI)
   const photos = detail?.photos || []
 
   return (
@@ -140,6 +143,9 @@ export default function PoiDetailCard({ poi, nextPoi, distance, onClose, compact
       <div className="flex items-start justify-between mb-2">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
+            {poi.day_number != null && poi.item_index != null && (
+              <span className="text-[10px] text-gray-400 font-mono flex-shrink-0">D{poi.day_number}.{poi.item_index + 1}</span>
+            )}
             <span className="text-sm">{typeEmoji[poi.type] || '📍'}</span>
             <h3 className="font-semibold text-gray-800 text-sm truncate">{poi.title}</h3>
             {detail?.rating && (

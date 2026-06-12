@@ -347,6 +347,22 @@ async def batch_geocode(addresses: list[str]) -> list[dict]:
     return list(results)
 
 
+async def batch_geocode_async(addresses: list[str], city: str = "") -> list[dict]:
+    """
+    并发批量地理编码 — 返回精简结构，用于搜索结果地图标注
+    Returns: [{"address": "...", "lng": 116.4, "lat": 39.9, "error": null}, ...]
+    """
+    import asyncio as _asyncio
+
+    async def _one(addr: str):
+        result = await geocode(addr, city)
+        if "error" in result:
+            return {"address": addr, "lng": None, "lat": None, "error": result["error"]}
+        return {"address": addr, "lng": result["lng"], "lat": result["lat"], "error": None}
+
+    return await _asyncio.gather(*[_one(addr) for addr in addresses])
+
+
 # ── POI 照片富化 ───────────────────────────────────────────────
 
 async def enrich_poi_photos(title: str, lng: float, lat: float) -> tuple[list[str] | None, str | None]:

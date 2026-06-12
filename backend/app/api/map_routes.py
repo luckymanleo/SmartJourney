@@ -20,19 +20,21 @@ def _build_geocode_address(item, trip_destination: str | None) -> str | None:
     if item.location:
         return item.location
     if item.title and trip_destination:
-        # 交通类（train/flight/transport）：提取出发站/机场（用户需导航到出发站）
+        # 交通类（train/flight/transport）：提取出发站/机场
         if item.type in ('train', 'flight', 'transport'):
             # "K636 深圳东 → 武夷山" → "深圳东站"
             # "深圳航空 ZH2539 深圳→武夷山" → "深圳机场"
-            before_arrow = item.title.split('→')[0].split('→')[0]
-            m = re.search(r'([\u4e00-\u9fa5]{2,6}(?:东|西|南|北)?)\s*$', before_arrow)
+            # "中国国航 CA4368 07:05→08:55" → 无城市名 → 用目的地兜底
+            prefix = item.title.split('→')[0].split('→')[0]
+            m = re.search(r'([\u4e00-\u9fa5]{2,8}(?:东|西|南|北|站)?)\s*$', prefix)
+            suffix = '机场' if item.type == 'flight' else '站'
             if m:
                 station = m.group(1)
-                suffix = '机场' if item.type == 'flight' else '站'
                 if not station.endswith(suffix):
                     station += suffix
                 return station
-            return None
+            # 无城市名 → 用目的地兜底
+            return f"{trip_destination}{suffix}"
         return f"{trip_destination} {item.title}"
     return item.title or None
 
@@ -66,6 +68,17 @@ async def geocode(
     if "error" in result:
         raise HTTPException(400, result["error"])
     return {"code": 0, "data": result}
+
+
+@router.post("/geocode/batch")
+async def batch_geocode(body: dict, user=Depends(get_current_user)):
+    """批量地址→经纬度（用于搜索结果地图标注 / 路线地图预览）"""
+    addresses: list[str] = body.get("addresses", [])
+    city: str = body.get("city", "")
+    if not addresses:
+        raise HTTPException(400, "addresses 不能为空")
+    results = await map_service.batch_geocode_async(addresses, city)
+    return {"code": 0, "data": {"results": results}}
 
 
 @router.get("/regeocode")
@@ -205,6 +218,7 @@ async def trip_map(
         items = items_result.scalars().all()
 
         pois = []
+        idx = 0
         for item in items:
             if item.lat is not None and item.lng is not None:
                 pois.append({
@@ -218,7 +232,10 @@ async def trip_map(
                     "location": item.location,
                     "photos": item.photos,
                     "amap_poi_id": item.amap_poi_id,
+                    "day_number": day.day_number,
+                    "item_index": item.sort_order if item.sort_order is not None else idx,
                 })
+                idx += 1
                 all_lngs.append(item.lng)
                 all_lats.append(item.lat)
             elif item.location or (item.title and trip.destination):
@@ -262,6 +279,8 @@ async def trip_map(
                                 "location": item.location,
                                 "photos": item.photos,
                                 "amap_poi_id": item.amap_poi_id,
+                                "day_number": day.day_number,
+                                "item_index": item.sort_order if item.sort_order is not None else len(dm["pois"]),
                             })
                             break
             except Exception:
@@ -318,6 +337,7 @@ async def trip_day_map(
     items = items_result.scalars().all()
 
     pois = []
+    idx = 0
     for item in items:
         lat = item.lat
         lng = item.lng
@@ -352,7 +372,10 @@ async def trip_day_map(
                 "booking_url": item.booking_url,
                 "photos": item.photos,
                 "amap_poi_id": item.amap_poi_id,
+                "day_number": day_number,
+                "item_index": item.sort_order if item.sort_order is not None else idx,
             })
+            idx += 1
 
     await db.commit()
 

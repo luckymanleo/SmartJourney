@@ -54,3 +54,8 @@ def cors_debug_origins() -> list[str]:
 def feature(key: str, default=None) -> Any:
     """功能配置项"""
     return load_config()["features"].get(key, default)
+
+
+def city_search_aliases() -> dict[str, dict[str, str]]:
+    """城市名→搜索词映射（小城市站名/机场名与城市名不一致时使用）"""
+    return load_config().get("city_search_aliases", {})

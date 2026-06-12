@@ -25,7 +25,7 @@ const typeConfig: Record<string, { icon: string; color: string }> = {
   transport: { icon: '🚗', color: 'bg-gray-100 text-gray-700' },
 }
 
-export default function TripTimeline({ days, travelerCount }: { days: TripDay[]; travelerCount?: number }) {
+export default function TripTimeline({ days, travelerCount, onItemClick }: { days: TripDay[]; travelerCount?: number; onItemClick?: (title: string) => void }) {
   const showUnit = travelerCount && travelerCount > 1
 
   return (
@@ -43,18 +43,22 @@ export default function TripTimeline({ days, travelerCount }: { days: TripDay[];
           </div>
 
           <div className="ml-4 border-l-2 border-primary-200 pl-4 space-y-3">
-            {day.items?.map((item) => {
+            {day.items?.map((item, i) => {
               const cfg = typeConfig[item.type] || { icon: '📍', color: 'bg-gray-100' }
               const unitPrice = showUnit && item.price ? item.price / travelerCount! : null
               const isInt = unitPrice && unitPrice === Math.floor(unitPrice)
               return (
-                <div key={item.id} className="relative">
+                <div key={item.id} className={`relative ${onItemClick ? 'cursor-pointer hover:bg-gray-50 rounded-lg -mx-1 px-1' : ''}`}
+                  onClick={() => onItemClick?.(item.title)}>
                   <div className="absolute -left-[30px] top-2 w-3 h-3 bg-primary-400 rounded-full border-2 border-white" />
                   <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs mb-1 ${cfg.color}`}>
                     <span>{cfg.icon}</span>
                     <span>{item.type}</span>
                   </div>
-                  <div className="font-medium text-gray-800 text-sm">{item.title}</div>
+                  <div className="font-medium text-gray-800 text-sm">
+                    <span className="text-[10px] text-gray-400 font-mono mr-1">D{day.day_number}.{i + 1}</span>
+                    {item.title}
+                  </div>
                   <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
                     {item.start_time && <span>🕐 {item.start_time}{item.end_time ? ` - ${item.end_time}` : ''}</span>}
                     {item.price && (

@@ -41,9 +41,14 @@
   ],
   "features": {
     "trip_expiry_interval_seconds": 1800,
-    "mcp_tool_timeout_seconds": 90,
+    "mcp_tool_timeout_seconds": 180,
     "max_route_count": 3,
     "max_tool_calls_per_plan": 6,
     "max_plan_iterations": 2
+  },
+  "city_search_aliases": {
+    "武夷山": {"train": ["武夷山北", "南平市"], "flight": "武夷山"},
+    "黄山":   {"train": "黄山北",               "flight": "黄山"},
+    "张家界": {"train": "张家界西",              "flight": "张家界"}
   }
 }

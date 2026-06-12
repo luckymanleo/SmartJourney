@@ -14,6 +14,8 @@ interface Poi {
   location?: string | null
   photos?: string[] | null
   amap_poi_id?: string | null
+  day_number?: number
+  item_index?: number
 }
 
 interface DayData {
@@ -66,8 +68,8 @@ interface Props {
   tripId: string
   totalDays: number
   compact?: boolean
-  selectedDay?: number   // 外部控制选中天（PC 左侧天选择器）
-  focusPoiId?: string | null  // 外部控制聚焦 POI（PC 左侧点击联动）
+  selectedDay?: number
+  focusPoiId?: string | null
   className?: string
 }
 
@@ -78,15 +80,12 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
   const allPolylinesRef = useRef<any[]>([])
 
   const [allDays, setAllDays] = useState<DayData[]>([])
-  const [filterDay, setFilterDay] = useState(0)  // 0 = all (only used when selectedDay is undefined)
-  const effectiveDay = selectedDay ?? filterDay   // PC: from prop, mobile: from local state
+  const [filterDay, setFilterDay] = useState(0)
+  const effectiveDay = selectedDay ?? filterDay
   const [selectedPoi, setSelectedPoi] = useState<Poi | null>(null)
-  const pendingFocusRef = useRef<string | null>(null)  // remember focus target until map ready
+  const pendingFocusRef = useRef<string | null>(null)
 
-  // Sync external selectedDay → internal filterDay
   useEffect(() => { if (selectedDay) setFilterDay(selectedDay) }, [selectedDay])
-
-  // Clear selected POI when switching days
   useEffect(() => { setSelectedPoi(null) }, [effectiveDay])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -109,7 +108,6 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
     if (!tripId) return
     setLoading(true)
     const token = localStorage.getItem('sj_token') || ''
-    // Load full trip map (all days)
     fetch(`/api/v1/map/trip/${tripId}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(json => {
@@ -123,26 +121,16 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
       .catch(e => { setError(e.message); setLoading(false) })
   }, [tripId])
 
-  // 4. Render map with all days, applying filter for highlight/dim
+  // 4a. Init map — 仅首次创建，切换天时不重建
   useEffect(() => {
-    if (!allDays.length || !containerRef.current) return
+    if (!allDays.length || !containerRef.current || mapRef.current) return
     const AMap = (window as any).AMap
     if (!AMap) return
 
-    // Cleanup
-    allMarkersRef.current.forEach(m => m.setMap(null))
-    allMarkersRef.current = []
-    allPolylinesRef.current.forEach(p => p.setMap(null))
-    allPolylinesRef.current = []
-    if (mapRef.current) { mapRef.current.destroy(); mapRef.current = null }
-
     const allPoints: [number, number][] = []
-
-    // Collect all days' POIs
     allDays.forEach(day => {
       day.pois.forEach(p => { if (p.lng && p.lat) allPoints.push([p.lng, p.lat]) })
     })
-
     const center: [number, number] = allPoints.length > 0
       ? [allPoints.reduce((s, c) => s + c[0], 0) / allPoints.length, allPoints.reduce((s, c) => s + c[1], 0) / allPoints.length]
       : [116.40, 39.90]
@@ -154,17 +142,32 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
       map.addControl(new AMap.ToolBar({ position: 'RT' }))
       map.addControl(new AMap.Scale({ position: 'LB' }))
     })
+    mapRef.current = map
 
-    // Render all days
+    return () => {
+      if (mapRef.current) { mapRef.current.destroy(); mapRef.current = null }
+    }
+  }, [allDays, loading])
+
+  // 4b. Render markers — 切换天时只替换覆盖物，不重建地图（避免瓦片并发限流）
+  useEffect(() => {
+    if (!allDays.length || !mapRef.current) return
+    const AMap = (window as any).AMap
+    if (!AMap) return
+
+    allMarkersRef.current.forEach(m => m.setMap(null))
+    allMarkersRef.current = []
+    allPolylinesRef.current.forEach(p => p.setMap(null))
+    allPolylinesRef.current = []
+
+    const map = mapRef.current
+
     allDays.forEach((day, dayIdx) => {
       const color = DAY_COLORS[dayIdx % DAY_COLORS.length]
       const isFiltered = effectiveDay > 0 && day.day_number !== effectiveDay
-      // When externally controlled (PC left panel / mobile), hide non-selected days entirely
-      // When using internal filter, dim them for overview context
-      if (selectedDay && isFiltered) return  // skip non-selected day entirely
+      if (selectedDay && isFiltered) return
       const opacity = selectedDay ? 0.85 : (isFiltered ? 0.25 : 0.75)
 
-      // Markers
       day.pois.forEach((poi, idx) => {
         if (!poi.lng || !poi.lat) return
         const m = new AMap.Marker({
@@ -182,7 +185,6 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
         allMarkersRef.current.push(m)
       })
 
-      // Polyline for this day
       const coords = day.pois.filter(p => p.lng && p.lat).map(p => [p.lng, p.lat] as [number, number])
       if (coords.length > 1) {
         const pl = new AMap.Polyline({
@@ -198,22 +200,13 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
       }
     })
 
-    // Fit all POIs
-    if (allPoints.length > 0) {
+    // Fit view to show all markers of selected day(s)
+    if (allMarkersRef.current.length > 0) {
       map.setFitView(allMarkersRef.current, false, [50, 50, 50, compact ? 80 : 40])
     }
 
-    mapRef.current = map
-
-    // Apply any pending focus that arrived before map was ready
     applyPendingFocus()
-
-    return () => {
-      allMarkersRef.current.forEach(m => m.setMap(null))
-      allPolylinesRef.current.forEach(p => p.setMap(null))
-      if (mapRef.current) mapRef.current.destroy()
-    }
-  }, [allDays, effectiveDay, compact, loading])
+  }, [allDays, effectiveDay, compact])
 
   // Apply pending focus: center map on a specific POI
   const applyPendingFocus = useCallback(() => {
@@ -241,7 +234,6 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
   const h = compact ? 'h-64' : 'h-full'
   const allPois = allDays.flatMap(d => d.pois).filter(p => p.lng && p.lat)
 
-  // Find next POI for selected
   let nextPoi: Poi | null = null
   let dist: string | undefined
   if (selectedPoi) {
@@ -259,7 +251,6 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
 
   return (
     <div className={`${className} flex flex-col`}>
-      {/* Day filter bar — hidden when controlled externally by PC left panel */}
       {!selectedDay && (
         <div className="flex items-center gap-1.5 mb-2 shrink-0 flex-wrap">
           <span className="text-sm text-gray-500 mr-1">🗺️</span>
@@ -296,7 +287,6 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
         <div ref={containerRef} className="w-full h-full" />
       </div>
 
-      {/* Legend */}
       {!selectedDay && !compact && allDays.length > 1 && (
         <div className="flex gap-3 mt-1.5 text-xs text-gray-400 overflow-x-auto shrink-0">
           {allDays.map((day, i) => (
@@ -308,7 +298,6 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
         </div>
       )}
 
-      {/* Poi detail card */}
       {selectedPoi && (
         <PoiDetailCard
           key={selectedPoi.id}

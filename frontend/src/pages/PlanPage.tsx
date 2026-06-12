@@ -4,6 +4,8 @@ import { Sparkles, Loader2, CheckCircle2, MapPin, Users, Calendar, DollarSign, N
 import { usePlanStore } from '../stores/planStore'
 import { parseTripQuery } from '../utils/parseQuery'
 import TripTimeline from '../components/TripTimeline'
+import LiveMapPreview from '../components/LiveMapPreview'
+import LlmStreamBox from '../components/LlmStreamBox'
 import BudgetPanel from '../components/BudgetPanel'
 
 export default function PlanPage() {
@@ -58,7 +60,20 @@ export default function PlanPage() {
     })
   }, [])
 
-  const { isPlanning, steps, tripData, tripRoutes, routeCount, error, weatherData, startPlan, cancelPlan, selectRoute, toolPhase, toolCount } = usePlanStore()
+  const isPlanning = usePlanStore(s => s.isPlanning)
+  const steps = usePlanStore(s => s.steps)
+  const tripData = usePlanStore(s => s.tripData)
+  const tripRoutes = usePlanStore(s => s.tripRoutes)
+  const routeCount = usePlanStore(s => s.routeCount)
+  const error = usePlanStore(s => s.error)
+  const weatherData = usePlanStore(s => s.weatherData)
+  const toolPhase = usePlanStore(s => s.toolPhase)
+  const toolCount = usePlanStore(s => s.toolCount)
+  const startPlan = usePlanStore(s => s.startPlan)
+  const cancelPlan = usePlanStore(s => s.cancelPlan)
+  const selectRoute = usePlanStore(s => s.selectRoute)
+  const planElapsed = usePlanStore(s => s.planElapsed)
+  const totalElapsed = usePlanStore(s => s.totalElapsed)
 
   // 多路线选择
   const [selectedRouteIdx, setSelectedRouteIdx] = useState(0)
@@ -120,6 +135,9 @@ export default function PlanPage() {
         <div className="flex items-center gap-2 mb-4">
           <CheckCircle2 size={20} className="text-green-500" />
           <h1 className="text-xl font-bold text-gray-800">{route?.title || '行程方案'}</h1>
+          {totalElapsed > 0 && (
+            <span className="text-xs text-gray-400 ml-1">总耗时 {totalElapsed}s</span>
+          )}
           {hasTripId && (
             <span className="ml-auto text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
               已保存
@@ -452,50 +470,68 @@ export default function PlanPage() {
 
       {/* Planning Progress */}
       {isPlanning && (
-        <div className="mt-6 bg-gray-50 rounded-xl p-4">
-          <div className="text-sm font-medium text-gray-700 mb-3">规划进度</div>
+        <div className="mt-6 bg-white rounded-xl border border-gray-200 p-4">
+          <div className="text-sm font-semibold text-gray-800 mb-3">
+            规划进度{planElapsed > 0 && <span className="text-gray-400 font-normal ml-1">· {planElapsed}s</span>}
+          </div>
 
           {/* 阶段指示器 — 顺序点亮 */}
-          <div className="flex items-center gap-2 mb-3">
-            {/* 分析: toolPhase 离开 idle 即完成 */}
-            <div className={`flex-1 h-1 rounded-full ${
-              toolPhase !== 'idle' ? 'bg-blue-500' : steps.length > 0 ? 'bg-blue-400 animate-pulse' : 'bg-gray-200'
-            }`} />
-            {/* 搜索: calling 时脉冲，done 时常亮 */}
-            <div className={`flex-1 h-1 rounded-full ${
-              toolPhase === 'calling' ? 'bg-blue-400 animate-pulse' : toolPhase === 'done' ? 'bg-blue-500' : 'bg-gray-200'
-            }`} />
-            {/* 生成: done 且无 tripData 时脉冲，有 tripData 时常亮 */}
-            <div className={`flex-1 h-1 rounded-full ${
-              toolPhase === 'done' && !tripData ? 'bg-blue-400 animate-pulse' : tripData ? 'bg-blue-500' : 'bg-gray-200'
-            }`} />
-            {/* 完成: tripData 到达即绿色 */}
-            <div className={`flex-1 h-1 rounded-full ${tripData ? 'bg-green-500' : 'bg-gray-200'}`} />
+          <div className="flex items-center gap-1.5 mb-2">
+            <div className={`flex-1 h-2 rounded-full transition-colors ${toolPhase !== 'idle' ? 'bg-blue-500' : steps.length > 0 ? 'bg-blue-400 animate-pulse' : 'bg-gray-200'}`} />
+            <div className={`flex-1 h-2 rounded-full transition-colors ${toolPhase === 'calling' ? 'bg-blue-400 animate-pulse' : toolPhase === 'done' ? 'bg-blue-500' : 'bg-gray-200'}`} />
+            <div className={`flex-1 h-2 rounded-full transition-colors ${toolPhase === 'done' && !tripData ? 'bg-blue-400 animate-pulse' : tripData ? 'bg-blue-500' : 'bg-gray-200'}`} />
+            <div className={`flex-1 h-2 rounded-full transition-colors ${tripData ? 'bg-green-500' : 'bg-gray-200'}`} />
           </div>
           <div className="flex justify-between text-[10px] text-gray-400 mb-3">
             <span>分析</span><span>搜索</span><span>生成</span><span>完成</span>
           </div>
 
-          {/* 当前状态 */}
-          <div className="text-xs text-primary-600 font-medium mb-2">
-            {toolPhase === 'calling' && <><span className="text-green-500">✅ 出行需求分析完成</span><br/>并行搜索 {toolCount.total} 个数据源 ({toolCount.done}/{toolCount.total})</>}
-            {toolPhase === 'done' && !tripData && '正在生成行程方案...'}
-            {tripData && '✅ 行程方案已生成'}
-            {toolPhase === 'idle' && steps.length > 0 && steps[steps.length - 1].text}
-            {toolPhase === 'idle' && !steps.length && '准备中...'}
+          {/* 当前状态 — 搜索阶段在上 */}
+          {toolPhase === 'calling' && (
+            <div className="text-sm text-primary-600 font-medium mb-2">
+              <span className="text-green-500">✅ 出行需求分析完成</span><br/>并行搜索 {toolCount.total} 个数据源 ({toolCount.done}/{toolCount.total})
+            </div>
+          )}
+
+          {/* 共享滚动区 — 搜索详情 */}
+          {!tripData && toolPhase !== 'idle' && (
+            <div className="max-h-64 overflow-y-auto mb-3">
+              {toolPhase==='done' && !tripData && (
+                <div className="text-[11px] text-gray-400 mb-2">
+                  ✅ 搜索已完成（{steps.filter(s => s.type === 'tool_result').length} 个数据源）
+                </div>
+              )}
+              <div className="space-y-0.5">
+                {(toolPhase==='done'
+                  ? steps.filter(s => s.type === 'tool_result')
+                  : steps.filter(s => s.type !== 'step')
+                ).map((s, i) => (
+                <div key={i} className="text-[11px] flex items-center gap-1.5 py-0.5">
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.type==='tool_call'?'bg-yellow-400':'bg-green-400'}`} />
+                  <span className={s.type==='tool_call'?'text-yellow-600':'text-gray-400'}>{s.text}</span>
+                  {s.elapsed != null && <span className="text-gray-300 ml-auto flex-shrink-0">{s.elapsed}s</span>}
+                </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 当前状态 — 生成/完成阶段在下 */}
+          <div className="text-sm text-primary-600 font-medium mb-2">
+            {!steps.length && toolPhase === 'idle' && '准备中...'}
+            {steps.length > 0 && toolPhase === 'idle' && steps[steps.length - 1].text}
+            {toolPhase==='done'&&!tripData&&'✅正在生成行程方案...'}
+            {tripData&&`✅行程方案规划完成 · 总耗时 ${totalElapsed}s`}
           </div>
 
-          {/* 详细步骤 */}
-          <div className="space-y-0.5 max-h-40 overflow-y-auto">
-            {steps.filter(s=>toolPhase==='done'?s.type==='tool_result':s.type!=='step').slice(-10).map((s, i) => (
-              <div key={i} className="text-[11px] flex items-center gap-1.5">
-                <div className={`w-1 h-1 rounded-full flex-shrink-0 ${s.type==='step'?'bg-blue-400':s.type==='tool_call'?'bg-yellow-400':'bg-green-400'}`} />
-                <span className={s.type==='tool_call'?'text-yellow-600':'text-gray-400'}>{s.text}</span>
-              </div>
-            ))}
-          </div>
+          {/* LLM 打字机 — 在状态文字下方 */}
+          {toolPhase==='done' && !tripData && (
+            <LlmStreamBox />
+          )}
         </div>
       )}
+
+      <LiveMapPreview />
 
       {error && (
         <div className="mt-4 bg-red-50 text-red-600 rounded-xl p-4 text-sm">

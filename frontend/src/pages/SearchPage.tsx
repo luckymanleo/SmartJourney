@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useSearchStore, SearchHistoryItem } from '../stores/searchStore'
-import { Clock, X, Trash2, AlertTriangle, RefreshCw } from 'lucide-react'
+import { Clock, X, Trash2, AlertTriangle, RefreshCw, MapPin, List } from 'lucide-react'
 import { renderSearchCard } from '../components/SearchCards'
 import { SearchSkeleton } from '../components/SearchSkeleton'
 import CityCascader from '../components/CityCascader'
@@ -35,6 +35,11 @@ export default function SearchPage() {
   const [date, setDate] = useState(searchParams.get('date') || '')
   const [keyword, setKeyword] = useState('')
   const [hasSearched, setHasSearched] = useState(false)
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
+  const [mapCoords, setMapCoords] = useState<Array<{lng: number; lat: number; title: string}>>([])
+  const [geocoding, setGeocoding] = useState(false)
+  const mapContainerRef = useRef<HTMLDivElement>(null)
+  const mapRef = useRef<any>(null)
   const [showFromPicker, setShowFromPicker] = useState(false)
   const [showToPicker, setShowToPicker] = useState(false)
   const today = new Date().toISOString().split('T')[0]
@@ -64,6 +69,68 @@ export default function SearchPage() {
     setHasSearched(false)
     useSearchStore.setState({ results: [], error: null })
   }, [type])
+
+  // Batch geocode results when switching to map view
+  useEffect(() => {
+    if (viewMode !== 'map' || results.length === 0) return
+    setGeocoding(true)
+    const token = localStorage.getItem('sj_token') || ''
+    const titles = results.map((r: any) => r.title).filter(Boolean)
+    if (titles.length === 0) { setGeocoding(false); return }
+    fetch('/api/v1/map/geocode/batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ addresses: titles, city: city || '' }),
+    })
+      .then(r => r.json())
+      .then(d => {
+        const coords = (d.data?.results || [])
+          .filter((r: any) => r.lng && r.lat)
+          .map((r: any) => ({ lng: r.lng, lat: r.lat, title: r.address }))
+        setMapCoords(coords)
+      })
+      .catch(() => {})
+      .finally(() => setGeocoding(false))
+  }, [viewMode, results.length])
+
+  // Render map
+  useEffect(() => {
+    if (viewMode !== 'map' || mapCoords.length === 0 || !mapContainerRef.current) return
+    const A = (window as any).AMap
+    if (!A) {
+      const token = localStorage.getItem('sj_token') || ''
+      fetch('/api/v1/map/config', { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.json())
+        .then(cfg => {
+          if (cfg.code === 0 && cfg.data?.js_key) {
+            const s = document.createElement('script')
+            s.src = `https://webapi.amap.com/maps?v=2.0&key=${cfg.data.js_key}`
+            s.async = true; s.onload = renderMap; document.head.appendChild(s)
+          }
+        }).catch(() => {})
+      return
+    }
+    renderMap()
+    function renderMap() {
+      const Am = (window as any).AMap; if (!Am || !mapContainerRef.current) return
+      if (mapRef.current) { mapRef.current.destroy(); mapRef.current = null }
+      const markers: any[] = []
+      mapCoords.forEach(c => {
+        const m = new Am.Marker({
+          position: [c.lng, c.lat],
+          label: { content: `<div style="font-size:10px;background:#f97316;color:#fff;padding:1px 6px;border-radius:8px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.title}</div>`, direction: 'top', offset: [0, -18] },
+        })
+        markers.push(m)
+      })
+      const centerLng = mapCoords.reduce((s, c) => s + c.lng, 0) / mapCoords.length
+      const centerLat = mapCoords.reduce((s, c) => s + c.lat, 0) / mapCoords.length
+      const map = new Am.Map(mapContainerRef.current, { zoom: 12, center: [centerLng, centerLat], resizeEnable: true })
+      markers.forEach(m => m.setMap(map))
+      map.setFitView(markers, false, [30, 30, 30, 30])
+      mapRef.current = map
+    }
+    return () => { if (mapRef.current) { mapRef.current.destroy(); mapRef.current = null } }
+  }, [viewMode, mapCoords])
 
   const handleSearch = () => {
     const params: Record<string, any> = {}
@@ -163,6 +230,30 @@ export default function SearchPage() {
         </button>
       </div>
 
+      {/* View toggle — list / map */}
+      {hasSearched && results.length > 0 && (
+        <div className="flex bg-gray-100 rounded-lg p-0.5 mb-3 w-fit">
+          <button onClick={() => setViewMode('list')}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${viewMode === 'list' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-400'}`}>
+            <List size={14} className="inline mr-1" />列表
+          </button>
+          <button onClick={() => setViewMode('map')}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${viewMode === 'map' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-400'}`}>
+            <MapPin size={14} className="inline mr-1" />地图
+          </button>
+        </div>
+      )}
+
+      {/* Map view */}
+      {viewMode === 'map' && hasSearched && (
+        <div className="relative rounded-xl overflow-hidden border border-gray-200 mb-4" style={{ height: '50vh' }}>
+          {geocoding && (
+            <div className="absolute inset-0 bg-gray-50 flex items-center justify-center z-10 text-gray-400 text-sm">定位中...</div>
+          )}
+          <div ref={mapContainerRef} className="w-full h-full" />
+        </div>
+      )}
+
       {loading && (
         <div>
           <div className="text-sm text-gray-400 mb-3">正在搜索，请稍候...</div>
@@ -196,7 +287,7 @@ export default function SearchPage() {
         </div>
       )}
 
-      {!loading && !error && !hasSearched && (
+      {!loading && !error && !hasSearched && viewMode === 'list' && (
         <div>
           {typeHistory.length > 0 ? (
             <div>
@@ -240,7 +331,7 @@ export default function SearchPage() {
         </div>
       )}
 
-      {!loading && results.length > 0 && (
+      {!loading && viewMode === 'list' && results.length > 0 && (
         <div className="space-y-3">
           {(type === 'flights' || type === 'trains') && !results[0]?.extra_data?.is_info && (
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
