@@ -1,6 +1,6 @@
 # SmartJourney（智旅）架构文档
 
-> 2026-06-08 | 全栈旅行规划平台 | 移动端 + PC Web 双版本
+> 2026-06-08 | 更新: 2026-06-12 | 全栈旅行规划平台 | 移动端 + PC Web 双版本
 
 ## 技术栈
 
@@ -27,27 +27,28 @@ SmartJourney/
 │   │   ├── redis_client.py          # Redis 懒加载代理 + MemoryRedis 降级
 │   │   ├── logging_config.py        # 日志配置（按日切分 + 10MB）
 │   │   ├── api/
-│   │   │   ├── auth.py              # 短信验证码登录/注册
+│   │   │   ├── auth.py              # 短信验证码登录/注册 + 用户信息
 │   │   │   ├── search.py            # 6 类搜索(flights/trains/hotels/pois/foods/transport)
-│   │   │   ├── plan.py              # AI 规划 SSE + 取消支持
-│   │   │   ├── trips.py             # 行程 CRUD
-│   │   │   ├── info.py              # 天气/城市/热门目的地
+│   │   │   ├── plan.py              # AI 规划 SSE + 行程优化
+│   │   │   ├── trips.py             # 行程 CRUD + 行程项 + 预算
+│   │   │   ├── info.py              # 天气/城市/热门目的地/省市区联动
 │   │   │   ├── user.py              # 用户偏好
-│   │   │   ├── phase4.py            # 辅助功能(stub)
-│   │   │   └── phase5.py            # 管理统计(stub)
+│   │   │   └── map_routes.py        # 地图（地理编码/POI/路径/行程聚合）
 │   │   ├── services/
 │   │   │   ├── agent_service.py     # AI 核心 (跨城/同城自动识别 + MCP缓存 + LLM)
 │   │   │   ├── mcp_manager.py       # MCP 会话 + Redis缓存 + Semaphore(6)
+│   │   │   ├── mcp_gateway.py       # MCP 网关连接器
 │   │   │   ├── remote_mcp.py        # ModelScope HTTP 客户端
 │   │   │   ├── markdown_parser.py   # MCP Markdown → 结构化 (6工具)
-│   │   │   ├── trip_service.py      # 行程 CRUD
-│   │   │   ├── auth_service.py      # 短信验证码
+│   │   │   ├── trip_service.py      # 行程 CRUD + 预算 + 偏好
+│   │   │   ├── auth_service.py      # 短信验证码 + Token
+│   │   │   ├── sms_service.py       # 阿里云/模拟短信发送
 │   │   │   ├── weather_service.py   # 高德天气
+│   │   │   ├── map_service.py       # 高德地图（地理编码/POI/路径/距离）
 │   │   │   ├── location_service.py  # 省市区三级联动
 │   │   │   ├── route_strategies.py  # 路线策略
-│   │   │   ├── trip_expiry.py       # 行程过期清理
-│   │   │   └── [stubs]              # wallet/collaboration/sharing/alert 等骨架(未接前端)
-│   │   ├── models/                  # 11 张表 (6 张在用, 5 张预留)
+│   │   │   └── trip_expiry.py       # 行程过期清理
+│   │   ├── models/                  # 6 张表（全部在用）
 │   │   └── tests/                   # Pytest
 │   ├── config.json                  # 外部化配置
 │   ├── logs/                        # 按日切分日志
@@ -59,7 +60,7 @@ SmartJourney/
 │   ├── src/
 │   │   ├── pages/                   # 移动端: Home, Search, Plan, MyTrips, TripDetail, Settings
 │   │   ├── pc/                      # PC 端: 同上 + Layout + CityCascader
-│   │   ├── components/              # 共享: SearchCards, TripTimeline, BudgetPanel, CityCascader
+│   │   ├── components/              # 共享: TripTimeline, TripMap, PoiDetailCard, BudgetPanel, LiveMapPreview, SearchCards, CityCascader, LlmStreamBox, TripCard
 │   │   ├── stores/                  # auth, search, plan (AbortController), trip
 │   │   ├── api/                     # axios 90s + SSE streamPlan (AbortController)
 │   │   └── utils/parseQuery.ts      # NL 解析 (跨城/同城 + 人数推断)
@@ -118,24 +119,33 @@ toolPhase: idle → calling → done → tripData
 8. **booking_url 全链路保留**：compact → LLM → save 不丢失
 9. **跨城交通规则**：SYSTEM_PROMPT 强制 Day1 首项为 flight/train
 10. **日志按日切分**：smartjourney.log + error.log，单文件 10MB
+11. **预算对比显示**：BudgetPanel 支持原预算 vs 预计对比，自动计算节省/超支
+12. **POI 照片预取**：行程生成时异步从高德获取照片存 DB，前端直读避免实时搜索错配
+13. **地图行程聚合**：TripMap 统一加载全天 POI 数据，切换天时仅替换覆盖物不重建地图
 
 ## 数据库
 
-### 在用表 (6)
-User, UserPreference, Trip, TripDay, TripItem, Budget
+### 表（6 张，全部在用）
 
-### 预留表 (5，后端骨架未接前端)
-SystemConfig, TripMember, TripExpense, Wallet, Transaction
+| 表 | 说明 |
+|------|------|
+| users | 用户（手机号登录，昵称/头像） |
+| user_preferences | 用户偏好（键值对，category+key 分组） |
+| trips | 行程（出发地/目的地/日期/人数/预算/summary/tips） |
+| trip_days | 每日行程（day_number, date, weather） |
+| trip_items | 行程项（10 种类型：flight/train/hotel/poi/food/transport/bus/car_rental/ferry/other） |
+| budgets | 分类预算（transport/lodging/food/tickets/other） |
 
 ## 外部依赖
 
 | 服务 | 用途 | 备注 |
 |------|------|------|
 | PostgreSQL 16 | 主数据库 | Docker / 宿主机 :5432 |
-| Redis 7 | 缓存 + 验证码 + MCP结果 | lazy proxy 模式 |
-| ModelScope MCP | 机票/火车/酒店/景点/美食/交通 | 免费端点，周期性不稳定 |
+| Redis 7 | 缓存 + 验证码 + MCP结果 | lazy proxy 模式，MemoryRedis 降级 |
+| ModelScope MCP | 机票/火车/酒店/景点/美食/交通 | FliggyTravel（飞猪），免费端点 |
 | DeepSeek API | LLM 行程规划 | OpenAI 兼容 |
-| 高德 API | 天气查询 | 30min 缓存 |
+| 高德 API | 天气 + 地图 + 地理编码 + POI | JS API 2.0 + Web 服务 API |
+| 阿里云 Dypnsapi | 短信验证码 | 支持 mock 模式开发 |
 
 ## 启动
 
