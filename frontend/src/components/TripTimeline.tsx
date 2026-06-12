@@ -56,7 +56,6 @@ export default function TripTimeline({ days, travelerCount, onItemClick }: { day
                     <span>{item.type}</span>
                   </div>
                   <div className="font-medium text-gray-800 text-sm">
-                    <span className="text-[10px] text-gray-400 font-mono mr-1">D{day.day_number}.{i + 1}</span>
                     {item.title}
                   </div>
                   <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">

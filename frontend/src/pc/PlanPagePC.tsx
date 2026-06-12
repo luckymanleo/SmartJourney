@@ -64,6 +64,8 @@ export default function PlanPagePC() {
   }, [])
 
   const { isPlanning, steps, tripData, tripRoutes, error, weatherData, startPlan, cancelPlan, selectRoute, toolPhase, toolCount } = usePlanStore()
+  const planElapsed = usePlanStore(s => s.planElapsed)
+  const totalElapsed = usePlanStore(s => s.totalElapsed)
   const [selectedRouteIdx, setSelectedRouteIdx] = useState(0)
   const currentTrip = tripRoutes[selectedRouteIdx] || tripData || tripRoutes[0]
 
@@ -176,7 +178,9 @@ export default function PlanPagePC() {
 
           {isPlanning && (
             <div className="bg-white rounded-xl border border-gray-200" style={{padding: 'clamp(12px, 1.5vw, 24px)'}}>
-              <h3 className="font-semibold text-gray-800 mb-4" style={fs.heading}>规划进度</h3>
+              <h3 className="font-semibold text-gray-800 mb-4" style={fs.heading}>
+                规划进度{planElapsed > 0 && <span className="text-gray-400 font-normal ml-1">· {planElapsed}s</span>}
+              </h3>
               <div className="flex items-center gap-1.5 mb-3">
                 <div className={`flex-1 h-2 rounded-full transition-colors ${toolPhase !== 'idle' ? 'bg-blue-500' : steps.length > 0 ? 'bg-blue-400 animate-pulse' : 'bg-gray-200'}`} />
                 <div className={`flex-1 h-2 rounded-full transition-colors ${toolPhase === 'calling' ? 'bg-blue-400 animate-pulse' : toolPhase === 'done' ? 'bg-blue-500' : 'bg-gray-200'}`} />
@@ -211,7 +215,7 @@ export default function PlanPagePC() {
                 {toolPhase==='done'&&!tripData&&(
                   <LlmStreamBox />
                 )}
-                {tripData&&'✅行程方案规划完成'}
+                {tripData&&`✅行程方案规划完成 · 总耗时 ${totalElapsed}s`}
               </div>
             </div>
           )}
@@ -269,7 +273,7 @@ export default function PlanPagePC() {
                 total_estimated: Object.values(route.budget).reduce((a: number, b: any) => a + (Number(b) || 0), 0),
                 total_actual: 0,
                 categories: Object.entries(route.budget).map(([cat, val]) => ({ category: cat, estimated: val as number, actual: 0, currency: 'CNY' })),
-              }} />
+              }} originalBudget={Number(budget) || undefined} />
             )}
           </div>
         )}

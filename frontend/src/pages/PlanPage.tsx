@@ -135,9 +135,6 @@ export default function PlanPage() {
         <div className="flex items-center gap-2 mb-4">
           <CheckCircle2 size={20} className="text-green-500" />
           <h1 className="text-xl font-bold text-gray-800">{route?.title || '行程方案'}</h1>
-          {totalElapsed > 0 && (
-            <span className="text-xs text-gray-400 ml-1">总耗时 {totalElapsed}s</span>
-          )}
           {hasTripId && (
             <span className="ml-auto text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
               已保存
@@ -239,6 +236,7 @@ export default function PlanPage() {
                   currency: 'CNY',
                 })),
               }}
+              originalBudget={Number(budget) || undefined}
             />
           </div>
         )}

@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Trash2, MapPin, Calendar, Users } from 'lucide-react'
+import { ArrowLeft, Trash2, MapPin, Calendar, Users, AlertTriangle, X } from 'lucide-react'
 import { useTripStore } from '../stores/tripStore'
 import TripTimeline from '../components/TripTimeline'
 import TripMap from '../components/TripMap'
@@ -16,6 +16,7 @@ export default function TripDetailPagePC() {
   const [tab, setTab] = useState<Tab>('itinerary')
   const [mapDay, setMapDay] = useState(1)
   const [focusPoiId, setFocusPoiId] = useState<string | null>(null)
+  const [showDelete, setShowDelete] = useState(false)
 
   useEffect(() => {
     if (id) {
@@ -27,7 +28,7 @@ export default function TripDetailPagePC() {
   }, [id])
 
   const handleDelete = async () => {
-    if (!id || !confirm('确定删除这个行程吗？')) return
+    if (!id) return
     await deleteTrip(id)
     navigate('/trips')
   }
@@ -97,7 +98,7 @@ export default function TripDetailPagePC() {
             )}
           </div>
         </div>
-        <button onClick={handleDelete} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+        <button onClick={() => setShowDelete(true)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
           <Trash2 size={18} />
         </button>
       </div>
@@ -228,7 +229,7 @@ export default function TripDetailPagePC() {
               </div>
             </div>
 
-            {budget && <BudgetPanel budget={budget} />}
+            {budget && <BudgetPanel budget={budget} originalBudget={currentTrip.budget_total} />}
           </div>
         </div>
       )}
@@ -268,7 +269,7 @@ export default function TripDetailPagePC() {
                         onClick={() => setFocusPoiId(item.id)}
                         className="flex gap-2.5 text-[13px] cursor-pointer hover:bg-gray-50 rounded-lg px-2 py-1.5 -mx-2 transition-colors"
                       >
-                        <span className="text-gray-300 text-xs w-4 text-right pt-0.5">{idx + 1}</span>
+                        <span className="text-gray-400 text-[10px] w-8 text-right pt-0.5 font-mono">D{selectedDay.day_number}.{idx + 1}</span>
                         <span className="text-base">{typeEmoji[item.type] || '📍'}</span>
                         <span className="text-[10px] text-gray-400 flex-shrink-0 pt-0.5">{item.type}</span>
                         <div className="flex-1 min-w-0">
@@ -291,6 +292,35 @@ export default function TripDetailPagePC() {
           {/* Right: Map 65% */}
           <div style={{ flex: '0 0 65%' }}>
             {id && <TripMap tripId={id} totalDays={totalDays} selectedDay={mapDay} focusPoiId={focusPoiId} className="h-full" />}
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowDelete(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl mx-4 overflow-hidden" style={{ width: 'clamp(300px, 90%, 420px)' }} onClick={e => e.stopPropagation()}>
+            <div className="px-6 pt-8 pb-6 text-center">
+              <div className="mx-auto w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-4">
+                <AlertTriangle size={28} className="text-red-500" />
+              </div>
+              <h2 className="text-lg font-bold text-gray-800 mb-2">确认删除</h2>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                确定要删除行程<br />
+                <span className="font-semibold text-gray-800">「{currentTrip.title}」</span> 吗？
+              </p>
+              <p className="text-xs text-gray-400 mt-3">此操作不可撤销，所有数据将被永久删除</p>
+            </div>
+            <div className="flex gap-3 px-6 pb-6">
+              <button onClick={() => setShowDelete(false)}
+                className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+                取消
+              </button>
+              <button onClick={handleDelete}
+                className="flex-1 py-2.5 text-sm font-medium text-white bg-red-500 rounded-xl hover:bg-red-600 transition-colors">
+                确认删除
+              </button>
+            </div>
           </div>
         </div>
       )}

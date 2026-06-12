@@ -203,7 +203,7 @@ export default function TripDetailPage() {
           )}
           {budget && (
             <div className="mt-6">
-              <BudgetPanel budget={budget} />
+              <BudgetPanel budget={budget} originalBudget={currentTrip.budget_total} />
             </div>
           )}
         </>

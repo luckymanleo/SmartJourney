@@ -9,6 +9,7 @@ interface BudgetPanelProps {
       currency: string
     }>
   } | null
+  originalBudget?: number | null
 }
 
 const catLabels: Record<string, string> = {
@@ -19,19 +20,40 @@ const catLabels: Record<string, string> = {
   other: '其他',
 }
 
-export default function BudgetPanel({ budget }: BudgetPanelProps) {
+export default function BudgetPanel({ budget, originalBudget }: BudgetPanelProps) {
   if (!budget) return null
 
   const maxEst = Math.max(...budget.categories.map((c) => c.estimated), 1)
+  const diff = originalBudget ? budget.total_estimated - originalBudget : 0
+  const isOver = diff > 0
+  const isUnder = diff < 0
+  const absDiff = Math.abs(diff)
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-gray-800">预算概览</h3>
-        <div className="text-lg font-bold text-primary-600">
-          ¥{budget.total_estimated.toLocaleString()}
+      {originalBudget ? (
+        <div className="flex items-start justify-between mb-4">
+          <h3 className="font-semibold text-gray-800 text-sm pt-0.5">预算概览</h3>
+          <div className="text-right space-y-0.5">
+            <div className="text-xs text-gray-400">
+              原预算 <span className="text-gray-500 line-through">¥{originalBudget.toLocaleString()}</span>
+            </div>
+            <div className="text-xs text-gray-400">
+              预计 <span className="text-lg font-bold text-primary-600">¥{budget.total_estimated.toLocaleString()}</span>
+            </div>
+            <div className={`text-xs font-medium ${isOver ? 'text-red-500' : 'text-green-500'}`}>
+              {isOver ? `超支 ¥${absDiff.toLocaleString()}` : isUnder ? `节省 ¥${absDiff.toLocaleString()}` : '预算刚好'}
+            </div>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-gray-800 text-sm">预算概览</h3>
+          <div className="text-lg font-bold text-primary-600">
+            ¥{budget.total_estimated.toLocaleString()}
+          </div>
+        </div>
+      )}
 
       <div className="space-y-2">
         {budget.categories.map((cat) => (

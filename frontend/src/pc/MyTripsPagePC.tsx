@@ -126,7 +126,7 @@ export default function MyTripsPagePC() {
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
                   <span className={`px-2 py-0.5 rounded-full font-medium ${statusColors[trip.status] || ''}`} style={smallStyle}>{statusLabels[trip.status] || trip.status}</span>
-                  <button onClick={(e) => handleDeleteClick(e, trip.id, trip.title)} className="text-gray-300 hover:text-red-500 p-1 rounded hover:bg-red-50 transition-colors"><Trash2 size={14} /></button>
+                  <button onClick={(e) => handleDeleteClick(e, trip.id, trip.title)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={14} /></button>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-gray-500 mb-2" style={smallStyle}>
@@ -155,22 +155,30 @@ export default function MyTripsPagePC() {
       )}
 
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setDeleteTarget(null)}>
-          <div className="bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden" style={{ width: 'clamp(320px, 36%, 460px)', margin: '0 1rem' }} onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center"><AlertTriangle size={18} className="text-red-500" /></div>
-                <h2 className="font-semibold text-gray-800" style={bodyStyle}>确认删除</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in" onClick={() => setDeleteTarget(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl mx-4 overflow-hidden" style={{ width: 'clamp(300px, 90%, 420px)' }} onClick={e => e.stopPropagation()}>
+            {/* Body */}
+            <div className="px-6 pt-8 pb-6 text-center">
+              <div className="mx-auto w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-4">
+                <AlertTriangle size={28} className="text-red-500" />
               </div>
-              <button onClick={() => setDeleteTarget(null)} className="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition-colors"><X size={18} /></button>
+              <h2 className="text-lg font-bold text-gray-800 mb-2">确认删除</h2>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                确定要删除行程<br />
+                <span className="font-semibold text-gray-800">「{deleteTarget.title}」</span> 吗？
+              </p>
+              <p className="text-xs text-gray-400 mt-3">此操作不可撤销，所有数据将被永久删除</p>
             </div>
-            <div className="px-5 py-4">
-              <p className="text-gray-600 leading-relaxed" style={bodyStyle}>确定要删除行程 <span className="font-semibold text-gray-800">「{deleteTarget.title}」</span> 吗？</p>
-              <p className="text-gray-400 mt-1.5" style={smallStyle}>此操作不可撤销，行程中的所有数据将被永久删除。</p>
-            </div>
-            <div className="flex items-center justify-end gap-2.5 px-5 py-3.5 border-t border-gray-100 bg-gray-50">
-              <button onClick={() => setDeleteTarget(null)} className="px-4 py-2 font-medium text-gray-600 hover:text-gray-800 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" style={smallStyle}>取消</button>
-              <button onClick={handleConfirmDelete} className="px-4 py-2 font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors" style={smallStyle}>确认删除</button>
+            {/* Footer */}
+            <div className="flex gap-3 px-6 pb-6">
+              <button onClick={() => setDeleteTarget(null)}
+                className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+                取消
+              </button>
+              <button onClick={handleConfirmDelete}
+                className="flex-1 py-2.5 text-sm font-medium text-white bg-red-500 rounded-xl hover:bg-red-600 transition-colors">
+                确认删除
+              </button>
             </div>
           </div>
         </div>
