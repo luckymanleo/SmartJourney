@@ -220,12 +220,6 @@ export default function TripDetailPagePC() {
                   <Users size={16} className="text-gray-400 flex-shrink-0" />
                   <span className="text-[13px]">{currentTrip.traveler_count}人</span>
                 </div>
-                {currentTrip.budget_total && (
-                  <div className="pt-3 border-t border-gray-100">
-                    <span className="text-xs text-gray-400">总预算</span>
-                    <div className="text-xl font-bold text-primary-600 mt-0.5">¥{currentTrip.budget_total.toLocaleString()}</div>
-                  </div>
-                )}
               </div>
             </div>
 

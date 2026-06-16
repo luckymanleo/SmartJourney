@@ -8,7 +8,6 @@ SmartJourney（智旅）配置管理
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -17,7 +16,7 @@ _ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
 
 
 class Settings(BaseSettings):
-    """启动必须配置 — 全部来自环境变量 (.env)"""
+    """启动必须配置 — 全部来自环境变量 (.env)，无硬编码默认值"""
 
     model_config = SettingsConfigDict(
         env_file=str(_ENV_PATH),
@@ -26,14 +25,14 @@ class Settings(BaseSettings):
     )
 
     # ---- 应用 ----
-    app_name: str = "SmartJourney（智旅）"
-    app_version: str = "0.1.0"
+    app_name: str
+    app_version: str
     debug: bool = False
     log_level: str = "INFO"
 
     # ---- 数据库 ----
-    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/smartjourney"
-    redis_url: str = "redis://localhost:6379/0"
+    database_url: str
+    redis_url: str
     redis_username: str = ""
     redis_password: str = ""
 
@@ -42,6 +41,7 @@ class Settings(BaseSettings):
         """构建带认证的 Redis 连接 URL"""
         if self.redis_username or self.redis_password:
             from urllib.parse import urlparse, urlunparse
+
             parts = urlparse(self.redis_url)
             userinfo = ""
             if self.redis_username:
@@ -51,11 +51,13 @@ class Settings(BaseSettings):
             netloc = f"{userinfo}@{parts.hostname}"
             if parts.port:
                 netloc += f":{parts.port}"
-            return urlunparse((parts.scheme, netloc, parts.path, parts.params, parts.query, parts.fragment))
+            return urlunparse(
+                (parts.scheme, netloc, parts.path, parts.params, parts.query, parts.fragment)
+            )
         return self.redis_url
 
     # ---- 安全 ----
-    secret_key: str = "dev-secret-change-in-production"
+    secret_key: str
     jwt_algorithm: str = "HS256"
     jwt_expire_seconds: int = 604800  # 7 天
 
@@ -68,8 +70,8 @@ class Settings(BaseSettings):
 
     # ---- LLM API ----
     llm_api_key: str = ""
-    llm_base_url: str = "https://api.deepseek.com/v1"
-    llm_model: str = "deepseek-chat"
+    llm_base_url: str
+    llm_model: str
 
     # ---- 短信 ----
     sms_provider: str = "mock"
@@ -77,10 +79,10 @@ class Settings(BaseSettings):
     sms_access_key_secret: str = ""
     sms_sign_name: str = ""
     sms_template_code: str = ""
-    sms_region: str = "cn-shenzhen"
+    sms_region: str
 
     # ---- CORS ----
-    cors_origins: str = "http://localhost:5173,http://localhost:3000,http://localhost"
+    cors_origins: str
 
     @property
     def cors_origin_list(self) -> list[str]:
