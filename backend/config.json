@@ -1,9 +1,4 @@
 {
-  "mcp": {
-    "remote": {
-      "fliggy_travel": "https://mcp.api-inference.modelscope.net/a707bb3ce4f04a/mcp"
-    }
-  },
   "cors": {
     "debug_origins": [
       "http://localhost:5173",

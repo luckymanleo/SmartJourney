@@ -9,11 +9,11 @@ import logging
 import asyncio
 import time as _time
 from app.services.remote_mcp import RemoteMCPClient
-from app.config_loader import mcp_url
+from app.config import get_settings
 
 logger = logging.getLogger(__name__)
 
-REMOTE_MCP_URL = mcp_url("fliggy_travel")
+REMOTE_MCP_URL = get_settings().mcp_fliggy_url
 
 # 连接池（每条连接最多存活 30 分钟）
 _POOL_MAX_AGE = 1800  # 30 min

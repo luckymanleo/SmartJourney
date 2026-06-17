@@ -111,15 +111,15 @@ MCP_SERVERS: list[MCPServerConfig] = [
         },
         priority=1,
     ),
-    # Remote HTTP MCP - ModelScope 飞猪旅行
+    # Remote HTTP MCP - ModelScope 飞猪旅行（URL 来自 .env）
     MCPServerConfig(
         name="fliggy_remote",
-        command="",  # Not used for HTTP
+        command="",
         args=[],
         env={},
-        priority=0,  # Highest priority
+        priority=0,
         transport_type="http",
-        url="https://mcp.api-inference.modelscope.net/09d2c8dc18c847/mcp",
+        url="",  # filled in initialize() from settings
     ),
 ]
 
@@ -164,6 +164,13 @@ class MCPGateway:
         """启动所有已启用的 MCP Server"""
         if self._initialized:
             return
+
+        # 从 .env 注入远程 MCP URL
+        mcp_url = settings.mcp_fliggy_url
+        if mcp_url:
+            for cfg in MCP_SERVERS:
+                if cfg.name == "fliggy_remote" and not cfg.url:
+                    cfg.url = mcp_url
 
         for cfg in MCP_SERVERS:
             if not cfg.enabled:

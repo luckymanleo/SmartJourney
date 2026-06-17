@@ -65,6 +65,9 @@ class Settings(BaseSettings):
     flyai_api_key: str = ""
     flyai_sign_secret: str = ""
 
+    # ---- 远程 MCP ----
+    mcp_fliggy_url: str = ""
+
     # ---- 高德地图 ----
     gaode_api_key: str = ""
 

@@ -31,11 +31,6 @@ def load_config() -> dict:
 
 # ==================== 便捷访问函数 ====================
 
-def mcp_url(name: str = "fliggy_travel") -> str:
-    """获取 MCP 远程 URL"""
-    return load_config()["mcp"]["remote"].get(name, "")
-
-
 def popular_destinations() -> list[dict[str, Any]]:
     """热门目的地列表"""
     return load_config()["popular_destinations"]
