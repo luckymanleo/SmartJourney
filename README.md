@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # SmartJourney（智旅）
 
 AI 驱动的智能旅行规划平台，移动端 + PC Web 双版本。
@@ -87,7 +86,3 @@ frontend/
 ├── index.html          # 移动端入口
 └── pc.html             # PC 端入口
 ```
-=======
-# SmartJourney
-全能型智能出行助手“智程”
->>>>>>> origin/dev
