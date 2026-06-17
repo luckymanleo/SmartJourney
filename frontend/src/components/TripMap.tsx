@@ -197,18 +197,27 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
           m.setMap(map)
           markers.push(m)
         } else {
-          // 多点聚合：圆圈+计数，点击弹出列表
+          // 多点聚合：拼接标签 + 计数，点击弹出列表
+          const labels = pois.map(p => `D${day.day_number}.${(p.item_index ?? 0) + 1}`).join(',')
           const circleSize = 28 + Math.min(pois.length, 5) * 2
           const m = new AMap.Marker({
             position: [lng, lat],
             content: `<div style="
-              width:${circleSize}px;height:${circleSize}px;border-radius:50%;
-              background:${color};color:#fff;font-size:${12 + Math.min(pois.length, 3)}px;
-              font-weight:bold;display:flex;align-items:center;justify-content:center;
+              display:flex;align-items:center;gap:4px;
+              background:${color};color:#fff;font-size:11px;
+              font-weight:bold;padding:4px 10px;
+              border-radius:16px;
               border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);
-              opacity:${opacity};cursor:pointer
-            ">${pois.length}</div>`,
-            offset: new AMap.Pixel(-circleSize / 2, -circleSize / 2),
+              opacity:${opacity};cursor:pointer;white-space:nowrap
+            ">
+              <span>${labels}</span>
+              <span style="
+                display:inline-flex;align-items:center;justify-content:center;
+                min-width:18px;height:18px;border-radius:50%;
+                background:rgba(255,255,255,0.25);font-size:10px
+              ">${pois.length}</span>
+            </div>`,
+            offset: new AMap.Pixel(0, -circleSize / 2 - 8),
             zIndex: isFiltered ? 50 : 150,
           })
           m._groupPois = pois
