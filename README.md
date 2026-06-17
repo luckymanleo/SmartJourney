@@ -13,13 +13,23 @@ AI 驱动的智能旅行规划平台，移动端 + PC Web 双版本。
 
 ## 快速开始
 
+### 前置准备
+
+| 平台 | 配置项 | 获取方式 | .env 对应字段 |
+|------|--------|---------|-------------|
+| DeepSeek | API Key | [platform.deepseek.com](https://platform.deepseek.com) → API Keys | `LLM_API_KEY` |
+| 高德地图 | Web 服务 Key + JS API Key | [console.amap.com](https://console.amap.com) → 应用管理 | `GAODE_API_KEY` |
+| ModelScope | MCP 飞猪旅行实例 URL | [modelscope.cn](https://modelscope.cn) → MCP 服务 | `MCP_FLIGGY_URL` |
+| 飞猪 FlyAI | API Key + Sign Secret | 飞猪开放平台 | `FLYAI_API_KEY` / `FLYAI_SIGN_SECRET` |
+| 短信 | AccessKey + 签名 + 模板 | 阿里云短信控制台（开发环境可用 `mock` 跳过） | `SMS_*` |
+
 ```bash
 # 1. 依赖服务
 docker compose up -d postgres redis
 
 # 2. 后端
 cd backend
-cp .env.example .env
+cp .env.example .env          # 按上表填入三方配置
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --loop asyncio
@@ -27,7 +37,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --loop asyncio
 # 3. 前端
 cd frontend
 npm install
-npm run dev          # 移动端 :5173 / PC端 :5173/pc.html
+npm run dev                   # 移动端 :5173 / PC端 :5173/pc.html
 ```
 
 ## 部署
