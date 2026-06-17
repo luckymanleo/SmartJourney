@@ -60,33 +60,6 @@ export default function TripDetailPage() {
     return currentTrip?.days?.find(d => d.day_number === mapDay)
   }, [currentTrip, mapDay])
 
-  const selectedPoi = useMemo(() => {
-    if (!focusPoiId || !selectedDay) return null
-    const items = selectedDay.items || []
-    const idx = items.findIndex((i: any) => i.id === focusPoiId)
-    if (idx === -1) return null
-    return { ...items[idx], day_number: selectedDay.day_number, item_index: idx }
-  }, [focusPoiId, selectedDay])
-
-  const nextPoiForSelected = useMemo(() => {
-    if (!selectedPoi || !selectedDay) return null
-    const items = selectedDay.items || []
-    const idx = items.findIndex((i: any) => i.id === selectedPoi.id)
-    if (idx === -1 || idx >= items.length - 1) return null
-    return items[idx + 1]
-  }, [selectedPoi, selectedDay])
-
-  const distanceToNext = useMemo(() => {
-    if (!selectedPoi || !nextPoiForSelected) return undefined
-    const a: any = selectedPoi, b: any = nextPoiForSelected
-    if (!a.lng || !a.lat || !b.lng || !b.lat) return undefined
-    const dx = (b.lng - a.lng) * 111000 * Math.cos(((a.lat + b.lat) / 2) * Math.PI / 180)
-    const dy = (b.lat - a.lat) * 111000
-    const m = Math.sqrt(dx * dx + dy * dy)
-    if (m < 1000) return `🚶 步行${Math.round(m)}m`
-    return `🚗 约${(m / 1000).toFixed(1)}km`
-  }, [selectedPoi, nextPoiForSelected])
-
   if (loading || !currentTrip) {
     return (
       <div className="p-4">
@@ -235,7 +208,7 @@ export default function TripDetailPage() {
           )}
         </>
       ) : (
-        /* Map tab: day selector + map + day itinerary */
+        /* Map tab: day selector + day itinerary with inline detail cards */
         <div className="space-y-4">
           {/* Day selector */}
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -269,41 +242,42 @@ export default function TripDetailPage() {
                     flight: '✈️', train: '🚄', hotel: '🏨', poi: '🎫',
                     food: '🍽️', transport: '🚗', bus: '🚌', other: '📍',
                   }
+                  const isFocused = focusPoiId === item.id
+                  const items = selectedDay.items || []
+                  const nextItem = idx < items.length - 1 ? items[idx + 1] : null
                   return (
-                    <div
-                      key={item.id}
-                      onClick={() => setFocusPoiId(item.id)}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg active:bg-gray-100 cursor-pointer"
-                    >
-                      <span className="text-gray-300 text-xs w-4 text-right">{idx + 1}</span>
-                      <span className="text-base">{emoji[item.type] || '📍'}</span>
-                      <span className="text-[10px] text-gray-400 flex-shrink-0">{item.type}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm text-gray-800 truncate">{item.title}</div>
-                        <div className="text-xs text-gray-400">
-                          {item.start_time && item.end_time
-                            ? `${item.start_time} - ${item.end_time}`
-                            : item.start_time}
-                          {item.price ? ` · ¥${item.price}` : ''}
+                    <div key={item.id}>
+                      <div
+                        onClick={() => setFocusPoiId(isFocused ? null : item.id)}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isFocused ? 'bg-primary-50' : 'active:bg-gray-100'}`}
+                      >
+                        <span className="text-gray-300 text-xs w-4 text-right">{idx + 1}</span>
+                        <span className="text-base">{emoji[item.type] || '📍'}</span>
+                        <span className="text-[10px] text-gray-400 flex-shrink-0">{item.type}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm text-gray-800 truncate">{item.title}</div>
+                          <div className="text-xs text-gray-400">
+                            {item.start_time && item.end_time
+                              ? `${item.start_time} - ${item.end_time}`
+                              : item.start_time}
+                            {item.price ? ` · ¥${item.price}` : ''}
+                          </div>
                         </div>
                       </div>
+                      {isFocused && (
+                        <PoiDetailCard
+                          key={item.id}
+                          poi={{...item, day_number: selectedDay.day_number, item_index: idx} as any}
+                          nextPoi={nextItem as any}
+                          onClose={() => setFocusPoiId(null)}
+                          compact
+                        />
+                      )}
                     </div>
                   )
                 })}
               </div>
             </div>
-          )}
-
-          {/* POI detail card */}
-          {selectedPoi && (
-            <PoiDetailCard
-              key={selectedPoi.id}
-              poi={selectedPoi as any}
-              nextPoi={nextPoiForSelected as any}
-              distance={distanceToNext}
-              onClose={() => setFocusPoiId(null)}
-              compact
-            />
           )}
         </div>
       )}
