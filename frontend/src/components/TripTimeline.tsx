@@ -83,14 +83,12 @@ export default function TripTimeline({ days, travelerCount, onItemClick }: { day
                     <div className="text-xs text-gray-400 mt-1">{item.description}</div>
                   )}
                   {item.booking_url && !itemExpired && (
-                    <a
-                      href={item.booking_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => window.open(item.booking_url!, '_blank')}
                       className="text-xs text-primary-500 mt-1 inline-block hover:underline"
                     >
                       去预订 →
-                    </a>
+                    </button>
                   )}
                   {item.extra_data && !item.booking_url && (
                     <div className="text-xs text-gray-400 mt-1">

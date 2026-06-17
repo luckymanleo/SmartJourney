@@ -18,10 +18,10 @@ function formatDuration(minutes: number | null | undefined): string {
 function BookingLink({ url }: { url?: string }) {
   if (!url) return null
   return (
-    <a href={url} target="_blank" rel="noopener noreferrer"
+    <button onClick={() => window.open(url, '_blank')}
       className="text-xs bg-primary-50 text-primary-600 px-3 py-1.5 rounded-lg mt-2 inline-block hover:bg-primary-100 transition-colors">
       去预订 →
-    </a>
+    </button>
   )
 }
 
