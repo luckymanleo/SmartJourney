@@ -76,7 +76,6 @@ interface Props {
 export default function TripMap({ tripId, totalDays, compact = false, selectedDay, focusPoiId, className = '' }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<any>(null)
-  const allMarkersRef = useRef<any[]>([])
   const allPolylinesRef = useRef<any[]>([])
 
   const [allDays, setAllDays] = useState<DayData[]>([])
@@ -149,18 +148,19 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
     }
   }, [allDays, loading])
 
-  // 4b. Render markers — 切换天时只替换覆盖物，不重建地图（避免瓦片并发限流）
+  // 4b. Render markers — 同坐标自动微偏移，避免重叠
   useEffect(() => {
     if (!allDays.length || !mapRef.current) return
     const AMap = (window as any).AMap
     if (!AMap) return
 
-    allMarkersRef.current.forEach(m => m.setMap(null))
-    allMarkersRef.current = []
+    // 清旧
     allPolylinesRef.current.forEach(p => p.setMap(null))
     allPolylinesRef.current = []
 
     const map = mapRef.current
+    const markers: any[] = []
+    const posCount: Record<string, number> = {}  // "{lng},{lat}" → 出现次数
 
     allDays.forEach((day, dayIdx) => {
       const color = DAY_COLORS[dayIdx % DAY_COLORS.length]
@@ -170,19 +170,30 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
 
       day.pois.forEach((poi, idx) => {
         if (!poi.lng || !poi.lat) return
+
+        // 同坐标微偏移：第N个偏移 ~N×110m，避免完全重叠
+        const key = `${poi.lng.toFixed(6)},${poi.lat.toFixed(6)}`
+        const n = posCount[key] || 0
+        posCount[key] = n + 1
+        const R = 0.001     // ~110m，标签可见分离
+        const angle = (n * 137.5) * Math.PI / 180
+        const offsetLng = n > 0 ? R * Math.cos(angle) : 0
+        const offsetLat = n > 0 ? R * Math.sin(angle) : 0
+
         const m = new AMap.Marker({
-          position: [poi.lng, poi.lat],
+          position: [poi.lng + offsetLng, poi.lat + offsetLat],
           label: {
-            content: `<span style="font-size:10px;background:${color};color:#fff;padding:1px 5px;border-radius:10px;opacity:${opacity}">D${day.day_number}.${idx + 1}</span>`,
+            content: `<span style="font-size:10px;background:${color};color:#fff;padding:1px 5px;border-radius:10px;opacity:${opacity}">D${day.day_number}.${(poi.item_index ?? idx) + 1}</span>`,
             direction: 'top',
             offset: [0, -20],
           },
-          zIndex: isFiltered ? 50 : 100,
+          zIndex: isFiltered ? 50 : 100 + n,
           opacity,
         })
-        m.setMap(map)
+        m._poiData = poi
         m.on('click', () => setSelectedPoi(poi))
-        allMarkersRef.current.push(m)
+        m.setMap(map)
+        markers.push(m)
       })
 
       const coords = day.pois.filter(p => p.lng && p.lat).map(p => [p.lng, p.lat] as [number, number])
@@ -200,9 +211,9 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
       }
     })
 
-    // Fit view to show all markers of selected day(s)
-    if (allMarkersRef.current.length > 0) {
-      map.setFitView(allMarkersRef.current, false, [50, 50, 50, compact ? 80 : 40])
+    // Fit view
+    if (markers.length > 0) {
+      map.setFitView(markers, false, [50, 50, 50, compact ? 80 : 40])
     }
 
     applyPendingFocus()

@@ -47,6 +47,8 @@ export default function TripTimeline({ days, travelerCount, onItemClick }: { day
               const cfg = typeConfig[item.type] || { icon: '📍', color: 'bg-gray-100' }
               const unitPrice = showUnit && item.price ? item.price / travelerCount! : null
               const isInt = unitPrice && unitPrice === Math.floor(unitPrice)
+              // 节点截止时间已过 → 不再显示"去预订"
+              const itemExpired = !!(day.date && item.end_time && new Date() > new Date(`${day.date}T${item.end_time}:00`))
               return (
                 <div key={item.id} className={`relative ${onItemClick ? 'cursor-pointer hover:bg-gray-50 rounded-lg -mx-1 px-1' : ''}`}
                   onClick={() => onItemClick?.(item.title)}>
@@ -80,7 +82,7 @@ export default function TripTimeline({ days, travelerCount, onItemClick }: { day
                   {item.description && (
                     <div className="text-xs text-gray-400 mt-1">{item.description}</div>
                   )}
-                  {item.booking_url && (
+                  {item.booking_url && !itemExpired && (
                     <a
                       href={item.booking_url}
                       target="_blank"

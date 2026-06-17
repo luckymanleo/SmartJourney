@@ -124,10 +124,15 @@ async def get_budget(
 
 
 def _trip_to_dict(trip) -> dict:
+    # 动态过期判定：即使 DB status 尚未被定时任务更新，API 层即刻纠正
+    from datetime import date
+    status = trip.status
+    if status in ("planning", "active") and trip.end_date and trip.end_date < date.today():
+        status = "expired"
     return {
         "id": trip.id,
         "title": trip.title,
-        "status": trip.status,
+        "status": status,
         "origin": trip.origin,
         "destination": trip.destination,
         "dest_lng": None,
