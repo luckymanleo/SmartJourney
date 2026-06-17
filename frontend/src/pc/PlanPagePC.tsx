@@ -168,10 +168,7 @@ export default function PlanPagePC() {
       <div className="flex-1 flex gap-0 min-h-0" style={{gap: 'clamp(12px, 1.5vw, 24px)'}}>
 
         <div className="overflow-y-auto" style={{flex: '0 0 35%'}}>
-          <div className="bg-white rounded-xl border border-gray-200" style={{padding: 'clamp(12px, 1.5vw, 24px)'}}>
-            <h2 className="font-semibold text-gray-700 mb-5" style={fs.heading}>出行信息</h2>
-            {formPanel}
-          </div>
+          {formPanel}
         </div>
 
         <div className="flex-1 min-w-0 overflow-y-auto">
