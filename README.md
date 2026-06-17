@@ -45,6 +45,55 @@ docker compose logs -f backend
 
 Nginx 配置文件：`nginx.conf`（反向代理 + 静态文件 + SSE 长连接）
 
+## 架构关键设计
+
+### 行程排序（sort_seq）
+
+`trips` 表使用 `BIGSERIAL` 列 `sort_seq` 作为主排序键，替代 `updated_at`。原因：
+
+- `updated_at` 会被过期定时任务、后台任务等系统操作污染，导致新行程被挤出首页
+- `sort_seq` 由数据库序列自增，全局单调递增，不受任何 UPDATE 影响
+- 过期任务（`trip_expiry.py`）不再修改 `updated_at`
+
+### 坐标生成（唯一入口）
+
+经纬度只在 **AI 规划 SSE 阶段**（`_emit_poi_coordinates`）生成，然后随 `_save_trip` 写入数据库。
+
+```
+SSE geocode（唯一入口）
+  → 前端实时地图预览
+  → 写入 DB（随 item INSERT）
+  ↓
+_enrich_items（仅照片富化，不再 geocode）
+map_routes（纯 DB 读取，不再 geocode 补漏）
+```
+
+跨城行程使用 `seen_transit` 标记：首个 train/flight 后的所有 item 使用目的地城市 geocode（跨天不重置）。
+
+火车/航班 item 始终取出发站（`→` 左侧）进行 geocode。
+
+### 地图 marker 聚合
+
+同坐标的多个 marker 自动聚合成一个圆角胶囊：
+```
+┌──────────────────┐
+│ D3.1,D3.2   ❷   │  标签拼接 + 计数圈
+└──────────────────┘
+```
+
+点击后弹出 InfoWindow 列表，可逐一查看详情卡片。
+
+### 停运火车站过滤
+
+两层防护：
+
+| 层 | 位置 | 机制 |
+|---|---|---|
+| LLM 提示 | SYSTEM_PROMPT `{discontinued}` 占位符 | 运行时替换为 config 中的停运站列表 |
+| 数据过滤 | `_compact_tool_result` | 搜索结果进入 LLM 前先关键词过滤 |
+
+停运站列表配置在 `config.json` → `discontinued_stations`。
+
 ## 平台集成
 
 ### .env 配置模板
@@ -67,34 +116,39 @@ GAODE_API_KEY=<your-gaode-key>
 
 # ---- 短信（开发用 mock，生产切换 aliyun）----
 SMS_PROVIDER=mock
-# SMS_ACCESS_KEY_ID=LTAIxxxx...
-# SMS_ACCESS_KEY_SECRET=xxxx...
-# SMS_SIGN_NAME=<your-sign-name>
-# SMS_TEMPLATE_CODE=SMS_xxxxx
 ```
 
-### config.json（MCP / 策略配置）
+### config.json 关键配置
 
 路径：`backend/config.json`
 
 ```json
 {
-  "mcp_url": "https://api.modelscope.cn/mcp/xxx",
-  "mcp_headers": { "Authorization": "Bearer <token>" },
-  "city_search_aliases": {},
-  "route_strategies": {
-    "smart_balance": "智能平衡",
-    "budget_first": "经济实惠",
-    "comfort_first": "舒适优先",
-    "fastest": "最快到达"
+  "discontinued_stations": ["深圳西站", "北京东站", ...],
+  "city_search_aliases": {
+    "武夷山": {"train": ["武夷山北", "南平市"], "flight": "武夷山"}
   },
+  "route_strategies": [
+    {"tag": "经济实惠", "emphasis": "..."},
+    {"tag": "舒适优先", "emphasis": "..."},
+    {"tag": "最快到达", "emphasis": "..."}
+  ],
   "features": {
-    "weather_reference": true,
-    "mcp_tool_timeout_seconds": 15,
-    "mcp_max_retries": 3
+    "trip_expiry_interval_seconds": 1800,
+    "mcp_tool_timeout_seconds": 180,
+    "max_route_count": 3
   }
 }
 ```
+
+### 数据库迁移
+
+手动 SQL 迁移文件在 `backend/migrations/` 目录：
+
+| 文件 | 说明 |
+|------|------|
+| `add_comments.sql` | 表/列注释 |
+| `add_sort_seq.sql` | trips 表加 BIGSERIAL 排序列 + 索引 |
 
 ### Docker Compose
 
