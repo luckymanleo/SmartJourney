@@ -14,31 +14,6 @@ from app.services import map_service
 router = APIRouter()
 
 
-def _build_geocode_address(item, trip_destination: str | None) -> str | None:
-    """构造 geocode 地址：优先 location，回退到 title+目的地"""
-    import re
-    if item.location:
-        return item.location
-    if item.title and trip_destination:
-        # 交通类（train/flight/transport）：提取出发站/机场
-        if item.type in ('train', 'flight', 'transport'):
-            # "K636 深圳东 → 武夷山" → "深圳东站"
-            # "深圳航空 ZH2539 深圳→武夷山" → "深圳机场"
-            # "中国国航 CA4368 07:05→08:55" → 无城市名 → 用目的地兜底
-            prefix = item.title.split('→')[0].split('→')[0]
-            m = re.search(r'([\u4e00-\u9fa5]{2,8}(?:东|西|南|北|站)?)\s*$', prefix)
-            suffix = '机场' if item.type == 'flight' else '站'
-            if m:
-                station = m.group(1)
-                if not station.endswith(suffix):
-                    station += suffix
-                return station
-            # 无城市名 → 用目的地兜底
-            return f"{trip_destination}{suffix}"
-        return f"{trip_destination} {item.title}"
-    return item.title or None
-
-
 # ── 地图配置 ────────────────────────────────────────────────────
 
 @router.get("/config")
@@ -207,7 +182,6 @@ async def trip_map(
     day_maps = []
     all_lngs = []
     all_lats = []
-    need_geocode = []
 
     for day in days:
         items_result = await db.execute(
@@ -238,54 +212,12 @@ async def trip_map(
                 idx += 1
                 all_lngs.append(item.lng)
                 all_lats.append(item.lat)
-            elif item.location or (item.title and trip.destination):
-                # 缺坐标，构造地址 geocode
-                need_geocode.append((item, day))
 
         day_maps.append({
             "day_number": day.day_number,
             "date": str(day.date) if day.date else "",
             "pois": pois,
         })
-
-    # 批量补充缺失经纬度
-    if need_geocode:
-        for item, day in need_geocode:
-            try:
-                addr = _build_geocode_address(item, trip.destination)
-                geo = await map_service.geocode(addr or item.title)
-                if "error" not in geo:
-                    item.lat = geo["lat"]
-                    item.lng = geo["lng"]
-                    all_lngs.append(geo["lng"])
-                    all_lats.append(geo["lat"])
-                    # 回写数据库
-                    await db.execute(
-                        TripItem.__table__.update()
-                        .where(TripItem.id == item.id)
-                        .values(lat=geo["lat"], lng=geo["lng"])
-                    )
-                    # 添加到对应天的 pois
-                    for dm in day_maps:
-                        if dm["day_number"] == day.day_number:
-                            dm["pois"].append({
-                                "id": item.id,
-                                "title": item.title,
-                                "type": item.type,
-                                "lng": geo["lng"],
-                                "lat": geo["lat"],
-                                "start_time": item.start_time,
-                                "end_time": item.end_time,
-                                "location": item.location,
-                                "photos": item.photos,
-                                "amap_poi_id": item.amap_poi_id,
-                                "day_number": day.day_number,
-                                "item_index": item.sort_order if item.sort_order is not None else len(dm["pois"]),
-                            })
-                            break
-            except Exception:
-                pass  # geocode 失败不影响主流程
-        await db.commit()
 
     # 计算中心点
     center_lng = sum(all_lngs) / len(all_lngs) if all_lngs else 116.40
@@ -339,32 +271,13 @@ async def trip_day_map(
     pois = []
     idx = 0
     for item in items:
-        lat = item.lat
-        lng = item.lng
-
-        # 缺坐标 → 即时 geocode + 回写
-        if (lat is None or lng is None) and (item.location or (item.title and trip.destination)):
-            try:
-                addr = _build_geocode_address(item, trip.destination)
-                geo = await map_service.geocode(addr or item.title)
-                if "error" not in geo:
-                    lat, lng = geo["lat"], geo["lng"]
-                    item.lat, item.lng = lat, lng
-                    await db.execute(
-                        TripItem.__table__.update()
-                        .where(TripItem.id == item.id)
-                        .values(lat=lat, lng=lng)
-                    )
-            except Exception:
-                pass
-
-        if lat is not None and lng is not None:
+        if item.lat is not None and item.lng is not None:
             pois.append({
                 "id": item.id,
                 "title": item.title,
                 "type": item.type,
-                "lng": lng,
-                "lat": lat,
+                "lng": item.lng,
+                "lat": item.lat,
                 "start_time": item.start_time,
                 "end_time": item.end_time,
                 "location": item.location,

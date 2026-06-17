@@ -22,7 +22,7 @@ from sse_starlette.sse import ServerSentEvent
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
-from app.config_loader import feature, city_search_aliases
+from app.config_loader import feature, city_search_aliases, discontinued_stations
 from app.services import mcp_manager
 from app.database import async_session_factory
 from app.services.route_strategies import ROUTE_STRATEGIES
@@ -59,6 +59,10 @@ SYSTEM_PROMPT = """你是 SmartJourney（智旅）的智能旅行规划师。基
 - 抵达目的地后，用 transport 类型衔接市内交通（地铁/公交/打车到酒店）
 - Day 1 跨城交通出发前如有 ≥4 小时空档，必须安排出发地 1-2 个景点/美食（即使搜索结果为空也应基于常识补全，如城市公园、博物馆、本地小吃）。出发前预留 1.5-2h 前往车站/机场。Day 2 如为在途日，抵达后应从酒店入住开始安排
 - 跨城交通优先使用搜索结果中真实存在的航班/车次，价格和 booking_url 如实填写；搜索结果为空时可基于常识补全车次但 price 也需根据常识估算（如高铁二等座约 0.5元/km）
+
+## 停运火车站排除（必须遵守）
+
+以下火车站已停运/废弃，严禁作为出发或到达站：{discontinued}。此外，根据你的常识（截至2025年），还需排除其他已知停运的普速/货运站（如北京东站普速场等），只选用正常运营的高铁/动车/普速客运站。
 
 ## 输出格式
 
@@ -386,8 +390,11 @@ class AgentService:
 
         # 6. 构建 LLM prompt（一次性，不通过 tool_calls）
         search_context = "\n\n".join(compact_results)
+        disc_list = discontinued_stations()
+        disc_str = "、".join(disc_list) if disc_list else "无"
+        system_prompt = SYSTEM_PROMPT.replace("{discontinued}", disc_str)
         messages = [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_message},
             {"role": "user", "content": (
                 f"## 搜索结果\n\n{search_context}\n\n"
@@ -491,10 +498,13 @@ class AgentService:
             "route_count": route_count,
         })
 
-        # 8. 实时地图预览：逐 POI geocode + SSE 推送坐标
+        # 8. 实时地图预览：逐 POI geocode + SSE 推送坐标 + 收集供持久化
+        all_coords: list[dict] = []  # 每个 trip_json 对应一个 {(day, idx): (lng, lat)}
         for tj in trip_jsons:
-            async for ev in self._emit_poi_coordinates(tj, destination or ""):
+            coords: dict = {}
+            async for ev in self._emit_poi_coordinates(tj, origin or "", destination or "", coords):
                 yield ev
+            all_coords.append(coords)
 
         # 异步保存（不阻塞 SSE 流）
         if trip_jsons and save_as_trip:
@@ -502,9 +512,9 @@ class AgentService:
                 try:
                     async with async_session_factory() as save_db:
                         async with save_db.begin():
-                            for tj in trip_jsons:
+                            for tj, coords in zip(trip_jsons, all_coords):
                                 try:
-                                    await self._save_trip(save_db, user_id, tj, origin, destination, start_date, end_date, traveler_count, budget_total, special_notes, weather_summary)
+                                    await self._save_trip(save_db, user_id, tj, origin, destination, start_date, end_date, traveler_count, budget_total, special_notes, weather_summary, coords=coords)
                                 except Exception as e:
                                     logger.error(f"Failed to save route {tj.get('route_tag')}: {e}")
                     logger.info(f"Async save complete: {len(trip_jsons)} routes")
@@ -514,13 +524,18 @@ class AgentService:
 
     # ==================== 私有方法 ====================
 
-    async def _emit_poi_coordinates(self, trip_json: dict, city: str):
-        """逐 POI geocode → SSE poi_coord 事件，供前端实时地图打点"""
+    async def _emit_poi_coordinates(self, trip_json: dict, origin: str, destination: str,
+                                     coords_out: dict | None = None):
+        """逐 POI geocode → SSE poi_coord 事件 + 收集坐标到 coords_out {(day, idx): (lng, lat)}"""
         from app.services.map_service import geocode
+        import re as _re
         titles: list[tuple[str, str, int, int]] = []  # (title, type, day, idx)
         for day_data in trip_json.get("days", []):
             day_num = day_data.get("day_number", 1)
-            for idx, item in enumerate(day_data.get("items", [])):
+            items = day_data.get("items", [])
+            # 按 start_time 排序，与 _save_trip 保持一致，确保 idx 对齐
+            items.sort(key=lambda i: i.get("start_time", "99:99"))
+            for idx, item in enumerate(items):
                 title = item.get("title", "").strip()
                 if title:
                     titles.append((title, item.get("type", ""), day_num, idx))
@@ -528,23 +543,33 @@ class AgentService:
         if not titles:
             return
 
-        sem = asyncio.Semaphore(5)  # 高德 geocode API 并发限制
+        sem = asyncio.Semaphore(5)
         count = 0
 
-        async def _geo_one(title: str, typ: str, day: int, idx: int):
+        async def _geo_one(title: str, typ: str, day: int, idx: int, city: str):
             nonlocal count
             async with sem:
                 try:
-                    result = await geocode(title, city)
+                    is_transport = typ in ("flight", "train", "transport")
+                    if is_transport:
+                        query = title
+                        if '→' in title:
+                            side = title.split('→')[0].strip()
+                        else:
+                            side = title
+                        m = _re.search(r'([\u4e00-\u9fa5]{2,8}(?:东|西|南|北)(?:站|机场)?|[\u4e00-\u9fa5]{2,8}(?:站|机场))', side)
+                        if m:
+                            query = m.group(1)
+                        result = await geocode(query, city)
+                    else:
+                        result = await geocode(f"{city} {title}" if city else title, city)
                     if result and "lng" in result and "lat" in result:
                         return {
                             "title": title, "day": day, "idx": idx,
                             "lng": result["lng"], "lat": result["lat"],
                         }
-                    # 交通类兜底：用城市名+机场/站再搜一次
-                    if typ in ("flight", "train", "transport") and city:
-                        suffix = "机场" if typ == "flight" else "站"
-                        result = await geocode(f"{city}{suffix}", city)
+                    if city:
+                        result = await geocode(title)
                         if result and "lng" in result and "lat" in result:
                             return {
                                 "title": title, "day": day, "idx": idx,
@@ -554,12 +579,23 @@ class AgentService:
                     logger.debug(f"Live geocode failed: {title[:30]} — {e}")
                 return None
 
-        tasks = [_geo_one(t, tp, d, i) for t, tp, d, i in titles]
-        for coro in asyncio.as_completed(tasks):
-            coord = await coro
-            if coord:
-                count += 1
-                yield self._sse_event("poi_coord", coord)
+        # 按天遍历，跨天后不重置 seen_transit（一旦出发到达目的地，后续天都在目的地）
+        current_day = 0
+        seen_transit = False
+        for title, typ, day_num, idx in titles:
+            if day_num != current_day:
+                current_day = day_num
+            if typ in ('train', 'flight'):
+                seen_transit = True
+            city = destination if (seen_transit and destination) else (origin or destination)
+            tasks = [_geo_one(title, typ, day_num, idx, city)]
+            for coro in asyncio.as_completed(tasks):
+                coord = await coro
+                if coord:
+                    count += 1
+                    if coords_out is not None:
+                        coords_out[(coord["day"], coord["idx"])] = (coord["lng"], coord["lat"])
+                    yield self._sse_event("poi_coord", coord)
 
         logger.info(f"Live geocode: {count}/{len(titles)} POIs geocoded")
 
@@ -823,8 +859,22 @@ class AgentService:
     def _compact_tool_result(self, tool_name: str, result: dict) -> str:
         """将工具结果压缩为 LLM 友好的紧凑 JSON，大幅减少 token 消耗"""
         items = result.get("items", []) or result.get("data", {}).get("items", [])
+
+        # 过滤停运火车站（train 搜索结果，防止 LLM 选到已停运车站的车次）
+        if tool_name == "search_train" and items:
+            disc = discontinued_stations()
+            if disc:
+                filtered = []
+                for item in items:
+                    text = json.dumps(item, ensure_ascii=False)
+                    if not any(s in text for s in disc):
+                        filtered.append(item)
+                if len(filtered) < len(items):
+                    logger.info(f"Filtered {len(items)-len(filtered)} trains from discontinued stations")
+                items = filtered
+
         if not items:
-            return json.dumps({"tool": tool_name, "count": 0, "note": result.get("note", "无结果")}, ensure_ascii=False)
+            return json.dumps({"tool": tool_name, "count": 0, "note": result.get("note", "无结果已过滤停运站" if tool_name == "search_train" else "无结果")}, ensure_ascii=False)
 
         # 每种工具提取关键字段
         compact = {"tool": tool_name, "count": len(items), "items": []}
@@ -914,8 +964,8 @@ class AgentService:
         except (json.JSONDecodeError, ValueError):
             return None
 
-    async def _save_trip(self, db, user_id, trip_json, origin, destination, start_date, end_date, traveler_count, budget_total, special_notes=None, weather_info=""):
-        """保存行程、行程项、预算到数据库"""
+    async def _save_trip(self, db, user_id, trip_json, origin, destination, start_date, end_date, traveler_count, budget_total, special_notes=None, weather_info="", coords: dict | None = None):
+        """保存行程、行程项、预算到数据库。coords = {(day, idx): (lng, lat)} 来自 SSE 阶段 geocode"""
         from app.services.trip_service import create_trip, add_trip_item
         trip_id = trip_json.get("trip_id")
         trip_data = {
@@ -946,6 +996,7 @@ class AgentService:
             items.sort(key=lambda i: i.get("start_time", "99:99"))
             for idx, item_data in enumerate(items):
                 item_type = item_data.get("type", "other")
+                lat_lng = coords.get((day_num, idx)) if coords else None
                 await add_trip_item(db, trip.id, user_id, {
                     "day_id": target_day.id,
                     "type": item_type,
@@ -956,11 +1007,13 @@ class AgentService:
                     "booking_url": item_data.get("booking_url"),
                     "extra_data": item_data.get("extra_data"),
                     "sort_order": idx,
+                    "lat": lat_lng[1] if lat_lng else None,
+                    "lng": lat_lng[0] if lat_lng else None,
                 })
         await db.flush()
 
-        # ── POI 照片富化（异步后台，批量 geocode + Amap 搜索）──
-        from app.services.map_service import enrich_poi_photos, geocode as amap_geocode
+        # ── POI 照片富化（异步后台，仅对已有坐标的 item 搜照片）──
+        from app.services.map_service import enrich_poi_photos
         from sqlalchemy import select as _select
         from app.models import TripItem
         import asyncio as _asyncio
@@ -975,27 +1028,19 @@ class AgentService:
                                 TripItem.trip_day_id.in_([d.id for d in trip_days])
                             )
                         )
-                        items_to_enrich = item_result.scalars().all()
-                        for item in items_to_enrich:
+                        for item in item_result.scalars().all():
+                            if item.lat is None or item.lng is None:
+                                continue  # SSE geocode 未成功，跳过照片富化
+                            if item.photos and item.amap_poi_id:
+                                continue
                             try:
-                                if item.photos and item.amap_poi_id:
-                                    continue
-                                lng, lat = item.lng, item.lat
-                                if lng is None or lat is None:
-                                    geo = await amap_geocode(item.location or item.title)
-                                    if "error" not in geo:
-                                        lng, lat = geo["lng"], geo["lat"]
-                                    else:
-                                        continue
-                                photos, amap_id = await enrich_poi_photos(item.title, lng, lat)
-                                update_vals = {}
-                                if photos:
-                                    update_vals["photos"] = photos
-                                if amap_id:
-                                    update_vals["amap_poi_id"] = amap_id
-                                if update_vals:
-                                    update_vals["lng"] = lng
-                                    update_vals["lat"] = lat
+                                photos, amap_id = await enrich_poi_photos(item.title, item.lng, item.lat)
+                                if photos or amap_id:
+                                    update_vals = {}
+                                    if photos:
+                                        update_vals["photos"] = photos
+                                    if amap_id:
+                                        update_vals["amap_poi_id"] = amap_id
                                     await enrich_db.execute(
                                         TripItem.__table__.update()
                                         .where(TripItem.id == item.id)

@@ -5,7 +5,7 @@ from datetime import datetime
 
 from sqlalchemy import (
     Column, String, Integer, Float, Date, Time, Text, DateTime,
-    Boolean, ForeignKey, JSON, DECIMAL, Index, UniqueConstraint,
+    Boolean, ForeignKey, JSON, DECIMAL, Index, UniqueConstraint, text,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -90,6 +90,12 @@ class Trip(Base):
     notes: Mapped[str | None] = mapped_column(Text, nullable=True, comment="备注")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, comment="创建时间")
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, comment="最后更新时间")
+    sort_seq: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        server_default=text("nextval('trips_sort_seq_seq'::regclass)"),
+        comment="自增排序序号（BIGSERIAL），替代 updated_at 做可靠的插入顺序排序"
+    )
 
     user = relationship("User", back_populates="trips")
     days = relationship("TripDay", back_populates="trip", cascade="all, delete-orphan", order_by="TripDay.day_number")

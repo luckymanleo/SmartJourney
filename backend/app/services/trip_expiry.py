@@ -6,7 +6,7 @@ SQLite 兼容：使用 SQLAlchemy Core，避免 ORM 关系加载问题
 
 import asyncio
 import logging
-from datetime import datetime, date
+from datetime import date
 
 from sqlalchemy import text
 
@@ -22,10 +22,10 @@ async def expire_past_trips():
         async with async_session_factory() as session:
             result = await session.execute(
                 text(
-                    "UPDATE trips SET status = 'expired', updated_at = :now "
-                    "WHERE status = 'active' AND end_date IS NOT NULL AND end_date < :today"
+                    "UPDATE trips SET status = 'expired' "
+                    "WHERE status IN ('planning', 'active') AND end_date IS NOT NULL AND end_date < :today"
                 ),
-                {"now": datetime.utcnow(), "today": today},
+                {"today": today},
             )
             await session.commit()
             count = result.rowcount

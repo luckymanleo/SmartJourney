@@ -29,8 +29,12 @@ export default function TripDetailPagePC() {
 
   const handleDelete = async () => {
     if (!id) return
-    await deleteTrip(id)
-    navigate('/trips')
+    try {
+      await deleteTrip(id)
+      navigate('/trips')
+    } catch (e: any) {
+      alert(e?.message || '删除失败，请重试')
+    }
   }
 
   const parseWeather = (info: string | null) => {

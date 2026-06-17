@@ -59,3 +59,8 @@ def feature(key: str, default=None) -> Any:
 def city_search_aliases() -> dict[str, dict[str, str]]:
     """城市名→搜索词映射（小城市站名/机场名与城市名不一致时使用）"""
     return load_config().get("city_search_aliases", {})
+
+
+def discontinued_stations() -> list[str]:
+    """已知停运/废弃火车站列表，规划时排除"""
+    return load_config().get("discontinued_stations", [])

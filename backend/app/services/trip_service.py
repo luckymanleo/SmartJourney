@@ -78,7 +78,7 @@ async def list_trips(
 
     query = query.options(
         selectinload(Trip.days).selectinload(TripDay.items),
-    ).order_by(Trip.updated_at.desc()).offset((page - 1) * page_size).limit(page_size)
+    ).order_by(Trip.sort_seq.desc()).offset((page - 1) * page_size).limit(page_size)
 
     result = await db.execute(query)
     trips = result.scalars().all()

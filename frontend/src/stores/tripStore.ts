@@ -94,8 +94,12 @@ export const useTripStore = create<TripStore>((set, get) => ({
 
   deleteTrip: async (id) => {
     const { deleteTrip } = await import('../api')
-    await deleteTrip(id)
+    const res = await deleteTrip(id)
+    if (res.data?.code !== 0) {
+      throw new Error(res.data?.message || '删除失败')
+    }
     set((s) => ({ trips: s.trips.filter((t) => t.id !== id) }))
+    return true
   },
 
   addItem: async (tripId, data) => {

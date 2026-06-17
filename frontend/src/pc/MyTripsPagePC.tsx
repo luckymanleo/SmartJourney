@@ -73,8 +73,14 @@ export default function MyTripsPagePC() {
   const handleDeleteClick = (e: React.MouseEvent, id: string, title: string) => {
     e.stopPropagation(); setDeleteTarget({ id, title })
   }
-  const handleConfirmDelete = () => {
-    if (deleteTarget) { deleteTrip(deleteTarget.id); setDeleteTarget(null) }
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return
+    try {
+      await deleteTrip(deleteTarget.id)
+      setDeleteTarget(null)
+    } catch (e: any) {
+      alert(e?.message || '删除失败，请重试')
+    }
   }
 
   const titleStyle = { fontSize: 'clamp(1.25rem, 1.8vw, 1.75rem)' }

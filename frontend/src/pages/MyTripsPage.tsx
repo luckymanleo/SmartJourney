@@ -89,10 +89,13 @@ export default function MyTripsPage() {
 
   const tripsWithCoords = trips.filter(t => t.dest_lng && t.dest_lat)
 
-  const handleConfirmDelete = () => {
-    if (deleteTarget) {
-      deleteTrip(deleteTarget.id)
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return
+    try {
+      await deleteTrip(deleteTarget.id)
       setDeleteTarget(null)
+    } catch (e: any) {
+      alert(e?.message || '删除失败，请重试')
     }
   }
 
