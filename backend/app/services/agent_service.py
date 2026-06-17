@@ -568,8 +568,12 @@ class AgentService:
                             "title": title, "day": day, "idx": idx,
                             "lng": result["lng"], "lat": result["lat"],
                         }
-                    if city:
-                        result = await geocode(title)
+                    # Fallback: clean title (remove parentheticals & meal suffixes)
+                    cleaned = _re.sub(r'[（(][^)）]*[)）]', '', title)
+                    cleaned = _re.sub(r'(午餐|晚餐|早餐|中餐|晚饭|早饭|午饭)\s*$', '', cleaned)
+                    cleaned = cleaned.strip()
+                    if cleaned and cleaned != title:
+                        result = await geocode(f"{city} {cleaned}" if city else cleaned, city)
                         if result and "lng" in result and "lat" in result:
                             return {
                                 "title": title, "day": day, "idx": idx,
@@ -585,9 +589,9 @@ class AgentService:
         for title, typ, day_num, idx in titles:
             if day_num != current_day:
                 current_day = day_num
+            city = destination if (seen_transit and destination) else (origin or destination)
             if typ in ('train', 'flight'):
                 seen_transit = True
-            city = destination if (seen_transit and destination) else (origin or destination)
             tasks = [_geo_one(title, typ, day_num, idx, city)]
             for coro in asyncio.as_completed(tasks):
                 coord = await coro

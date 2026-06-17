@@ -193,14 +193,49 @@ async def trip_map(
 
         pois = []
         idx = 0
+        dest_city = trip.destination or ""
+        origin_city = trip.origin or ""
+        import re as _re
         for item in items:
-            if item.lat is not None and item.lng is not None:
+            lat = item.lat
+            lng = item.lng
+            # Auto-geocode items missing coordinates
+            if lat is None or lng is None:
+                try:
+                    geo = None
+                    # Transport items: geocode the departure station with origin city
+                    if item.type in ('train', 'flight', 'transport'):
+                        query = item.title
+                        if '→' in query:
+                            query = query.split('→')[0].strip()
+                        m = _re.search(r'([\u4e00-\u9fa5]{2,8}(?:东|西|南|北)(?:站|机场)?|[\u4e00-\u9fa5]{2,8}(?:站|机场))', query)
+                        if m:
+                            query = m.group(1)
+                        geo_city = origin_city if item.type in ('train', 'flight') else dest_city
+                        geo = await map_service.geocode(query, city=geo_city)
+                    else:
+                        geo = await map_service.geocode(item.title, city=dest_city)
+                    # Fallback: clean title (remove parentheticals & meal suffixes)
+                    if not (geo.get("lng") and geo.get("lat")):
+                        cleaned = _re.sub(r'[（(][^)）]*[)）]', '', item.title)
+                        cleaned = _re.sub(r'(午餐|晚餐|早餐|中餐|晚饭|早饭|午饭)\s*$', '', cleaned)
+                        cleaned = cleaned.strip()
+                        if cleaned and cleaned != item.title:
+                            geo = await map_service.geocode(cleaned, city=dest_city)
+                    if geo.get("lng") and geo.get("lat"):
+                        lng = float(geo["lng"])
+                        lat = float(geo["lat"])
+                        item.lng = lng
+                        item.lat = lat
+                except Exception:
+                    pass
+            if lat is not None and lng is not None:
                 pois.append({
                     "id": item.id,
                     "title": item.title,
                     "type": item.type,
-                    "lng": item.lng,
-                    "lat": item.lat,
+                    "lng": lng,
+                    "lat": lat,
                     "start_time": item.start_time,
                     "end_time": item.end_time,
                     "location": item.location,
@@ -210,14 +245,17 @@ async def trip_map(
                     "item_index": item.sort_order if item.sort_order is not None else idx,
                 })
                 idx += 1
-                all_lngs.append(item.lng)
-                all_lats.append(item.lat)
+                all_lngs.append(lng)
+                all_lats.append(lat)
 
         day_maps.append({
             "day_number": day.day_number,
             "date": str(day.date) if day.date else "",
             "pois": pois,
         })
+
+    # Persist any geocoded coordinates
+    await db.commit()
 
     # 计算中心点
     center_lng = sum(all_lngs) / len(all_lngs) if all_lngs else 116.40

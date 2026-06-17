@@ -89,6 +89,7 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [amapKey, setAmapKey] = useState('')
+  const [amapReady, setAmapReady] = useState(false)
 
   // 1. Load config
   useEffect(() => {
@@ -100,7 +101,7 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
   }, [])
 
   // 2. Load Amap
-  useEffect(() => { if (amapKey) loadAmap(amapKey).then(ok => { if (!ok) setError('地图加载失败') }) }, [amapKey])
+  useEffect(() => { if (amapKey) loadAmap(amapKey).then(ok => { if (ok) setAmapReady(true); else setError('地图加载失败') }) }, [amapKey])
 
   // 3. Load ALL days
   useEffect(() => {
@@ -146,7 +147,7 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
     return () => {
       if (mapRef.current) { mapRef.current.destroy(); mapRef.current = null }
     }
-  }, [allDays, loading])
+  }, [allDays, loading, amapReady])
 
   // 4b. Render markers — 同坐标聚合为圆圈+计数，点击展开
   useEffect(() => {
@@ -280,7 +281,7 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
     }
 
     applyPendingFocus()
-  }, [allDays, effectiveDay, compact])
+  }, [allDays, effectiveDay, compact, amapReady])
 
   // Apply pending focus: center map on a specific POI
   const applyPendingFocus = useCallback(() => {
@@ -352,7 +353,7 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
           <span className="text-xs text-gray-400 ml-auto">{allPois.length}个地点</span>
         </div>
       )}
-      <div className={`${h} rounded-xl overflow-hidden border border-gray-200 flex-1 relative`}>
+      <div className={`${h} min-h-[300px] rounded-xl overflow-hidden border border-gray-200 flex-1 relative`}>
         {loading && (
           <div className="absolute inset-0 bg-gray-100 flex items-center justify-center z-10 rounded-xl">
             <span className="text-gray-400 text-sm">加载地图...</span>

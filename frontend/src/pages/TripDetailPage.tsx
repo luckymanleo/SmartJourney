@@ -3,8 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Trash2, AlertTriangle, X } from 'lucide-react'
 import { useTripStore } from '../stores/tripStore'
 import TripTimeline from '../components/TripTimeline'
-import TripMap from '../components/TripMap'
 import BudgetPanel from '../components/BudgetPanel'
+import PoiDetailCard from '../components/PoiDetailCard'
 
 type Tab = 'itinerary' | 'map'
 
@@ -51,18 +51,41 @@ export default function TripDetailPage() {
 
   const handleDelete = async () => {
     if (!id) return
-    try {
-      await deleteTrip(id)
-      navigate('/trips')
-    } catch (e: any) {
-      alert(e?.message || '删除失败，请重试')
-    }
+    await deleteTrip(id)
+    navigate('/trips')
   }
 
   const totalDays = currentTrip?.days?.length || 1
   const selectedDay = useMemo(() => {
     return currentTrip?.days?.find(d => d.day_number === mapDay)
   }, [currentTrip, mapDay])
+
+  const selectedPoi = useMemo(() => {
+    if (!focusPoiId || !selectedDay) return null
+    const items = selectedDay.items || []
+    const idx = items.findIndex((i: any) => i.id === focusPoiId)
+    if (idx === -1) return null
+    return { ...items[idx], day_number: selectedDay.day_number, item_index: idx }
+  }, [focusPoiId, selectedDay])
+
+  const nextPoiForSelected = useMemo(() => {
+    if (!selectedPoi || !selectedDay) return null
+    const items = selectedDay.items || []
+    const idx = items.findIndex((i: any) => i.id === selectedPoi.id)
+    if (idx === -1 || idx >= items.length - 1) return null
+    return items[idx + 1]
+  }, [selectedPoi, selectedDay])
+
+  const distanceToNext = useMemo(() => {
+    if (!selectedPoi || !nextPoiForSelected) return undefined
+    const a: any = selectedPoi, b: any = nextPoiForSelected
+    if (!a.lng || !a.lat || !b.lng || !b.lat) return undefined
+    const dx = (b.lng - a.lng) * 111000 * Math.cos(((a.lat + b.lat) / 2) * Math.PI / 180)
+    const dy = (b.lat - a.lat) * 111000
+    const m = Math.sqrt(dx * dx + dy * dy)
+    if (m < 1000) return `🚶 步行${Math.round(m)}m`
+    return `🚗 约${(m / 1000).toFixed(1)}km`
+  }, [selectedPoi, nextPoiForSelected])
 
   if (loading || !currentTrip) {
     return (
@@ -229,18 +252,6 @@ export default function TripDetailPage() {
             ))}
           </div>
 
-          {/* Map */}
-          {id && (
-            <TripMap
-              tripId={id}
-              totalDays={totalDays}
-              selectedDay={mapDay}
-              focusPoiId={focusPoiId}
-              compact
-              className="mb-0"
-            />
-          )}
-
           {/* Day itinerary */}
           {selectedDay && (
             <div className="space-y-2">
@@ -281,6 +292,18 @@ export default function TripDetailPage() {
                 })}
               </div>
             </div>
+          )}
+
+          {/* POI detail card */}
+          {selectedPoi && (
+            <PoiDetailCard
+              key={selectedPoi.id}
+              poi={selectedPoi as any}
+              nextPoi={nextPoiForSelected as any}
+              distance={distanceToNext}
+              onClose={() => setFocusPoiId(null)}
+              compact
+            />
           )}
         </div>
       )}

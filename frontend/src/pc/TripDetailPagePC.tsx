@@ -288,7 +288,7 @@ export default function TripDetailPagePC() {
           </div>
 
           {/* Right: Map 65% */}
-          <div style={{ flex: '0 0 65%' }}>
+          <div style={{ flex: '0 0 65%' }} className="h-full">
             {id && <TripMap tripId={id} totalDays={totalDays} selectedDay={mapDay} focusPoiId={focusPoiId} className="h-full" />}
           </div>
         </div>
