@@ -148,7 +148,7 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
     }
   }, [allDays, loading])
 
-  // 4b. Render markers — 同坐标自动微偏移，避免重叠
+  // 4b. Render markers — 同坐标聚合为圆圈+计数，点击展开
   useEffect(() => {
     if (!allDays.length || !mapRef.current) return
     const AMap = (window as any).AMap
@@ -160,7 +160,6 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
 
     const map = mapRef.current
     const markers: any[] = []
-    const posCount: Record<string, number> = {}  // "{lng},{lat}" → 出现次数
 
     allDays.forEach((day, dayIdx) => {
       const color = DAY_COLORS[dayIdx % DAY_COLORS.length]
@@ -168,32 +167,88 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
       if (selectedDay && isFiltered) return
       const opacity = selectedDay ? 0.85 : (isFiltered ? 0.25 : 0.75)
 
-      day.pois.forEach((poi, idx) => {
+      // 按坐标分组
+      const groups: Record<string, typeof day.pois> = {}
+      day.pois.forEach(poi => {
         if (!poi.lng || !poi.lat) return
-
-        // 同坐标微偏移：第N个偏移 ~N×110m，避免完全重叠
         const key = `${poi.lng.toFixed(6)},${poi.lat.toFixed(6)}`
-        const n = posCount[key] || 0
-        posCount[key] = n + 1
-        const R = 0.001     // ~110m，标签可见分离
-        const angle = (n * 137.5) * Math.PI / 180
-        const offsetLng = n > 0 ? R * Math.cos(angle) : 0
-        const offsetLat = n > 0 ? R * Math.sin(angle) : 0
+        if (!groups[key]) groups[key] = []
+        groups[key].push(poi)
+      })
 
-        const m = new AMap.Marker({
-          position: [poi.lng + offsetLng, poi.lat + offsetLat],
-          label: {
-            content: `<span style="font-size:10px;background:${color};color:#fff;padding:1px 5px;border-radius:10px;opacity:${opacity}">D${day.day_number}.${(poi.item_index ?? idx) + 1}</span>`,
-            direction: 'top',
-            offset: [0, -20],
-          },
-          zIndex: isFiltered ? 50 : 100 + n,
-          opacity,
-        })
-        m._poiData = poi
-        m.on('click', () => setSelectedPoi(poi))
-        m.setMap(map)
-        markers.push(m)
+      Object.entries(groups).forEach(([key, pois]) => {
+        const [lng, lat] = key.split(',').map(Number)
+
+        if (pois.length === 1) {
+          // 单点：普通 marker
+          const poi = pois[0]
+          const m = new AMap.Marker({
+            position: [lng, lat],
+            label: {
+              content: `<span style="font-size:10px;background:${color};color:#fff;padding:1px 5px;border-radius:10px;opacity:${opacity}">D${day.day_number}.${(poi.item_index ?? 0) + 1}</span>`,
+              direction: 'top',
+              offset: [0, -20],
+            },
+            zIndex: isFiltered ? 50 : 100,
+            opacity,
+          })
+          m._poiData = poi
+          m.on('click', () => setSelectedPoi(poi))
+          m.setMap(map)
+          markers.push(m)
+        } else {
+          // 多点聚合：圆圈+计数，点击弹出列表
+          const circleSize = 28 + Math.min(pois.length, 5) * 2
+          const m = new AMap.Marker({
+            position: [lng, lat],
+            content: `<div style="
+              width:${circleSize}px;height:${circleSize}px;border-radius:50%;
+              background:${color};color:#fff;font-size:${12 + Math.min(pois.length, 3)}px;
+              font-weight:bold;display:flex;align-items:center;justify-content:center;
+              border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);
+              opacity:${opacity};cursor:pointer
+            ">${pois.length}</div>`,
+            offset: new AMap.Pixel(-circleSize / 2, -circleSize / 2),
+            zIndex: isFiltered ? 50 : 150,
+          })
+          m._groupPois = pois
+          m._dayNumber = day.day_number
+          m._color = color
+          m.on('click', () => {
+            // 关闭旧 infoWindow
+            if ((m as any)._infoWin) (m as any)._infoWin.close()
+            const items = pois.map(p => {
+              const label = `D${day.day_number}.${(p.item_index ?? 0) + 1}`
+              return `<div style="padding:6px 8px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:13px;white-space:nowrap"
+                onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background=''"
+                data-poi-id="${p.id}">
+                <span style="display:inline-block;min-width:32px;background:${color};color:#fff;font-size:10px;text-align:center;border-radius:8px;padding:1px 4px;margin-right:6px">${label}</span>${p.title}
+              </div>`
+            }).join('')
+            const iw = new AMap.InfoWindow({
+              content: `<div style="max-width:260px;max-height:220px;overflow-y:auto;padding:4px 0">${items}</div>`,
+              offset: new AMap.Pixel(0, -circleSize / 2 - 8),
+            })
+            iw.open(map, [lng, lat])
+            ;(m as any)._infoWin = iw
+            // 委托点击 InfoWindow 内的项
+            setTimeout(() => {
+              document.querySelectorAll('[data-poi-id]').forEach(el => {
+                el.addEventListener('click', (e) => {
+                  e.stopPropagation()
+                  const pid = (el as HTMLElement).dataset.poiId
+                  const found = pois.find(p => p.id === pid)
+                  if (found) {
+                    iw.close()
+                    setSelectedPoi(found)
+                  }
+                })
+              })
+            }, 100)
+          })
+          m.setMap(map)
+          markers.push(m)
+        }
       })
 
       const coords = day.pois.filter(p => p.lng && p.lat).map(p => [p.lng, p.lat] as [number, number])
@@ -211,7 +266,6 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
       }
     })
 
-    // Fit view
     if (markers.length > 0) {
       map.setFitView(markers, false, [50, 50, 50, compact ? 80 : 40])
     }
