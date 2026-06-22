@@ -31,12 +31,15 @@ async def lifespan(app: FastAPI):
     # 初始化远程 MCP
     from app.services.mcp_manager import init_remote_mcp
     await init_remote_mcp()
-    # 启动行程过期定时任务
-    from app.services.trip_expiry import run_periodic
-    expiry_task = asyncio.create_task(run_periodic(1800))
+    # 启动行程过期定时任务（多 worker 模式下通过 DISABLE_EXPIRY_TASK=true 关闭，由独立守护进程执行）
+    expiry_task = None
+    if not settings.disable_expiry_task:
+        from app.services.trip_expiry import run_periodic
+        expiry_task = asyncio.create_task(run_periodic(1800))
     yield
     # 关闭时
-    expiry_task.cancel()
+    if expiry_task is not None:
+        expiry_task.cancel()
     await engine.dispose()
 
 

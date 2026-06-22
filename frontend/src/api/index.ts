@@ -27,6 +27,9 @@ export const addTripItem = (tripId: string, data: any) => api.post(`/trips/${tri
 export const removeTripItem = (tripId: string, itemId: string) => api.delete(`/trips/${tripId}/items/${itemId}`)
 export const getBudget = (tripId: string) => api.get(`/trips/${tripId}/budget`)
 
+export const getTripStats = (params: { year: number; period?: string; period_value?: number }) =>
+  api.get('/trips/stats', { params })
+
 // Info
 export const getWeather = (city: string) => api.get('/info/weather', { params: { city } })
 export const getDestinationInfo = (city: string) => api.get(`/info/destination/${city}`)

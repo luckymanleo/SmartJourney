@@ -40,6 +40,31 @@ npm install
 npm run dev                   # 移动端 :5173 / PC端 :5173/pc.html
 ```
 
+### 多 Worker 启动（生产/高并发）
+
+单 worker 适合开发调试，生产环境推荐多 worker 提升并发能力：
+
+```bash
+# 1. .env 中关闭内嵌定时任务
+DISABLE_EXPIRY_TASK=true
+
+# 2. 主服务 — 4 worker（根据 CPU 核心数调整 --workers）
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --loop asyncio --workers 4
+
+# 3. 定时任务守护 — 独立单进程执行行程过期检查
+python scripts/expiry_daemon.py &
+```
+
+| 平台 | 守护进程管理方式 |
+|------|----------------|
+| WSL / Linux | `systemd --user` 或 `nohup python scripts/expiry_daemon.py &` |
+| Windows | `pythonw scripts/expiry_daemon.py`（无窗口后台）或注册 Windows Service |
+| Docker | 同一镜像两个容器：`app --workers 4` + `app-expiry`（CMD 指向 expiry_daemon.py） |
+
+**原理**：FastAPI 多 worker 模式下，每个 worker 独立运行 `lifespan` 中的后台任务。
+若不剥离，N 个 worker 会同时执行行程过期检查（SQL UPDATE 幂等所以数据安全，但浪费资源）。
+设置 `DISABLE_EXPIRY_TASK=true` 后主服务跳过定时任务，由 `expiry_daemon.py` 单独运行。
+
 ## 部署
 
 ```bash
@@ -72,6 +97,8 @@ backend/
 │   ├── config.py       # .env 配置类
 │   └── database.py     # async session
 ├── config.json         # 运行时配置（策略、别名、停运站）
+├── scripts/
+│   └── expiry_daemon.py  # 行程过期守护进程（多 worker 模式配套）
 ├── migrations/         # SQL 迁移脚本
 ├── tests/
 └── .env.example

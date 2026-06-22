@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, case, extract
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -259,3 +259,140 @@ async def save_preferences(db: AsyncSession, user_id: str, data: dict) -> None:
                               value=data["special_notes"]))
 
     await db.flush()
+
+
+# ==================== 首页统计聚合 ====================
+
+from datetime import date as date_type
+
+async def get_trip_stats(
+    db: AsyncSession,
+    user_id: str,
+    year: int,
+    period: str = "year",  # year | quarter | month
+    period_value: int | None = None,  # 季度 1-4 或 月份 1-12
+) -> dict:
+    """首页统计：按时间段聚合行程数据
+
+    Returns:
+        {
+            "total_trips": int,        # 该时间段行程总数
+            "active_trips": int,       # 进行中（planning + active）
+            "total_budget": float,     # 总预算
+            "monthly_trend": [...],    # 月度趋势（每个月 trip 数 + 预算）
+            "category_breakdown": [...]  # 消费分类占比
+        }
+    """
+    # 时间范围
+    if period == "year":
+        start = date_type(year, 1, 1)
+        end = date_type(year, 12, 31)
+    elif period == "quarter":
+        if not period_value or period_value < 1 or period_value > 4:
+            period_value = 1
+        q_start_month = (period_value - 1) * 3 + 1
+        start = date_type(year, q_start_month, 1)
+        q_end_month = q_start_month + 2
+        if q_end_month == 12:
+            end = date_type(year, 12, 31)
+        else:
+            end = date_type(year, q_end_month + 1, 1) - timedelta(days=1)
+    elif period == "month":
+        if not period_value or period_value < 1 or period_value > 12:
+            period_value = 1
+        start = date_type(year, period_value, 1)
+        if period_value == 12:
+            end = date_type(year, 12, 31)
+        else:
+            end = date_type(year, period_value + 1, 1) - timedelta(days=1)
+    else:
+        start = date_type(year, 1, 1)
+        end = date_type(year, 12, 31)
+
+    # 1) 时间段内 trip 的基础统计
+    trip_result = await db.execute(
+        select(
+            func.count(Trip.id),
+            func.sum(Trip.budget_total),
+            func.sum(
+                case((Trip.status.in_(["planning", "active"]), 1), else_=0)
+            ),
+        ).where(
+            Trip.user_id == user_id,
+            Trip.start_date >= start,
+            Trip.start_date <= end,
+        )
+    )
+    total_trips, total_budget, active_trips = trip_result.one()
+    total_trips = total_trips or 0
+    total_budget = float(total_budget) if total_budget else 0
+    active_trips = active_trips or 0
+
+    # 2) 月度趋势 — 时间段内按月份分组
+    trend_result = await db.execute(
+        select(
+            extract("month", Trip.start_date).label("month"),
+            func.count(Trip.id).label("count"),
+            func.coalesce(func.sum(Trip.budget_total), 0).label("budget"),
+        ).where(
+            Trip.user_id == user_id,
+            Trip.start_date >= start,
+            Trip.start_date <= end,
+        ).group_by(extract("month", Trip.start_date)).order_by("month")
+    )
+    trend_map = {}
+    for row in trend_result:
+        m = int(row.month)
+        trend_map[m] = {
+            "month": m,
+            "count": row.count,
+            "budget": float(row.budget),
+        }
+    # 填充缺失月份
+    months_range = range(start.month, end.month + 1)
+    monthly_trend = [
+        trend_map.get(m, {"month": m, "count": 0, "budget": 0})
+        for m in months_range
+    ]
+
+    # 3) 消费分类占比 — 时间段内所有 trip_items.price 按 type 分组
+    cat_result = await db.execute(
+        select(
+            TripItem.type.label("item_type"),
+            func.coalesce(func.sum(TripItem.price), 0).label("total_price"),
+        ).select_from(TripItem).join(TripDay, TripItem.trip_day_id == TripDay.id).join(
+            Trip, TripDay.trip_id == Trip.id
+        ).where(
+            Trip.user_id == user_id,
+            Trip.start_date >= start,
+            Trip.start_date <= end,
+        ).group_by(TripItem.type)
+    )
+    # 类型映射
+    TYPE_LABELS = {
+        "flight": "交通", "train": "交通", "bus": "交通",
+        "car_rental": "交通", "ferry": "交通", "transport": "交通",
+        "hotel": "住宿",
+        "food": "餐饮",
+        "poi": "门票",
+    }
+    merged: dict[str, float] = {}
+    for row in cat_result:
+        item_type = row.item_type
+        price = float(row.total_price)
+        label = TYPE_LABELS.get(item_type, "其他")
+        merged[label] = merged.get(label, 0) + price
+    # 保证 5 个分类都存在
+    all_labels = ["交通", "住宿", "餐饮", "门票", "其他"]
+    category_breakdown = [
+        {"category": label, "amount": merged.get(label, 0)}
+        for label in all_labels
+    ]
+
+    return {
+        "total_trips": total_trips,
+        "active_trips": active_trips,
+        "total_budget": total_budget,
+        "monthly_trend": monthly_trend,
+        "category_breakdown": category_breakdown,
+    }

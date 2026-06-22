@@ -48,6 +48,21 @@ async def list_trips(
     }
 
 
+@router.get("/stats")
+async def get_stats(
+    year: int = Query(default=None, description="年份，默认当前年"),
+    period: str = Query(default="year", description="year | quarter | month"),
+    period_value: int = Query(default=None, description="季度 1-4 或 月份 1-12"),
+    user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if year is None:
+        from datetime import date
+        year = date.today().year
+    data = await trip_service.get_trip_stats(db, user.id, year, period, period_value)
+    return {"code": 0, "data": data}
+
+
 @router.get("/{trip_id}")
 async def get_trip(
     trip_id: str,

@@ -42,3 +42,6 @@ mcp-travel-smart-plan==2.1.0
 # Utilities
 python-multipart==0.0.19
 python-dotenv==1.0.1
+
+# Scheduler
+apscheduler==3.11.0

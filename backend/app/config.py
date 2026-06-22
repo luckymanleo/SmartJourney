@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     app_version: str
     debug: bool = False
     log_level: str = "INFO"
+    disable_expiry_task: bool = False  # 多 worker 模式下设为 true，由独立守护进程执行
 
     # ---- 数据库 ----
     database_url: str
