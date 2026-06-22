@@ -12,13 +12,13 @@ const IS_PC = typeof window !== 'undefined' && window.location.pathname.startsWi
 const TOKEN_KEY = IS_PC ? 'sj_pc_token' : 'sj_token'
 
 function getToken(): string | null {
-  try { return localStorage.getItem(TOKEN_KEY) } catch { return null }
+  try { return sessionStorage.getItem(TOKEN_KEY) } catch { return null }
 }
 function setToken(v: string) {
-  try { localStorage.setItem(TOKEN_KEY, v) } catch {}
+  try { sessionStorage.setItem(TOKEN_KEY, v) } catch {}
 }
 function removeToken() {
-  try { localStorage.removeItem(TOKEN_KEY) } catch {}
+  try { sessionStorage.removeItem(TOKEN_KEY) } catch {}
 }
 
 interface AuthStore {
