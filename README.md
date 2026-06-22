@@ -10,8 +10,8 @@ AI 驱动的智能旅行规划平台，移动端 + PC Web 双版本。
   <td align="center"><b>PC 端</b></td>
 </tr>
 <tr>
-  <td><img src="docs/screenshots/mobile-plan.png" width="390" alt="移动端AI规划"></td>
-  <td><img src="docs/screenshots/pc-plan.png" width="720" alt="PC端AI规划"></td>
+  <td><img src="assets/screenshots/mobile-plan.png" width="390" alt="移动端AI规划"></td>
+  <td><img src="assets/screenshots/pc-plan.png" width="720" alt="PC端AI规划"></td>
 </tr>
 <tr>
   <td align="center">AI 智能规划</td>
