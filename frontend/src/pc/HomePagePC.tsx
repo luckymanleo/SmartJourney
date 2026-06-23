@@ -174,25 +174,17 @@ function StatCard({ label, color, token, year, fs, getValue }: {
 function TrendCard({ token, year: _year, fs }: { token: string | null; year: number; fs: any }) {
   const tp = usePeriod('year')
   const [data, setData] = useState<Stats | null>(null)
-  const [lastData, setLastData] = useState<Stats | null>(null)
 
   useEffect(() => {
     if (!token) return
     getTripStats({ year: tp.year, period: tp.period, period_value: tp.period !== 'year' ? tp.periodVal : undefined })
       .then(r => setData(r.data?.data || null)).catch(() => setData(null))
   }, [token, tp.year, tp.period, tp.periodVal])
-  useEffect(() => {
-    if (!token || tp.period !== 'year') { setLastData(null); return }
-    getTripStats({ year: tp.year - 1, period: 'year' })
-      .then(r => setLastData(r.data?.data || null)).catch(() => setLastData(null))
-  }, [token, tp.year, tp.period])
 
-  const isComparing = tp.period === 'year' && !!lastData
   const all12 = Array.from({ length: 12 }, (_, i) => {
     const m = i + 1
     const cur = data?.monthly_trend?.find((t: any) => t.month === m)
-    const prev = lastData?.monthly_trend?.find((t: any) => t.month === m)
-    return { label: `${m}月`, value: cur?.budget ?? 0, active: !!cur, compare: prev?.budget ?? 0 }
+    return { label: `${m}月`, value: cur?.budget ?? 0, active: !!cur }
   })
 
   return (
@@ -204,8 +196,8 @@ function TrendCard({ token, year: _year, fs }: { token: string | null; year: num
         <PeriodControl year={tp.year} period={tp.period} periodVal={tp.periodVal}
           onYearChange={tp.setYear} onPeriodChange={tp.handlePeriodChange} onPeriodValChange={tp.setPeriodVal} />
       </div>
-      <div className="flex-1 flex items-end" style={{ minHeight: 'clamp(180px, 20vw, 260px)' }}>
-        {data ? <BarChart data={all12} fs={fs} compare={isComparing} year={tp.year} /> : <Loading fs={fs} />}
+      <div className="flex-1 flex" style={{ minHeight: 'clamp(180px, 20vw, 260px)' }}>
+        {data ? <BarChart data={all12} fs={fs} /> : <Loading fs={fs} />}
       </div>
     </div>
   )
@@ -246,107 +238,76 @@ function Loading({ fs }: { fs: any }) {
 // ==================== 图表 ====================
 
 const CHART_COLORS = ['#6366f1', '#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#8b5cf6', '#06b6d4', '#f97316', '#84cc16', '#14b8a6']
-const THIS_YEAR_COLOR = '#6366f1'
-const LAST_YEAR_COLOR = '#9ca3af'
 
-interface BarItem { label: string; value: number; active?: boolean; compare?: number }
+interface BarItem { label: string; value: number; active?: boolean }
 
-function BarChart({ data, fs, compare, year }: { data: BarItem[]; fs: any; compare?: boolean; year?: number }) {
-  const maxVal = Math.max(...data.map(d => compare ? Math.max(d.value, d.compare ?? 0) : d.value), 1)
+function BarChart({ data, fs }: { data: BarItem[]; fs: any }) {
+  const maxVal = Math.max(...data.map(d => d.value), 1)
   const gridLines = 4; const step = maxVal / gridLines
+
   return (
-    <div className="w-full h-full flex flex-col" style={{ minHeight: 'clamp(160px, 18vw, 230px)' }}>
-      {compare && <ChartLegend year={year!} />}
+    <div className="w-full flex-1 flex flex-col" style={{ minHeight: 'clamp(160px, 18vw, 230px)' }}>
+
       <div className="flex flex-1">
-        <YAxis gridLines={gridLines} step={step} />
+        <div className="flex flex-col justify-between items-end pr-2" style={{ 
+          minWidth: 'clamp(44px, 5vw, 56px)',
+          paddingBottom: '1.25rem',
+        }}>
+          {Array.from({ length: gridLines + 1 }, (_, i) => (
+            <span key={i} className="text-gray-500 leading-none" style={{ fontSize: 'clamp(0.625rem, 0.7vw, 0.75rem)' }}>
+              ¥{(gridLines - i) * step >= 1000 ? `${((gridLines - i) * step / 1000).toFixed(1)}k` : (gridLines - i) * step}
+            </span>
+          ))}
+        </div>
+
         <div className="flex-1 relative">
-          <GridLines gridLines={gridLines} />
-          <div className="absolute inset-0 flex items-end" style={{ gap: compare ? 'clamp(2px, 0.3vw, 4px)' : '3px', padding: '0 1px' }}>
+          <div className="absolute inset-0" style={{ zIndex: 0 }}>
+            {Array.from({ length: gridLines + 1 }, (_, i) => (
+              <div key={i} className="absolute left-0 right-0 border-t border-gray-200" style={{ bottom: `${(i / gridLines) * 100}%` }} />
+            ))}
+          </div>
+
+          <div className="flex h-full items-end relative" style={{ padding: '0 1px', zIndex: 1 }}>
             {data.map((d, i) => {
               const isActive = d.active !== false
-              return compare
-                ? <GroupBar key={i} d={d} maxVal={maxVal} isActive={isActive} />
-                : <SingleBar key={i} d={d} i={i} maxVal={maxVal} isActive={isActive} />
+              const h = (d.value / maxVal) * 100
+              return (
+                <div key={i} className="flex-1 flex flex-col h-full">
+                  <div className="flex-1 flex flex-col items-center justify-end">
+                    <div className="rounded-t group relative"
+                      style={{
+                        width: '45%',
+                        height: `${h}%`,
+                        minHeight: d.value > 0 ? '2px' : '0',
+                        backgroundColor: isActive ? CHART_COLORS[i % CHART_COLORS.length] : '#d1d5db',
+                        transition: 'height 0.3s ease',
+                      }}>
+                      {isActive && d.value > 0 && (
+                        <div className="absolute -top-5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="text-gray-700 font-medium whitespace-nowrap" style={{ fontSize: 'clamp(0.6875rem, 0.75vw, 0.8125rem)' }}>¥{d.value.toLocaleString()}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex justify-center pt-1">
+                    <span className={isActive ? 'text-gray-500' : 'text-gray-400'} style={{ fontSize: 'clamp(0.6875rem, 0.75vw, 0.8125rem)' }}>
+                      {d.label}
+                    </span>
+                  </div>
+                </div>
+              )
             })}
           </div>
         </div>
       </div>
-      <XAxis data={data} />
     </div>
   )
 }
-function ChartLegend({ year }: { year: number }) {
-  return (
-    <div className="flex items-center gap-4 mb-2" style={{ paddingLeft: 'clamp(44px, 5vw, 56px)' }}>
-      <Legend color={THIS_YEAR_COLOR} label={String(year)} />
-      <Legend color={LAST_YEAR_COLOR} label={String(year - 1)} muted />
-    </div>
-  )
-}
-function YAxis({ gridLines, step }: { gridLines: number; step: number }) {
-  return (
-    <div className="flex flex-col justify-between items-end pr-2 pb-5" style={{ minWidth: 'clamp(44px, 5vw, 56px)' }}>
-      {Array.from({ length: gridLines + 1 }, (_, i) => (
-        <span key={i} className="text-gray-500 leading-none" style={{ fontSize: 'clamp(0.625rem, 0.7vw, 0.75rem)' }}>
-          ¥{(gridLines - i) * step >= 1000 ? `${((gridLines - i) * step / 1000).toFixed(1)}k` : (gridLines - i) * step}
-        </span>
-      ))}
-    </div>
-  )
-}
-function GridLines({ gridLines }: { gridLines: number }) {
-  return <>{Array.from({ length: gridLines + 1 }, (_, i) => (
-    <div key={i} className="absolute left-0 right-0 border-t border-gray-200" style={{ bottom: `${(i / gridLines) * 100}%` }} />
-  ))}</>
-}
-function XAxis({ data }: { data: BarItem[] }) {
-  return (
-    <div className="flex" style={{ paddingLeft: 'clamp(44px, 5vw, 56px)' }}>
-      {data.map((d, i) => (
-        <div key={i} className="flex-1 flex justify-center pt-1">
-          <span className={(d.active !== false ? 'text-gray-500' : 'text-gray-400')} style={{ fontSize: 'clamp(0.6875rem, 0.75vw, 0.8125rem)' }}>{d.label}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-function GroupBar({ d, maxVal, isActive }: { d: BarItem; maxVal: number; isActive: boolean }) {
-  const h1 = (d.value / maxVal) * 100; const h2 = ((d.compare ?? 0) / maxVal) * 100
-  return (
-    <div className="flex-1 flex items-end justify-center gap-[1px] h-full">
-      <div className="flex-1 rounded-t-sm" style={{ maxWidth: '45%', height: `${h2}%`, minHeight: (d.compare ?? 0) > 0 ? '2px' : '0', backgroundColor: LAST_YEAR_COLOR, transition: 'height 0.3s ease' }} />
-      <div className="flex-1 rounded-t-sm" style={{ maxWidth: '45%', height: `${h1}%`, minHeight: d.value > 0 ? '2px' : '0', backgroundColor: isActive ? THIS_YEAR_COLOR : '#d1d5db', transition: 'height 0.3s ease' }} />
-    </div>
-  )
-}
-function SingleBar({ d, i, maxVal, isActive }: { d: BarItem; i: number; maxVal: number; isActive: boolean }) {
-  const h = (d.value / maxVal) * 100
-  return (
-    <div className="flex-1 flex flex-col items-center justify-end h-full">
-      <div className="w-full rounded-t group relative"
-        style={{ height: `${h}%`, minHeight: d.value > 0 ? '2px' : '0', backgroundColor: isActive ? CHART_COLORS[i % CHART_COLORS.length] : '#d1d5db', transition: 'height 0.3s ease' }}>
-        {isActive && d.value > 0 && (
-          <div className="absolute -top-5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <span className="text-gray-700 font-medium whitespace-nowrap" style={{ fontSize: 'clamp(0.6875rem, 0.75vw, 0.8125rem)' }}>¥{d.value.toLocaleString()}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-function Legend({ color, label, muted }: { color: string; label: string; muted?: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: color }} />
-      <span className={muted ? 'text-gray-500' : 'text-gray-700'} style={{ fontSize: 'clamp(0.6875rem, 0.75vw, 0.8125rem)' }}>{label}</span>
-    </div>
-  )
-}
-
 function DonutChart({ data, fs }: { data: { category: string; amount: number }[]; fs: any }) {
   const total = data.reduce((s, d) => s + d.amount, 0) || 1
   const size = 120; const cx = size / 2; const cy = size / 2
   const r = 40; const circ = 2 * Math.PI * r; const gap = 0.015
+  const [hovered, setHovered] = useState<{ category: string; pct: number } | null>(null)
   if (total <= 0 || data.length === 0) return (
     <div className="flex flex-col items-center justify-center gap-3 h-full" style={{ minHeight: 'clamp(180px, 20vw, 260px)' }}>
       <div className="w-[100px] h-[100px] rounded-full border-[8px] border-gray-200 flex items-center justify-center"><span className="text-gray-400" style={fs.small}>¥0</span></div>
@@ -354,20 +315,60 @@ function DonutChart({ data, fs }: { data: { category: string; amount: number }[]
     </div>
   )
   let off = 0; const sorted = [...data].sort((a, b) => b.amount - a.amount)
+  const segments = sorted.map(d => {
+    const pct = d.amount / total
+    const start = off; off += pct
+    return { ...d, pct, start }
+  })
+
+  const handleMouseMove = (e: React.MouseEvent<SVGCircleElement>) => {
+    const svg = e.currentTarget.closest('svg')!
+    const rect = svg.getBoundingClientRect()
+    const scaleX = size / rect.width
+    const scaleY = size / rect.height
+    const x = (e.clientX - rect.left) * scaleX - cx
+    const y = (e.clientY - rect.top) * scaleY - cy
+    let angle = Math.atan2(y, x) + Math.PI / 2  // SVG rotated -90deg
+    if (angle < 0) angle += 2 * Math.PI
+    const norm = angle / (2 * Math.PI)
+    const seg = segments.find(s => norm >= s.start && norm < s.start + s.pct)
+    if (seg) setHovered({ category: seg.category, pct: seg.pct * 100 })
+    else setHovered(null)
+  }
+
   return (
     <div className="flex items-center gap-4 h-full w-full" style={{ minHeight: 'clamp(180px, 20vw, 260px)' }}>
       <div className="relative flex-shrink-0" style={{ width: 'clamp(100px, 12vw, 130px)', height: 'clamp(100px, 12vw, 130px)' }}>
         <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-full -rotate-90">
           {sorted.map((d) => {
-            const dash = circ * Math.max(d.amount / total - gap, 0); const sdo = -off; off += circ * (d.amount / total)
-            return <circle key={d.category} cx={cx} cy={cy} r={r} fill="none"
-              stroke={CAT_COLORS[d.category] || CHART_COLORS[sorted.indexOf(d) % CHART_COLORS.length]}
-              strokeWidth="10" strokeLinecap="round" strokeDasharray={`${dash} ${circ - dash}`} strokeDashoffset={sdo} />
+            const pct = d.amount / total
+            const dash = circ * Math.max(pct - gap, 0); const sdo = -segments.find(s => s.category === d.category)!.start * circ
+            const color = CAT_COLORS[d.category] || CHART_COLORS[sorted.indexOf(d) % CHART_COLORS.length]
+            return (
+              <circle key={d.category} cx={cx} cy={cy} r={r} fill="none"
+                stroke={color} strokeWidth="10" strokeLinecap="round"
+                strokeDasharray={`${dash} ${circ - dash}`} strokeDashoffset={sdo} />
+            )
           })}
+          {/* single hit ring: covers entire donut, angle-based detection */}
+          <circle cx={cx} cy={cy} r={r} fill="none"
+            stroke="rgba(0,0,0,0.01)" strokeWidth="30"
+            onMouseMove={handleMouseMove}
+            onMouseLeave={() => setHovered(null)}
+            style={{ cursor: 'pointer', pointerEvents: 'stroke' }} />
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="font-bold text-gray-800" style={{ fontSize: 'clamp(0.9375rem, 1.1vw, 1.125rem)' }}>¥{(total / 1000).toFixed(1)}k</span>
-          <span className="text-gray-500" style={{ fontSize: 'clamp(0.6875rem, 0.75vw, 0.8125rem)' }}>总计</span>
+        <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ pointerEvents: 'none' }}>
+          {hovered ? (
+            <>
+              <span className="font-bold text-gray-800 text-center leading-tight" style={{ fontSize: 'clamp(0.8125rem, 0.95vw, 0.9375rem)', maxWidth: '80%' }}>{hovered.category}</span>
+              <span className="text-gray-600 font-medium" style={{ fontSize: 'clamp(0.75rem, 0.85vw, 0.875rem)' }}>{hovered.pct.toFixed(0)}%</span>
+            </>
+          ) : (
+            <>
+              <span className="font-bold text-gray-800" style={{ fontSize: 'clamp(0.9375rem, 1.1vw, 1.125rem)' }}>¥{(total / 1000).toFixed(1)}k</span>
+              <span className="text-gray-500" style={{ fontSize: 'clamp(0.6875rem, 0.75vw, 0.8125rem)' }}>总计</span>
+            </>
+          )}
         </div>
       </div>
       <div className="flex-1 flex flex-col gap-1.5 min-w-0">
