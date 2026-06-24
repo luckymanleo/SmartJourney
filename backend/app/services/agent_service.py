@@ -565,14 +565,24 @@ class AgentService:
                         query = title
                         if '→' in title:
                             side = title.split('→')[0].strip()
+                            dest = title.split('→')[1].strip()
+                            # clean transport suffix from dest
+                            dest = _re.sub(r'\s*(地铁|公交|步行|打车|网约车|专车|出租车)(\d*号线?(转\d*号线?)?)?(\s*\([^)]*\))?\s*$', '', dest)
                         else:
                             side = title
+                            dest = ''
                         m = _re.search(r'([\u4e00-\u9fa5]{2,8}(?:东|西|南|北)(?:站|机场)?|[\u4e00-\u9fa5]{2,8}(?:站|机场))', side)
                         if m:
                             query = m.group(1)
+                        elif dest:
+                            query = dest  # fallback to destination (non-station places)
                         result = await geocode(query, city)
                     else:
-                        result = await geocode(f"{city} {title}" if city else title, city)
+                        # Replace parentheses with spaces before geocoding (Amap rejects them)
+                        clean_title = _re.sub(r'[（(]', ' ', title)
+                        clean_title = _re.sub(r'[）)]', ' ', clean_title)
+                        clean_title = _re.sub(r'\s+', ' ', clean_title).strip()
+                        result = await geocode(f"{city} {clean_title}" if city else clean_title, city)
                     if result and "lng" in result and "lat" in result:
                         return {
                             "title": title, "day": day, "idx": idx,

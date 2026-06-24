@@ -206,15 +206,25 @@ async def trip_map(
                     # Transport items: geocode the departure station with origin city
                     if item.type in ('train', 'flight', 'transport'):
                         query = item.title
+                        dest = ''
                         if '→' in query:
-                            query = query.split('→')[0].strip()
+                            parts = query.split('→')
+                            query = parts[0].strip()
+                            dest = parts[1].strip() if len(parts) > 1 else ''
+                        # Extract station/airport name
                         m = _re.search(r'([\u4e00-\u9fa5]{2,8}(?:东|西|南|北)(?:站|机场)?|[\u4e00-\u9fa5]{2,8}(?:站|机场))', query)
                         if m:
                             query = m.group(1)
+                        elif dest:
+                            # Fallback: use destination (non-station places)
+                            query = _re.sub(r'\s*(地铁|公交|步行|打车|网约车|专车|出租车)(\d*号线?(转\d*号线?)?)?(\s*\([^)]*\))?\s*$', '', dest)
                         geo_city = origin_city if item.type in ('train', 'flight') else dest_city
                         geo = await map_service.geocode(query, city=geo_city)
                     else:
-                        geo = await map_service.geocode(item.title, city=dest_city)
+                        # Replace parentheses with spaces (Amap rejects them)
+                        clean = item.title.replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ')
+                        clean = _re.sub(r'\s+', ' ', clean).strip()
+                        geo = await map_service.geocode(clean, city=dest_city)
                     # Fallback: clean title (remove parentheticals & meal suffixes)
                     if not (geo.get("lng") and geo.get("lat")):
                         cleaned = _re.sub(r'[（(][^)）]*[)）]', '', item.title)
