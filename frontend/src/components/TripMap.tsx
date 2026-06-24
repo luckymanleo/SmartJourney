@@ -93,7 +93,9 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
 
   // 1. Load config
   useEffect(() => {
-    const token = localStorage.getItem('sj_token') || ''
+    const isPC = typeof window !== 'undefined' && window.location.pathname.startsWith('/pc.html')
+    const tokenKey = isPC ? 'sj_pc_token' : 'sj_token'
+    const token = (() => { try { return sessionStorage.getItem(tokenKey) || '' } catch { return '' } })()
     fetch('/api/v1/map/config', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(cfg => { if (cfg.code === 0 && cfg.data?.js_key) setAmapKey(cfg.data.js_key); else setError('地图服务未配置') })
@@ -107,7 +109,9 @@ export default function TripMap({ tripId, totalDays, compact = false, selectedDa
   useEffect(() => {
     if (!tripId) return
     setLoading(true)
-    const token = localStorage.getItem('sj_token') || ''
+    const isPC = typeof window !== 'undefined' && window.location.pathname.startsWith('/pc.html')
+    const tokenKey = isPC ? 'sj_pc_token' : 'sj_token'
+    const token = (() => { try { return sessionStorage.getItem(tokenKey) || '' } catch { return '' } })()
     fetch(`/api/v1/map/trip/${tripId}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(json => {

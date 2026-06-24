@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, MapPin, Calendar, Users, Trash2, X, AlertTriangle, List } from 'lucide-react'
+import { Plus, MapPin, Calendar, Users, Trash2, X, AlertTriangle } from 'lucide-react'
 import { useTripStore } from '../stores/tripStore'
 
 const statusLabels: Record<string, string> = {
@@ -11,64 +11,12 @@ const statusColors: Record<string, string> = {
   completed: 'bg-gray-100 text-gray-500', cancelled: 'bg-red-100 text-red-500', expired: 'bg-gray-100 text-gray-400',
 }
 
-type ViewMode = 'list' | 'map'
-
 export default function MyTripsPagePC() {
   const navigate = useNavigate()
   const { trips, loading, fetchTrips, deleteTrip } = useTripStore()
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null)
-  const [viewMode, setViewMode] = useState<ViewMode>('list')
-
-  const mapContainerRef = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<any>(null)
 
   useEffect(() => { fetchTrips() }, [])
-
-  useEffect(() => {
-    if (viewMode !== 'map' || !trips.length || !mapContainerRef.current) return
-    const AMap = (window as any).AMap
-    if (!AMap) {
-      const token = localStorage.getItem('sj_pc_token') || ''
-      fetch('/api/v1/map/config', { headers: { Authorization: `Bearer ${token}` } })
-        .then(r => r.json())
-        .then(cfg => {
-          if (cfg.code === 0 && cfg.data?.js_key) {
-            const script = document.createElement('script')
-            script.src = `https://webapi.amap.com/maps?v=2.0&key=${cfg.data.js_key}`
-            script.async = true; script.onload = () => initMap()
-            document.head.appendChild(script)
-          }
-        }).catch(() => {})
-      return
-    }
-    initMap()
-    function initMap() {
-      const A = (window as any).AMap; if (!A || !mapContainerRef.current) return
-      if (mapRef.current) { mapRef.current.destroy(); mapRef.current = null }
-      const markers: any[] = []; const points: [number, number][] = []
-      trips.forEach(trip => {
-        if (trip.dest_lng && trip.dest_lat) {
-          points.push([trip.dest_lng, trip.dest_lat])
-          const m = new A.Marker({
-            position: [trip.dest_lng, trip.dest_lat],
-            label: { content: `<div style="font-size:11px;background:#3b82f6;color:#fff;padding:2px 8px;border-radius:12px">${trip.destination || trip.title}</div>`, direction: 'top', offset: [0, -25] },
-          })
-          m.on('click', () => navigate(`/trips/${trip.id}`))
-          markers.push(m)
-        }
-      })
-      if (points.length === 0) return
-      const map = new A.Map(mapContainerRef.current, {
-        zoom: points.length === 1 ? 12 : 5,
-        center: [points.reduce((s, p) => s + p[0], 0) / points.length, points.reduce((s, p) => s + p[1], 0) / points.length],
-        resizeEnable: true,
-      })
-      markers.forEach(m => m.setMap(map))
-      map.setFitView(markers, false, [40, 40, 40, 40])
-      mapRef.current = map
-    }
-    return () => { if (mapRef.current) { mapRef.current.destroy(); mapRef.current = null } }
-  }, [viewMode, trips])
 
   const handleDeleteClick = (e: React.MouseEvent, id: string, title: string) => {
     e.stopPropagation(); setDeleteTarget({ id, title })
@@ -93,16 +41,6 @@ export default function MyTripsPagePC() {
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
           <h1 className="font-bold text-gray-800" style={titleStyle}>我的行程</h1>
-          <div className="flex bg-gray-100 rounded-lg p-0.5">
-            <button onClick={() => setViewMode('list')}
-              className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-400'}`}>
-              <List size={16} />
-            </button>
-            <button onClick={() => setViewMode('map')}
-              className={`p-1.5 rounded-md transition-colors ${viewMode === 'map' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-400'}`}>
-              <MapPin size={16} />
-            </button>
-          </div>
         </div>
         <button onClick={() => navigate('/plan')}
           className="bg-primary-600 text-white rounded-xl px-5 py-2.5 font-medium flex items-center gap-2 hover:bg-primary-700 transition-colors" style={bodyStyle}>
@@ -112,13 +50,7 @@ export default function MyTripsPagePC() {
 
       {loading && <div className="text-center text-gray-400 py-12" style={bodyStyle}>加载中...</div>}
 
-      {viewMode === 'map' && !loading && (
-        <div className="rounded-xl border border-gray-200 overflow-hidden mb-4" style={{ height: 'clamp(300px, 50vh, 600px)' }}>
-          <div ref={mapContainerRef} className="w-full h-full" />
-        </div>
-      )}
-
-      {viewMode === 'list' && !loading && trips.length > 0 && (
+      {!loading && trips.length > 0 && (
         <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(260px, 28%, 360px), 1fr))' }}>
           {trips.map((trip) => (
             <div key={trip.id} onClick={() => navigate(`/trips/${trip.id}`)}

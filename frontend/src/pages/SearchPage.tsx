@@ -74,7 +74,9 @@ export default function SearchPage() {
   useEffect(() => {
     if (viewMode !== 'map' || results.length === 0) return
     setGeocoding(true)
-    const token = localStorage.getItem('sj_token') || ''
+    const isPC = typeof window !== 'undefined' && window.location.pathname.startsWith('/pc.html')
+    const tokenKey = isPC ? 'sj_pc_token' : 'sj_token'
+    const token = (() => { try { return sessionStorage.getItem(tokenKey) || '' } catch { return '' } })()
     const titles = results.map((r: any) => r.title).filter(Boolean)
     if (titles.length === 0) { setGeocoding(false); return }
     fetch('/api/v1/map/geocode/batch', {
@@ -98,7 +100,9 @@ export default function SearchPage() {
     if (viewMode !== 'map' || mapCoords.length === 0 || !mapContainerRef.current) return
     const A = (window as any).AMap
     if (!A) {
-      const token = localStorage.getItem('sj_token') || ''
+      const isPC = typeof window !== 'undefined' && window.location.pathname.startsWith('/pc.html')
+    const tokenKey = isPC ? 'sj_pc_token' : 'sj_token'
+    const token = (() => { try { return sessionStorage.getItem(tokenKey) || '' } catch { return '' } })()
       fetch('/api/v1/map/config', { headers: { Authorization: `Bearer ${token}` } })
         .then(r => r.json())
         .then(cfg => {

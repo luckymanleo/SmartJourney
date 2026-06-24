@@ -130,7 +130,65 @@ export default function PoiDetailCard({ poi, nextPoi, distance, onClose, compact
   }
 
   const handleNavigate = () => {
-    const url = `https://uri.amap.com/navigation?to=${poi.lng},${poi.lat},${encodeURIComponent(poi.title)}&mode=walking&callnative=1`
+    // Transport items: extract departure point from title
+    if (poi.type === 'train' || poi.type === 'flight' || poi.type === 'transport') {
+      let depName = ''
+      const arrowIdx = poi.title.indexOf('→')
+      if (arrowIdx >= 0) {
+        // train/flight style: "D2325 武夷山北→深圳北 08:24-15:38"
+        const before = poi.title.slice(0, arrowIdx).trim()
+        depName = before.replace(/^[A-Z]+\d*\s+/, '').trim()
+      } else {
+        // transport style: "深圳北站到酒店（地铁/公交）"
+        const daoIdx = poi.title.indexOf('到')
+        if (daoIdx > 0) {
+          depName = poi.title.slice(0, daoIdx).trim()
+        }
+      }
+
+      if (depName) {
+        const params = new URLSearchParams()
+        params.set('type', 'car')
+        params.set('from[name]', depName)
+        // train/flight: to = arrival station (current poi coords)
+        // transport: to = nextPoi (destination) or current poi
+        const isTransit = poi.type === 'train' || poi.type === 'flight'
+        if (isTransit) {
+          params.set('to[lnglat]', `${poi.lng},${poi.lat}`)
+          params.set('to[name]', depName) // will be overwritten below for → case
+        } else if (nextPoi) {
+          params.set('to[lnglat]', `${nextPoi.lng},${nextPoi.lat}`)
+          params.set('to[name]', nextPoi.title)
+        } else {
+          params.set('to[lnglat]', `${poi.lng},${poi.lat}`)
+          params.set('to[name]', depName)
+        }
+
+        // For → items, use arrival station name (clean up suffixes)
+        if (arrowIdx >= 0) {
+          const after = poi.title.slice(arrowIdx + 1).trim()
+          const arrName = after
+            .replace(/\s+\d{2}:\d{2}.*$/, '')          // strip time " 08:24-15:38"
+            .replace(/\s+[A-Z]+\d+\s*$/i, '')           // strip train/flight number " D2325"
+            .replace(/\s*(地铁|公交|步行|打车|网约车|专车|出租车)\d*号线?(转\d*号线?)?(\s*\([^)]*\))?\s*$/, '')  // strip transport method
+            .trim()
+          params.set('to[name]', arrName)
+        }
+
+        params.set('src', 'uriapi')
+        params.set('callnative', '1')
+        params.set('innersrc', 'uriapi')
+        window.open(`https://ditu.amap.com/dir?${params.toString()}`, '_blank')
+        return
+      }
+    }
+
+    // Non-transport: current → next
+    const from = `${poi.lng},${poi.lat},${encodeURIComponent(poi.title)}`
+    const to = nextPoi
+      ? `${nextPoi.lng},${nextPoi.lat},${encodeURIComponent(nextPoi.title)}`
+      : `${poi.lng},${poi.lat},${encodeURIComponent(poi.title)}`
+    const url = `https://uri.amap.com/navigation?from=${from}&to=${to}&mode=walking&callnative=1`
     window.open(url, '_blank')
   }
 

@@ -15,7 +15,9 @@ export default function LiveMapPreview({ compact = false }: { compact?: boolean 
     const Am = (window as any).AMap
     if (Am) { setAmapReady(true); return }
 
-    const token = localStorage.getItem('sj_token') || ''
+    const isPC = typeof window !== 'undefined' && window.location.pathname.startsWith('/pc.html')
+    const tokenKey = isPC ? 'sj_pc_token' : 'sj_token'
+    const token = (() => { try { return sessionStorage.getItem(tokenKey) || '' } catch { return '' } })()
     fetch('/api/v1/map/config', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(cfg => {

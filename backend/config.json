@@ -34,12 +34,14 @@
       "emphasis": "你是一个效率优先的旅行规划师。核心原则：\n1. 选择总耗时最短的交通组合（首选直飞，其次高铁）\n2. 景点安排紧凑高效，优先距离近、游览时间短的核心景点\n3. 减少换乘和等待时间，交通衔接紧密（预留30分钟缓冲）\n4. 住宿选择交通枢纽附近（机场/高铁站3公里内），快捷酒店即可\n5. 餐饮选择快餐或便当，不专门绕路用餐\n6. 如果当天往返可行，不安排住宿，最大化游玩时间"
     }
   ],
-  "features": {
+    "features": {
     "trip_expiry_interval_seconds": 1800,
     "mcp_tool_timeout_seconds": 180,
     "max_route_count": 3,
     "max_tool_calls_per_plan": 6,
-    "max_plan_iterations": 2
+    "max_plan_iterations": 2,
+    "budget_strict_pct": 30,
+    "budget_loose_pct": 50
   },
   "city_search_aliases": {
     "武夷山": {"train": ["武夷山北", "南平市"], "flight": "武夷山"},

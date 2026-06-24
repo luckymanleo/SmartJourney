@@ -43,7 +43,9 @@ export function streamPlan(
   onEvent: (event: string, data: any) => void,
   onError: (err: string) => void,
 ): () => void {
-  const token = localStorage.getItem('sj_token')
+  const isPC = typeof window !== 'undefined' && window.location.pathname.startsWith('/pc.html')
+  const tokenKey = isPC ? 'sj_pc_token' : 'sj_token'
+  const token = (() => { try { return sessionStorage.getItem(tokenKey) || '' } catch { return '' } })()
   if (!token) {
     onError('请先登录')
     return () => {}

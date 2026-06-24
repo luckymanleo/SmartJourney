@@ -38,15 +38,20 @@ SYSTEM_PROMPT = """你是 SmartJourney（智旅）的智能旅行规划师。基
 
 - **价格必须从搜索结果逐项提取，严禁全部填0或使用示例中的默认值**
 - **搜索结果中有 booking_url 必须如实填入，无则填 ""**
+- **每个 item 的 title 必须使用搜索结果中的具体名称（如"7天连锁酒店"非"经济型酒店"、"深圳北站→7天酒店（地铁）"非"深圳北站到酒店（地铁/公交）"），严禁使用模糊描述或占位文字**
+- **当搜索结果为空时，也必须基于常识给出具体的商家名称（如"如家酒店(深圳东站店)"非"深圳东站附近经济型酒店"、"湘赣人家(深圳东站店)"非"深圳东站附近晚餐"、"永和豆浆(深圳东站店)"非"深圳东站附近早餐"），严禁使用泛指描述**
 - 严禁编造链接或价格
 
 ## 规则
 
 - 每天安排 2-3 个景点，上午 1 个、下午 1-2 个
+- **每天至少包含 5-6 个行程项（含景点、餐饮、交通），从早 08:00 覆盖到晚 20:00，充分利用时间**
+- **最后一天：返程交通前也必须安排上午活动（景点/美食）+ 午餐，不能只有返程一项**
 - 每个景点之间预留 30-60 分钟交通时间
-- 午餐 12:00-13:00，晚餐 18:00-19:00
+- 午餐 12:00-13:00，晚餐 18:00-19:00，早餐 07:30-08:30
+- **早餐必须指定具体店名（可复用前几天早餐店或附近知名连锁，如"永和豆浆(深圳北站店)"），严禁"酒店周边早餐""酒店早餐"等模糊描述**
 - 根据用户出行需求中的具体偏好安排合适的景点类型和节奏，不要凭空添加用户未提及的出行主题
-- 总预算允许 ±30% 浮动（严格预算则填此范围），宽松预算可浮动 ±50%。预算不足时优先压缩住宿和餐饮，保证交通和门票
+- 总预算允许 ±{budget_strict}% 浮动（严格预算则填此范围），宽松预算可浮动 ±{budget_loose}%。预算不足时优先压缩住宿和餐饮，保证交通和门票
 - items 中每个对象的 price 和 booking_url 必须直接复制搜索结果的对应字段值，一字不改。price 为数值（元）
 - 每天 items 数组必须按 start_time 从早到晚排序（09:00 在前，19:00 在后），禁止时间倒序
 - items 中每个对象的 price 和 booking_url 必须从搜索结果中逐一提取。price 为数值（元），搜索结果中未找到价格时方可填 0
@@ -269,10 +274,10 @@ class AgentService:
 
         results = []
 
-        # 批次 1: 酒店 + 景点 + 美食（可靠，优先展示，重试 1 次）
+        # 批次 1: 酒店 + 景点 + 美食（重要数据，重试 2 次）
         batch1 = [(n, q) for n, q in queries if n in ("search_hotel", "search_poi", "search_food")]
         if batch1:
-            b1 = await asyncio.gather(*[_run_one(n, q, retries=1) for n, q in batch1])
+            b1 = await asyncio.gather(*[_run_one(n, q, retries=2) for n, q in batch1])
             results.extend(b1)
 
         # 批次 2: 机票（限流敏感，不重试）
@@ -392,7 +397,11 @@ class AgentService:
         search_context = "\n\n".join(compact_results)
         disc_list = discontinued_stations()
         disc_str = "、".join(disc_list) if disc_list else "无"
+        budget_strict = feature("budget_strict_pct", 30)
+        budget_loose = feature("budget_loose_pct", 50)
         system_prompt = SYSTEM_PROMPT.replace("{discontinued}", disc_str)
+        system_prompt = system_prompt.replace("{budget_strict}", str(budget_strict))
+        system_prompt = system_prompt.replace("{budget_loose}", str(budget_loose))
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_message},
