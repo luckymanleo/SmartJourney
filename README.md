@@ -154,3 +154,28 @@ frontend/
 ├── index.html          # 移动端入口
 └── pc.html             # PC 端入口
 ```
+
+## 第三方开源许可
+
+本项目基于以下优秀的开源项目构建，感谢所有贡献者。
+
+| 项目 | 许可证 | 用途 |
+|------|--------|------|
+| [React](https://react.dev) | MIT | 前端 UI 框架 |
+| [FastAPI](https://fastapi.tiangolo.com) | MIT | 后端 API 框架 |
+| [SQLAlchemy](https://sqlalchemy.org) | MIT | 数据库 ORM |
+| [PostgreSQL](https://postgresql.org) | PostgreSQL License | 数据库 |
+| [Redis](https://redis.io) | RSALv2 / SSPLv1 | 缓存 |
+| [Vite](https://vitejs.dev) | MIT | 前端构建工具 |
+| [Tailwind CSS](https://tailwindcss.com) | MIT | CSS 框架 |
+| [Zustand](https://zustand.docs.pmnd.rs) | MIT | 状态管理 |
+| [Axios](https://axios-http.com) | MIT | HTTP 客户端 |
+| [Lucide](https://lucide.dev) | ISC | 图标库 |
+| [Uvicorn](https://uvicorn.org) | BSD-3 | ASGI 服务器 |
+| [Pydantic](https://pydantic.dev) | MIT | 数据校验 |
+| [HTTPX](https://python-httpx.org) | BSD-3 | HTTP 客户端 |
+| [APScheduler](https://apscheduler.readthedocs.io) | MIT | 定时任务 |
+| [Alembic](https://alembic.sqlalchemy.org) | MIT | 数据库迁移 |
+| [高德地图 API](https://lbs.amap.com) | 商用授权 | 地图与地理编码 |
+| [DeepSeek](https://deepseek.com) | API 服务 | AI 大语言模型 |
+| [ModelScope](https://modelscope.cn) | API 服务 | MCP 旅行数据 |
