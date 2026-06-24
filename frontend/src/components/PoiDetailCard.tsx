@@ -129,6 +129,18 @@ export default function PoiDetailCard({ poi, nextPoi, distance, onClose, compact
     food: '🍽️', transport: '🚗', bus: '🚌', other: '📍',
   }
 
+  const cleanTitle = (title: string) => {
+    const cleaned = title
+      .replace(/^.+→/, '')                               // strip "酒店→" prefix
+      .replace(/\s*(入住|退房|早餐|午餐|晚餐|宵夜)\s*$/, '')  // strip action/meal suffix
+      .replace(/\s+\d{2}:\d{2}.*$/, '')                   // strip time
+      .replace(/\s+[A-Z]+\d+\s*$/i, '')                    // strip train/flight number
+      .replace(/\s*(地铁|公交|步行|打车|网约车|专车|出租车)(\d*号线?(转\d*号线?)?)?(\s*\([^)]*\))?\s*$/, '')  // strip transport
+      .trim()
+    // Fallback: if cleaning removed everything, return original
+    return cleaned || title
+  }
+
   const handleNavigate = () => {
     // Transport items: extract departure point from title
     if (poi.type === 'train' || poi.type === 'flight' || poi.type === 'transport') {
@@ -164,15 +176,10 @@ export default function PoiDetailCard({ poi, nextPoi, distance, onClose, compact
           params.set('to[name]', depName)
         }
 
-        // For → items, use arrival station name (clean up suffixes)
+        // For → items, use arrival station name (cleaned)
         if (arrowIdx >= 0) {
           const after = poi.title.slice(arrowIdx + 1).trim()
-          const arrName = after
-            .replace(/\s+\d{2}:\d{2}.*$/, '')          // strip time " 08:24-15:38"
-            .replace(/\s+[A-Z]+\d+\s*$/i, '')           // strip train/flight number " D2325"
-            .replace(/\s*(地铁|公交|步行|打车|网约车|专车|出租车)\d*号线?(转\d*号线?)?(\s*\([^)]*\))?\s*$/, '')  // strip transport method
-            .trim()
-          params.set('to[name]', arrName)
+          params.set('to[name]', cleanTitle(after))
         }
 
         params.set('src', 'uriapi')
@@ -183,11 +190,11 @@ export default function PoiDetailCard({ poi, nextPoi, distance, onClose, compact
       }
     }
 
-    // Non-transport: current → next
-    const from = `${poi.lng},${poi.lat},${encodeURIComponent(poi.title)}`
+    // Non-transport: current → next (use cleaned titles)
+    const from = `${poi.lng},${poi.lat},${encodeURIComponent(cleanTitle(poi.title))}`
     const to = nextPoi
-      ? `${nextPoi.lng},${nextPoi.lat},${encodeURIComponent(nextPoi.title)}`
-      : `${poi.lng},${poi.lat},${encodeURIComponent(poi.title)}`
+      ? `${nextPoi.lng},${nextPoi.lat},${encodeURIComponent(cleanTitle(nextPoi.title))}`
+      : `${poi.lng},${poi.lat},${encodeURIComponent(cleanTitle(poi.title))}`
     const url = `https://uri.amap.com/navigation?from=${from}&to=${to}&mode=walking&callnative=1`
     window.open(url, '_blank')
   }
