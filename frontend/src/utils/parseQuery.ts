@@ -1,6 +1,6 @@
 /**
  * 从自然语言搜索词中推理提取出行信息
- * 例: "武夷山1日游" → { destination: "武夷山", days: 1 }
+ * 例: "杭州1日游" → { destination: "杭州", days: 1 }
  *     "三亚5天亲子游预算1万" → { destination: "三亚", days: 5, budget: 10000 }
  *     "2人成都3日美食游预算5000" → { destination: "成都", travelers: 2, days: 3, budget: 5000 }
  */
@@ -31,7 +31,7 @@ export function parseTripQuery(input: string): ParsedTrip {
 
   let text = input.trim()
 
-  // 0. 提取 "A到B" 模式的出发地和目的地（如"深圳到武夷山"）
+  // 0. 提取 "A到B" 模式的出发地和目的地（如"深圳到杭州"）
   // 非贪婪 {2,4}? + 前瞻：避免吃掉"亲子""家庭"等修饰词
   const toMatch = text.match(/^([\u4e00-\u9fa5]{2,4})到([\u4e00-\u9fa5]{2,4}?)(?=游|日|天|亲子|家庭|情侣|蜜月|美食|文化|古城|之旅|[0-9，,。,\-—预算人位])/)
   if (toMatch) {

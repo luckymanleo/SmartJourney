@@ -33,7 +33,7 @@ export default function TripDetailPage() {
     const lines = info.split('\n')
     let current: { city: string; lines: string[] } | null = null
     for (const line of lines) {
-      // Match "## 🌤️ 深圳（出发地天气）" or "## 🌤️ 武夷山（目的地天气）"
+      // Match "## 🌤️ 深圳（出发地天气）" or "## 🌤️ 杭州（目的地天气）"
       let m = line.match(/^##\s*🌤️\s*(?:出发地天气|目的地天气)?[（(]?([\u4e00-\u9fa5]{2,})[）)]?/)
       if (!m) m = line.match(/^([\u4e00-\u9fa5]{2,})[：:]/)
       if (m) {

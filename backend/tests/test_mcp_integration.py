@@ -103,9 +103,9 @@ class TestMCPIntegration:
 
         # 发送规划请求
         resp = await client.post("/api/v1/plan/generate", json={
-            "query": "深圳到武夷山1日游",
+            "query": "深圳到杭州1日游",
             "origin": "深圳",
-            "destination": "武夷山",
+            "destination": "杭州",
             "start_date": "2026-06-20",
             "end_date": "2026-06-20",
             "traveler_count": 1,
@@ -171,9 +171,9 @@ class TestMCPIntegration:
         headers = {"Authorization": f"Bearer {token}"}
 
         resp = await client.post("/api/v1/plan/generate", json={
-            "query": "深圳到武夷山1日游",
+            "query": "深圳到杭州1日游",
             "origin": "深圳",
-            "destination": "武夷山",
+            "destination": "杭州",
             "start_date": "2026-06-21",
             "end_date": "2026-06-21",
             "traveler_count": 2,
@@ -192,7 +192,7 @@ class TestMCPIntegration:
                 r = await client.get(f"/api/v1/trips/{trip_json['trip_id']}", headers=headers)
                 assert r.status_code == 200
                 saved = r.json()["data"]
-                assert saved["destination"] == "武夷山"
+                assert saved["destination"] == "杭州"
                 print(f"✅ 行程已保存: ID={trip_json['trip_id']}, 标题={saved['title']}")
 
                 # 验证预算
@@ -290,9 +290,9 @@ class TestMCPGatewayHTTP:
         # 使用 plan API 间接验证 MCP（避免 event loop 冲突）
         headers = {"Authorization": f"Bearer {token}"}
         resp = await client.post("/api/v1/plan/generate", json={
-            "query": "深圳到武夷山1日游",
+            "query": "深圳到杭州1日游",
             "origin": "深圳",
-            "destination": "武夷山",
+            "destination": "杭州",
             "start_date": "2026-06-20",
             "end_date": "2026-06-20",
             "traveler_count": 1,
